@@ -31,7 +31,7 @@ Decyzja autora, która zmienia kodeks albo fundament, musi zostać wpisana do od
 
 ## C. TECHNIKA
 
-**C1. Silnik: Godot 4.7.2, GDScript, renderer Compatibility.** Nie zmieniasz wersji silnika, renderera ani języka bez decyzji autora. Nie dodajesz C#/.NET.
+**C1. Silnik: Godot 4.7.2, GDScript, renderer Forward+** (decyzja autora 25.11.2026: grafika 3D jakości AAA; awaryjnie Compatibility, gdy brak Vulkana). Nie zmieniasz wersji silnika, renderera ani języka bez decyzji autora. Nie dodajesz C#/.NET.
 **C2. Gra działa offline** po rozpakowaniu i dwukliku. Zero zależności od internetu w działającej grze.
 **C3. Pad działa wszędzie** — w walce, w menu, w Warowni, w oknach. Każdy nowy ekran musi dać się obsłużyć samym padem (fokus, A zatwierdza, B wraca). Mysz i klawiatura też wszędzie.
 **C4. Akcje sterowania definiujesz tylko w `godot/skrypty/sterowanie.gd`.** Nigdzie indziej nie sprawdzasz klawiszy ani przycisków „na sztywno”.

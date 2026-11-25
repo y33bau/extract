@@ -17,7 +17,7 @@ Izometryczny dark fantasy extraction RPG w Godocie 4.7.2: walka Soulsborne + łu
 
 ## Najważniejsze zasady (pełne: `docs/ZASADY.md`)
 - Każda funkcja służy `docs/FUNDAMENT.md`. Zakres v1 zamknięty: 2 biotopy, pad wszędzie, bez kooperacji i fabuły.
-- Godot 4.7.2, GDScript z typami, Compatibility, offline. Prototyp JS (`zrodlo/`) = archiwum.
+- Godot 4.7.2, GDScript z typami, **Forward+ (3D)**, offline. Wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`. Prototyp JS (`zrodlo/`) = archiwum.
 - Akcje sterowania tylko w `godot/skrypty/sterowanie.gd`. Reguły rajdu w `rajd.gd`. Dane w `godot/dane/*.json`.
 - Ziarno = ten sam loch (strumienie `rng_uklad/rng_lup/rng_wrogowie`).
 - Test `testy.py godot` → OK po każdej zmianie; nowa mechanika = nowy test.

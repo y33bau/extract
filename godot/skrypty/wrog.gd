@@ -45,6 +45,7 @@ var sprite: Sprite2D
 var nakladka: Node2D
 var widoczny_dla_gracza := true
 var uspiony := false  # pomijany przez AI (testy)
+var tryb_3d := false  # wygląd rysuje swiat3d.gd; tu zostaje stan i nakładka
 
 
 func ustaw(r: String, pozycja: Vector2, kat_start: float) -> void:
@@ -79,6 +80,7 @@ func _ready() -> void:
 	var fh := 192.0 if boss else 128.0
 	sprite.offset = Vector2(0, -(fh * 0.93 - fh * 0.5))
 	add_child(sprite)
+	sprite.visible = not tryb_3d
 	# Paski, błysk i napisy rysujemy bez cieniowania, żeby były widoczne w mroku
 	nakladka = Node2D.new()
 	var m := CanvasItemMaterial.new()

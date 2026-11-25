@@ -43,6 +43,11 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 - Hadræn to jedna postać, która **dostaje do ręki** wyekwipowaną broń (broń widoczna na postaci, styl walki wynika z broni). Nie ma osobnych postaci-klas.
 - Czerwona peleryna odpada (trudna w animacji); znak rozpoznawczy do ustalenia — propozycja: żarzące się Piętno + czerwony akcent na zbroi.
 
+## Oprawa (decyzja autora 25.11.2026)
+
+- Gra w **prawdziwym 3D** z kamerą izometryczną, jakość „jak w grze AAA”: Godot Forward+, światło z cieniami, modele z Meshy (postacie, wrogowie, rekwizyty) i animacje Mixamo. Sprzęt nas nie ogranicza.
+- Platformy: **PC (v1)**, później **Xbox** (wymaga partnera portującego dla Godota). Wersja mobilna — dopiero gdy zdecydujemy.
+
 ## Postęp i powód powrotu
 
 - Rozbudowa Warowni i rozwój postaci (typowa progresja roguelike).

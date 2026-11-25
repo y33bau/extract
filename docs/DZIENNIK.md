@@ -17,6 +17,24 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 14:00 — konto (Claude, sesja Warownia), rola: gamedev + grafik (cel autora „/goal”: modele w jakości AAA w grze)
+- Gałąź i commit: `gra-3d` (od `hadraen-3d`).
+- Decyzje autora (wpisane do FUNDAMENT i ZASADY C1): sprite'y z renderu 3D „słabo wyglądają”; **gra w prawdziwym 3D, jakość AAA, bez oglądania się na sprzęt**; PC teraz, Xbox później, mobile kiedyś; użyć modeli, które autor ma w folderach (`3D modele warownia`, `modele_meshy`, `meshy`).
+- Zrobione:
+  - **Renderer Forward+** (MSAA 4x, FXAA, cienie miękkie, atlas 8192, SSAO, SSIL, glow, mgła przyziemna, tonemap AgX), awaryjnie Compatibility.
+  - **`swiat3d.gd`**: loch 3D z mapy (MultiMesh), tekstury PBR (kamień/deski/bale autora + wyliczone normal/rough), mgła wojny na 3D, **przekrój murów** od strony kamery przy graczu, kamera ortogonalna w rzucie `iso.gd` (zoom 1,45) — nakładki 2D i HUD bez zmian.
+  - **Postacie (GLB, Blender bpy)**: Hadræn (37 animacji: 4 style × 9 + trafienie; bronie: Czarny Miecz, glewia, topór, miecz, tarcza, pochodnia — przypięte do kości dłoni, widoczne wg rynsztunku); wrogowie z folderu autora: scout=zombie wieśniak, warden=gnijący rycerz (miecz+tarcza), knight=rycerz w hełmie (miecz+tarcza), brute=robotnik z solnego nabrzeża (wielki topór), archer=topielec-marynarz (łuk), boss=utopiec ×1,38 (wielki miecz). Animacje: postoj, chod, zamach (sterowany zapowiedzią), cios, trafienie, ogluszenie, smierc — ciało zostaje na ziemi.
+  - **Zapowiedzi 3D**: w czasie zamachu wroga rozbłyska na nim światło (złote = do sparowania, czerwone = ciężki), plus dotychczasowe znaki 2D.
+  - **Rekwizyty autora (Meshy)**: misy z żarem jako kosze ogniowe (ogień + światło z cieniami), kufer (skrzynie), sarkofag, stojak ze zbroją, posągi na części filarów, głazy/przewrócone kolumny/kości jako gruz, wystrój przy ścianach (kandelabry ze światłem, łańcuchy, nagrobki, beczki, kości) deterministycznie z położenia kafla. Tekstury rekwizytów zmniejszone do 1K.
+  - Pochodnia w dłoni = światło z cieniami; rzucona pochodnia = rekwizyt ze światłem; bez pochodni słaba poświata.
+  - **Poprawka usterki**: bufor ataku/uniku odejmował surowy czas klatki, przy przycięciu gubił naciśnięcia — teraz czas gry (jak reszta pętli).
+  - Testy: tryb lekki przy `--test`; test riposty niezależny od FPS (wróg ustawiany przed ciosem, czekanie na warunek).
+- Testy (godot): `testy.py godot` **OK 29/29** (tryb lekki, ~1–5 FPS w software). Kontrola Linux z `--test`: OK 29/29. Zrzuty Forward+ przez Vulkan (lavapipe) obejrzane: loch, kosze, sarkofag, wrogowie, cienie, przekrój murów.
+- Dostarczono: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Popiolow_3D.zip` + rozpakowane `Warownia_Popiolow_3D\Warownia_Popiolow.exe` (316 MB) i `TEST_WAROWNIA_3D.bat`.
+- NIE sprawdzone: exe na PC autora i wydajność na prawdziwej karcie (u agenta tylko software), pad, dźwięk, wygląd glewii/topora/pięści u Hadræna w grze, boss i wszystkie typy wrogów w grze (zrzuty pokazały gwardzistę), Warownia (menu) nadal 2D, strzały nadal kreskami 2D.
+- Znane ograniczenia: animacje Mixamo przeniesione automatycznie (mogą się zdarzyć wykręcone nadgarstki); kufer bez tekstury (materiał drewna z gry); stare arkusze 2D Hadræna zostają (używane do listy klatek/testów).
+- Następny krok: autor gra i ocenia wygląd, czytelność walki i płynność na swoim PC. Potem: strzały i efekty trafień w 3D, Warownia w 3D albo dopracowanie animacji (Meshy animacje natywne).
+
 ## 2026-11-25 12:50 — konto (Claude, sesja Warownia), rola: gamedev + grafik (jedna runda, cel autora „/goal”: etap 1 i 2 + wdrożenie + exe)
 - Gałąź i commit: `hadraen-3d` (od `zasady-projektu`).
 - Decyzje autora: Hadræn bez peleryny, „ma być przechujem”; pracujemy w przeglądarce wbudowanej na koncie Meshy autora; kredyty Meshy do wykorzystania; w paczkach Mixamo autora są animacje; obowiązkowo przewrót, parowanie, zapowiedzi (zapisane w FUNDAMENT).

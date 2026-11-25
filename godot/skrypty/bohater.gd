@@ -47,6 +47,7 @@ var rynsztunek: Dictionary = {}  # kopia profilu na czas rajdu
 var zestaw := ""
 var biezaca_anim := ""
 var biezacy_kierunek := 0
+var tryb_3d := false  # wygląd rysuje swiat3d.gd; tu zostaje stan i nakładki
 var _arkusze: Dictionary = {}  # anim -> Texture2D
 var _klucz_zestawu := ""
 
@@ -191,6 +192,11 @@ func animuj(czas: float) -> void:
 	pochodnia.energy = 1.45 + sin(czas * 14.0) * 0.08 + cos(czas * 23.0) * 0.05
 	plomien.queue_redraw()
 	aura.queue_redraw()
+	if tryb_3d:
+		sprite.visible = false
+		plomien.visible = false
+		pochodnia.visible = false
+		poswiata.visible = false
 
 
 ## Lewa dłoń z danych renderu (piksele klatki) -> układ postaci.

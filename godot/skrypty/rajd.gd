@@ -11,10 +11,13 @@ const Mapgen = preload("res://skrypty/mapgen.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
 const Wrog = preload("res://skrypty/wrog.gd")
 const Efekty = preload("res://skrypty/efekty.gd")
+const Swiat3D = preload("res://skrypty/swiat3d.gd")
 const K = Mapgen.K
 const N := Mapgen.ROZMIAR
 const CZAS_RAJDU := 480.0
 const CZAS_EKSTRAKCJI := 6.0
+const GRAFIKA_3D := true   # świat i postacie w 3D (Forward+); 2D zostaje dla nakładek
+const ZOOM_3D := 1.45      # bliższa kamera dla modeli 3D (tylko wygląd)
 
 var kraina: Dictionary
 var ziarno := ""
@@ -59,6 +62,7 @@ var sprite_kafli := {}   # idx -> Sprite2D (mury, filary, kosze, gruz)
 var swiatlo_pochodni_ziemia: PointLight2D
 var wezel_pochodni: Node2D
 var tekstury := {}
+var swiat3d: Swiat3D
 
 
 func start(id_krainy: String, ziarno_mapy: String) -> void:
@@ -73,6 +77,10 @@ func start(id_krainy: String, ziarno_mapy: String) -> void:
 	_buduj_swiat()
 	_postaw_gracza()
 	_postaw_wrogow()
+	if GRAFIKA_3D:
+		swiat3d = Swiat3D.new()
+		add_child(swiat3d)
+		swiat3d.zbuduj(self)
 	_licz_widok()
 
 
@@ -125,10 +133,20 @@ func _buduj_swiat() -> void:
 	add_child(efekty)
 	kamera = Camera2D.new()
 	add_child(kamera)
+	if GRAFIKA_3D:
+		kamera.zoom = Vector2(ZOOM_3D, ZOOM_3D)
+		mrok.color = Color.WHITE
+		podloga.visible = false
+		for l in get_children():
+			if l is PointLight2D:
+				l.visible = false
 	swiatlo_pochodni_ziemia = Swiatla.nowe(Color(1.0, 0.78, 0.5), 1.6, 300.0)
 	swiatlo_pochodni_ziemia.visible = false
 	add_child(swiatlo_pochodni_ziemia)
+	if GRAFIKA_3D:
+		swiatlo_pochodni_ziemia.enabled = false
 	wezel_pochodni = Node2D.new()
+	wezel_pochodni.visible = not GRAFIKA_3D
 	wezel_pochodni.draw.connect(_rysuj_pochodnie_ziemia)
 	swiat.add_child(wezel_pochodni)
 
@@ -152,6 +170,7 @@ func _postaw_gracza() -> void:
 	gracz.stamina_max = 100.0 + oltarz * 15
 	gracz.stamina = gracz.stamina_max
 	gracz.rynsztunek = Profil.d["loadout"].duplicate(true)
+	gracz.tryb_3d = GRAFIKA_3D
 	swiat.add_child(gracz)
 	kamera.position = Iso.ekran(gracz.w)
 
@@ -191,6 +210,7 @@ func _postaw_wrogow() -> void:
 
 func _dodaj_wroga(rodzaj: String, p: Vector2, kat: float) -> Wrog:
 	var w := Wrog.new()
+	w.tryb_3d = GRAFIKA_3D
 	w.ustaw(rodzaj, p, kat)
 	swiat.add_child(w)
 	wrogowie.append(w)
@@ -297,7 +317,7 @@ func _licz_widok() -> void:
 	for i in sprite_kafli:
 		var s: Sprite2D = sprite_kafli[i]
 		var v := widok[i]
-		s.visible = v > 0
+		s.visible = v > 0 and not GRAFIKA_3D
 		if v > 0:
 			var tx: int = i % N
 			var ty: int = i / N
@@ -309,9 +329,11 @@ func _licz_widok() -> void:
 			s.modulate.a = alfa
 	for sk in mapa.skrzynie:
 		var v2 := widok[mapa.idx(sk["tx"], sk["ty"])]
-		sk["wezel"].visible = v2 > 0
+		sk["wezel"].visible = v2 > 0 and not GRAFIKA_3D
 		sk["wezel"].modulate.a = 1.0 if v2 == 2 else 0.4
 	podloga.queue_redraw()
+	if swiat3d:
+		swiat3d.odswiez_widok()
 
 
 func widoczne(p: Vector2) -> int:
@@ -707,6 +729,7 @@ func _dodaj_zwloki(z: Dictionary) -> void:
 		s.modulate = Color(0.85, 0.85, 0.85)
 		wezel = s
 	wezel.position = Iso.ekran(z["w"]) + Vector2(0, 2)
+	wezel.visible = not GRAFIKA_3D
 	swiat.add_child(wezel)
 	z["wezel"] = wezel
 	zwloki.append(z)
@@ -767,6 +790,8 @@ func _process(dt_surowe: float) -> void:
 			gracz.smierc_anim += dt
 			gracz.animuj(czas)
 		czas += dt
+		if swiat3d:
+			swiat3d.aktualizuj(dt, czas)
 		efekty.aktualizuj(dt)
 		return
 	if not okno_otwarte:
@@ -780,6 +805,8 @@ func _process(dt_surowe: float) -> void:
 	_wejscie()
 	_aktualizuj(dt)
 	_kamera(dt)
+	if swiat3d:
+		swiat3d.aktualizuj(dt, czas)
 
 
 func _wejscie() -> void:

@@ -276,7 +276,7 @@ func _test() -> void:
 	await _czekaj(0.5)
 	_os(JOY_AXIS_LEFT_X, 0.0)
 	await _klatka()
-	_ok("ruch lewym drążkiem", p.w.distance_to(start) > 0.5, "%.2f pola" % p.w.distance_to(start))
+	_ok("ruch lewym drążkiem", p.w.distance_to(start) > 0.5, "%.2f pola, %d FPS" % [p.w.distance_to(start), Engine.get_frames_per_second()])
 	await _zrzut("3a_hadraen_z_pochodnia")
 	_ok("płomień pochodni przy lewej dłoni", p.pochodnia.position.distance_to(p._dlon + Vector2(0, -26)) < 0.5 and p._dlon.y < -20.0, str(p._dlon))
 
@@ -312,8 +312,9 @@ func _test() -> void:
 	await _czekaj(0.1)
 	_ok("LB paruje złoty błysk", en.ogluszenie > 0.0 and p.hp == p.hp_max, "ogłuszenie %.2f, HP %d" % [en.ogluszenie, p.hp])
 	var hp0: float = en.hp
+	_ustaw_wroga_przed(en, 1.0)  # niezależnie od FPS: wróg stoi przed graczem w chwili ciosu
 	await _pad(JOY_BUTTON_X, 0.05)
-	await _czekaj(0.2)
+	await _czekaj_az(func(): return en.hp < hp0, 1.5)
 	_ok("X: riposta", hp0 - en.hp > 50.0 and en.ogluszenie <= 0.0, "-%d HP" % int(hp0 - en.hp))
 
 	# postura

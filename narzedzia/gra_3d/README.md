@@ -1,0 +1,20 @@
+Stan na 2026-11-25, rola: gamedev
+
+# Gra w 3D (Forward+): postacie, broń, rekwizyty
+
+## Co jest gdzie
+- `godot/skrypty/swiat3d.gd` — cały wygląd rajdu w 3D: loch z mapy (MultiMesh: podłoga, mury, filary), rekwizyty, światła, mgła wojny, przekrój murów przy graczu, kamera, postacie i animacje. Reguły nadal w `rajd.gd` (`GRAFIKA_3D := true`, `ZOOM_3D`).
+- Kamera ortogonalna w rzucie `iso.gd` (64x32 px na pole, x zoom) — dlatego paski HP, napisy, efekty i HUD z 2D trafiają w postacie.
+- `godot/zasoby/3d/postacie/` — `hadraen.glb` (37 animacji: `<styl>_<anim>`, style: dwureczny, topor, miecz, piesci; bronie i pochodnia przypięte do kości dłoni), `wrog_<typ>.glb` (postoj, chod, zamach, cios, trafienie, ogluszenie, smierc).
+- `godot/zasoby/3d/rekwizyty/` — modele Meshy autora (folder `NIGHTBRAND\modele_meshy` i `meshy\partia8_z_malunkow`), tekstury zmniejszone do 1K.
+- `godot/zasoby/3d/tekstury/` — kamień/deski/bale z Pobranych autora + mapy normal/rough (`tekstury.py`).
+
+## Przebudowa postaci (Blender 5.0.1 jako bpy)
+```bash
+~/blendvenv/bin/python wypiekacz.py -- "$(cat cfg_hadraen.json)"   # albo cfg_<typ>.json dla wroga
+```
+`wypiekacz.py`: model Meshy (FBX, szkielet Mixamo, poza A) + klipy Mixamo z paczek autora (poza T) -> przeniesienie ruchu (`potok.py`), wypiekanie akcji, broń z `bronie.py`, podpięcie map PBR, eksport GLB (JPEG 92).
+Ścieżki w cfg wskazują na rozpakowane modele (`/home/claude/postacie/<nazwa>`) i paczki (`/home/claude/anim/...`) — źródła są w folderze autora `WAROWNIA_POPIOLOW\3D modele warownia`.
+
+## Testy
+`testy.py godot` uruchamia grę z `--test` w trybie lekkim (bez cieni i efektów ekranowych, 3D w połowie rozdzielczości), bo w środowisku agenta render jest programowy (~2-5 FPS). Pełna jakość do zrzutów: `--rendering-driver vulkan -- --test --pelna` (lavapipe: `apt-get install mesa-vulkan-drivers`).
