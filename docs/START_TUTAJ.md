@@ -19,8 +19,8 @@ Pełny opis: `docs/FUNDAMENT.md` (to jest kompas: każda funkcja ma mu służyć
 
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -5` i dziennikiem)
 - Działający prototyp w JavaScript (canvas 2D): hub Warowni (skrytka, kupiec, 4 budynki, 5 umiejętności), rajd z ziarnem, walka (combo, parowanie, riposta, blok, unik, łuk, postura), pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss, ekstrakcja, śmierć z Relikwiarzem.
-- Gałęzie nieopublikowane (`main` ich nie zawiera): `start-projektu`, `runda-1-walka`, `fundament-i-dziennik`.
-- **Otwarta decyzja: silnik.** Wstępnie Godot, jeśli agent może go uruchamiać i testować automatycznie. Do decyzji NIE dodajemy nowych mechanik do wersji JS. Aktualny etap: patrz najnowszy wpis w dzienniku.
+- Gałęzie nieopublikowane (`main` ich nie zawiera): `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` (każda zawiera poprzednią).
+- **Otwarta decyzja: silnik.** Godot 4.7.2 sprawdzony: działa u agenta, testy automatyczne z symulowanym padem przechodzą, eksport .exe działa (pilot w `godot/`, gałąź `godot-pilot`). Czeka na decyzję autora po zagraniu. Do decyzji NIE dodajemy nowych mechanik. Instrukcja instalacji Godota dla agenta: dziennik, wpis z 25.11 10:40.
 
 ## 4. Jak budować i testować (wersja JS)
 ```

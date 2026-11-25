@@ -1,0 +1,21 @@
+; Warownia Popiołów: pilot w Godocie (sprawdzenie silnika)
+config_version=5
+
+[application]
+config/name="Warownia Popiolow (pilot)"
+run/main_scene="res://scena_pilot.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+Sterowanie="*res://skrypty/sterowanie.gd"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.03, 0.02, 0.04, 1)

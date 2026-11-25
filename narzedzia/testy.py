@@ -4,6 +4,7 @@
 Użycie:
   python3 narzedzia/testy.py szybki   # drobne zmiany: budowa, brak błędów, rajd startuje
   python3 narzedzia/testy.py pelny    # duże zmiany: + pełna pętla gry i testy mechanik
+  python3 narzedzia/testy.py godot    # pilot w Godocie (wymaga godot 4.7.x, xvfb-run, mesa)
 
 Wymaga: pip install playwright && python -m playwright install chromium
 Test buduje grę, robi kopię z haczykiem testowym (window.__R / __P) w katalogu tymczasowym
@@ -152,8 +153,27 @@ async def main(tryb):
     return 0 if not zle else 1
 
 
+def test_godot():
+    """Uruchamia scenę pilota w trybie testu (symulowany pad) i zapisuje zrzut ekranu."""
+    g = ROOT / 'godot'
+    subprocess.run(['godot', '--headless', '--path', str(g), '--import'], capture_output=True, timeout=300)
+    zrzut = pathlib.Path(tempfile.mkdtemp()) / 'godot_pilot.png'
+    r = subprocess.run(['xvfb-run', '-a', '-s', '-screen 0 1280x720x24', 'godot', '--path', str(g),
+                        '--rendering-driver', 'opengl3', '--', '--test', f'--zrzut={zrzut}'],
+                       capture_output=True, text=True, timeout=300)
+    for linia in r.stdout.splitlines():
+        if linia.startswith(('  OK', '  BŁĄD', '  zrzut', 'WYNIK', '--')):
+            print(linia)
+    bledy = [l for l in r.stderr.splitlines() if 'SCRIPT ERROR' in l or 'Parse Error' in l]
+    for b in bledy:
+        print('  BŁĄD ' + b)
+    return 0 if r.returncode == 0 and not bledy else 1
+
+
 if __name__ == '__main__':
     tryb = sys.argv[1] if len(sys.argv) > 1 else 'szybki'
+    if tryb == 'godot':
+        sys.exit(test_godot())
     if tryb not in ('szybki', 'pelny'):
-        raise SystemExit('Użycie: testy.py [szybki|pelny]')
+        raise SystemExit('Użycie: testy.py [szybki|pelny|godot]')
     sys.exit(asyncio.run(main(tryb)))

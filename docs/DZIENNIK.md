@@ -17,6 +17,22 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 10:40 — konto 1 (Claude, sesja Warownia), rola: gamedev
+- Gałąź i commit: `godot-pilot` (od `fundament-i-dziennik`).
+- Zrobione:
+  - Krok 2: Godot **4.7.2** (najnowszy stabilny) działa w środowisku agenta: bez okna (`--headless`) oraz z renderem przez `xvfb-run` + Mesa (llvmpipe, OpenGL 4.5, renderer Compatibility). Symulowane wejście (`Input.parse_input_event`) i zrzuty ekranu działają.
+  - Krok 3: pilot w `godot/`: jedna komnata izometryczna, Hadræn (arkusze z `zasoby/sprite`), Upadły Gwardzista (pościg, zamach ze złotym błyskiem, cios), parowanie → ogłuszenie → riposta, blok, unik, światło pochodni z silnika (PointLight2D + CanvasModulate), sterowanie mysz/klawiatura + pad (`skrypty/sterowanie.gd`).
+  - Test automatyczny symuluje **pad** (lewy drążek, L1, X): `python3 narzedzia/testy.py godot`.
+  - Eksport do Windows: jeden plik `Warownia_Pilot.exe` (110 MB, 39 MB w zip), dostarczony autorowi do `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Godot_Pilot.zip`. Plik exe nie jest w repo (`dist/godot/` w .gitignore).
+- Testy: `testy.py godot` OK 6/6.
+- NIE sprawdzone: uruchomienie .exe na Windows autora, prawdziwy pad (test symuluje zdarzenia pada), dźwięk (pilot bez dźwięku), wydajność na PC autora.
+- Jak postawić Godota w środowisku agenta (Linux):
+  - `curl -L -o g.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip && unzip g.zip` → binarka jako `godot` w PATH.
+  - Szablony eksportu (1,3 GB, ok. 1 min): `.../4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz`; wypakuj `templates/version.txt` i `templates/windows_*_x86_64*.exe` do `~/.local/share/godot/export_templates/4.7.2.stable/`.
+  - Eksport: `godot --headless --path godot --export-release "Windows" ../dist/godot/Warownia_Pilot.exe`.
+- Decyzje autora: czeka na decyzję po zagraniu w pilota (Godot vs JS).
+- Następny krok: autor uruchamia `TEST_GODOT_PILOT.bat` (najlepiej z padem) i decyduje. Jeśli Godot: plan przenosin całości (3–5 sesji), nowe mechaniki dopiero po przeniesieniu.
+
 ## 2026-11-25 10:30 — konto 1 (Claude, sesja Warownia), rola: agent główny
 - Gałąź i commit: `fundament-i-dziennik` (od `runda-1-walka`).
 - Zrobione: `docs/FUNDAMENT.md` (z burzy mózgów z autorem), ten dziennik, `docs/START_TUTAJ.md`, `docs/INSTRUKCJE_PROJEKTU.md` (tekst do ustawień projektu Claude), zasady testów i dziennika w `CLAUDE.md`, wspólny skrypt `narzedzia/testy.py`.
