@@ -34,7 +34,8 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 - Dostarczono: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Popiolow_3D.zip` + rozpakowane `Warownia_Popiolow_3D\Warownia_Popiolow.exe` (316 MB) i `TEST_WAROWNIA_3D.bat`.
 - NIE sprawdzone: exe na PC autora i wydajność na prawdziwej karcie (u agenta tylko software), pad, dźwięk, wygląd glewii/topora/pięści u Hadræna w grze, boss i wszystkie typy wrogów w grze (zrzuty pokazały gwardzistę), Warownia (menu) nadal 2D, strzały nadal kreskami 2D.
 - Znane ograniczenia: animacje Mixamo przeniesione automatycznie (mogą się zdarzyć wykręcone nadgarstki); kufer bez tekstury (materiał drewna z gry); stare arkusze 2D Hadræna zostają (używane do listy klatek/testów).
-- Następny krok: autor gra i ocenia wygląd, czytelność walki i płynność na swoim PC. Potem: strzały i efekty trafień w 3D, Warownia w 3D albo dopracowanie animacji (Meshy animacje natywne).
+- **Ocena autora po zagraniu (14:30): „Świetny kierunek, w to chcę iść. Nic nie tnie.”** — kierunek 3D AAA zatwierdzony, wydajność na PC autora OK.
+- Następny krok: dopracowanie w 3D (strzały i efekty trafień, Warownia w 3D, animacje), publikacja na `main` po „publikuj”. Potem: strzały i efekty trafień w 3D, Warownia w 3D albo dopracowanie animacji (Meshy animacje natywne).
 
 ## 2026-11-25 12:50 — konto (Claude, sesja Warownia), rola: gamedev + grafik (jedna runda, cel autora „/goal”: etap 1 i 2 + wdrożenie + exe)
 - Gałąź i commit: `hadraen-3d` (od `zasady-projektu`).
