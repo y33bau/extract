@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 11:50 — konto (Claude, sesja Warownia), rola: agent główny
+- Gałąź i commit: `zasady-projektu` (od `godot-transfer`).
+- Zrobione: przeniesiono do repo zaakceptowane przez autora dokumenty z folderu `NIGHTBRAND\WAROWNIA_POPIOLOW\ZASADY_DO_AKCEPTACJI`: nowe `docs/ZASADY.md`, `PROCES.md`, `ROLE.md`, `SILNIK_GODOT.md`, `GRAFIKA.md`, `NARZEDZIA.md`; zaktualizowane `START_TUTAJ.md`, `INSTRUKCJE_PROJEKTU.md`; `CLAUDE.md` zastąpiony skrótem (pełne prawo: `docs/ZASADY.md`). Kodu gry nie ruszano.
+- Skille `warownia-start`, `warownia-gamedev`, `warownia-grafik` zapisane na tym koncie przez autora (na pozostałych kontach trzeba je dodać).
+- Testy (godot): test bazowy przed pracą: 1. przebieg 20/21 (BŁĄD „krzyżak ↓ rzuca pochodnię”), 2. i 3. przebieg 21/21 → **test niestabilny** (zależny od czasu), do przerobienia na czekanie na warunek (ZASADY D6). Zmiany tej rundy dotyczą tylko dokumentów.
+- NIE sprawdzone: czy skille wczytują się automatycznie w nowej sesji; gra bez zmian (nic nowego do sprawdzenia na padzie/PC).
+- Decyzje autora: dokumenty z `ZASADY_DO_AKCEPTACJI` przyjęte do repo („tak”).
+- Następny krok: runda gamedev — uszczelnić niestabilny test pochodni; potem decyzja autora: pilot grafiki Spalonej Osady (polecany) albo kolejna mechanika z fundamentu.
+
 ## 2026-11-25 11:15 — konto 1 (Claude, sesja Warownia), rola: gamedev
 - Gałąź i commit: `godot-transfer` (od `godot-pilot`).
 - Decyzja autora: „działa pięknie, możemy robić pełen transfer” → **silnik = Godot 4.7.2**. Wersja JS = archiwum.

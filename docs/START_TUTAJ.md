@@ -1,47 +1,46 @@
 Stan na 2026-11-25, rola: agent główny
 
-# START TUTAJ: przekazanie dla nowego agenta
+# START TUTAJ — 5 minut dla nowego agenta
 
-Jeśli jesteś nowym agentem (inne konto, nowa sesja), przeczytaj ten plik w całości, zanim cokolwiek zmienisz.
+Jesteś nowym agentem (inne konto, nowa sesja). Przeczytaj ten plik w całości, zanim cokolwiek zmienisz. Start sesji krok po kroku: `PROCES.md` §1.
 
 ## 1. Czym jest projekt
-**Warownia Popiołów**: izometryczny dark fantasy extraction RPG. Walka wręcz w stylu Soulsborne, łup i ryzyko w stylu Tarkova, rozbudowa Warowni między rajdami. Jeden bohater: Hadræn. Świat wspólny z grą NightBrand tego samego autora, ale z nowymi wątkami.
-Pełny opis: `docs/FUNDAMENT.md` (to jest kompas: każda funkcja ma mu służyć).
+**Warownia Popiołów** — izometryczny dark fantasy extraction RPG. Walka wręcz w stylu Soulsborne, łup i ryzyko w stylu Tarkova, rozbudowa Warowni między rajdami. Jeden bohater: Hadræn (broń jest klasą). Świat wspólny z grą NightBrand tego samego autora, ale z nowymi wątkami.
+Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, niż powinienem, i ledwo wracam do domu.”*
 
-## 2. Gdzie co jest
-- Repo: `y33bau/extract`. `main` = wersja opublikowana przez autora; praca na gałęziach.
-- Folder autora z grą: `C:\Users\Admin\Desktop\NIGHTBRAND\WAROWNIA_POPIOLOW\` (gra do grania + `TEST_WAROWNIA_POPIOLOW.bat`).
-- Grafika źródłowa: folder `C:\Users\Admin\Desktop\NIGHTBRAND\` (projekt NightBrand). Arkusze bohaterów z nazwami: `bohaterowie_do_x2\` (plus `MAPA.json`). Wrogowie: `NightBrand-itch-test\assets\wrogowie\` (nazwy to hasze; wybrane już są w `zasoby/sprite/`).
-- Zasady pracy, testów i dziennika: `CLAUDE.md`.
-- Dziennik wszystkich agentów: `docs/DZIENNIK.md`.
-- Pomysły autora z ocenami (nie wszystkie wchodzą do v1!): `docs/KONCEPCJE.md`.
-- Tekst instrukcji do ustawień projektu Claude: `docs/INSTRUKCJE_PROJEKTU.md`.
+## 2. Mapa dokumentów
 
-## 3. Stan na dziś (sprawdź komendą `git log --oneline -5` i dziennikiem)
-- **Silnik: Godot 4.7.2** (decyzja autora 25.11.2026). Gra jest w `godot/`. Przeniesiono cały prototyp JS: Warownia (5 zakładek, kupiec, rozbudowa, umiejętności, skrytka, Relikwiarz), generator lochów z ziarna, rajd (walka combo, parowanie, riposta, blok, unik, łuk, postura, pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss, łucznicy, ciężkie ciosy z czerwonym błyskiem), światło 2D z silnika, mgła wojny, minimapa, okno łupów, ekstrakcja, śmierć, dźwięk (syntezator).
-- Zgodnie z fundamentem: po śmierci zaliczana jest połowa doświadczenia z rajdu (w JS było 100%).
-- Sterowanie: klawiatura+mysz i pad w każdym miejscu (menu też).
-- Prototyp JS (`zrodlo/`) to archiwum.
-- Gałęzie nieopublikowane (`main` ich nie zawiera): `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` → `godot-transfer` (każda zawiera poprzednią).
+| Plik | Co w nim jest | Kiedy czytać |
+|---|---|---|
+| `docs/INSTRUKCJE_PROJEKTU.md` | tekst instrukcji projektu Claude (start sesji w skrócie) | wklejony w ustawieniach projektu |
+| `docs/START_TUTAJ.md` | ten plik: orientacja i stan na dziś | zawsze, najpierw |
+| `docs/ZASADY.md` | **kodeks — zasady nienaruszalne** | zawsze |
+| `docs/FUNDAMENT.md` | czym jest gra; zakres pierwszej wersji (kompas) | zawsze |
+| `docs/DZIENNIK.md` | dziennik wszystkich agentów (najnowszy na górze) | zawsze: 3 ostatnie wpisy |
+| `docs/PROCES.md` | przebieg sesji i rundy, wzory wiadomości, publikacja | zawsze |
+| `docs/ROLE.md` | role agentów (zastępuje skille, gdy ich brak) | wybierając rolę |
+| `docs/SILNIK_GODOT.md` | architektura, konwencje, pułapki, „jak dodać”, testy, eksport, środowisko | gamedev, grafik |
+| `docs/GRAFIKA.md` | styl, formaty sprite'ów i kafli, kolory, proces produkcji | grafik |
+| `docs/NARZEDZIA.md` | narzędzia, skille i MCP: co używamy, co odłożone i dlaczego | przy pytaniu o narzędzia |
+| `docs/KONCEPCJE.md` | pomysły autora z ocenami (nie wszystko wchodzi do v1!) | koncepciarz, planowanie |
+| `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
-## 4. Środowisko agenta: jak budować i testować
-```
-# jednorazowo: Godot 4.7.2 (Linux) jako `godot` w PATH
-curl -L -o g.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
-unzip g.zip && mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
-# jednorazowo: szablony eksportu (1,3 GB, ok. 1 min); potrzebne tylko do .exe
-curl -L -o t.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
-mkdir -p ~/.local/share/godot/export_templates/4.7.2.stable
-unzip -j t.tpz templates/version.txt templates/windows_release_x86_64.exe templates/linux_release.x86_64 -d ~/.local/share/godot/export_templates/4.7.2.stable/
-pip install gdtoolkit            # linter (opcjonalnie)
+## 3. Stan na dziś (sprawdź komendą `git log --oneline -8 --all` i dziennikiem)
+- **Silnik: Godot 4.7.2** (decyzja autora 25.11.2026; opinia po zagraniu: „lepiej niż w przeglądarce”). Gra w `godot/`.
+- Przeniesiony cały prototyp: Warownia (5 zakładek: wyprawa, ekwipunek i skrytka, kupiec, rozbudowa, umiejętności), generator lochów z ziarna (3 strumienie losowania), rajd (combo, parowanie, riposta, blok, unik, łuk, postura, pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss), światło 2D, mgła wojny, minimapa, okno łupów, ekstrakcja, śmierć (Relikwiarz, połowa doświadczenia), dźwięk (syntezator), pad wszędzie.
+- Test pełnej pętli na symulowanym padzie: 21/21.
+- Prototyp JS (`zrodlo/`) = archiwum.
+- Gałęzie nieopublikowane (`main` ich nie zawiera), każda zawiera poprzednią: `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` → `godot-transfer` → `zasady-projektu`. **Pracę zaczynaj od najnowszej**, chyba że dziennik mówi inaczej.
+- Otwarte tematy (z `FUNDAMENT.md`): ekonomia, lista broni v1, struktura mapy rajdu, liczby odblokowań biotopów i kary za śmierć; pilot grafiki Spalonej Osady.
 
-python3 narzedzia/testy.py godot  # test pełnej pętli na symulowanym padzie (wymaga xvfb-run i Mesa)
-godot --headless --path godot --export-release "Windows" ../dist/godot/Warownia_Popiolow.exe
-```
-Gra po uruchomieniu bez `--test` to normalna gra. W edytorze Godota otwórz folder `godot/`.
+## 4. Gdzie co jest
+- Repo: `y33bau/extract`.
+- Folder autora: `C:\Users\Admin\Desktop\NIGHTBRAND\` — gra do grania w `WAROWNIA_POPIOLOW\` (zip + `TEST_*.bat`).
+- Grafika źródłowa NightBrand: `C:\Users\Admin\Desktop\NIGHTBRAND\bohaterowie_do_x2\` (arkusze z nazwami + `MAPA.json`), `NightBrand-itch-test\assets\wrogowie\` (nazwy to hasze; wybrane już są w `godot/zasoby/`).
+- Projekt Claude: **„Warownia”** (instrukcje z `docs/INSTRUKCJE_PROJEKTU.md`).
 
 ## 5. Jak rozmawiać z autorem
-Po polsku, krótko, wynik najpierw, jedna polecana opcja. Jest początkujący w IT, ale bardzo logiczny: tłumacz decyzje, nie żargon. Nie każ mu używać gita. Zawsze pisz, czego NIE sprawdziłeś. Szczegóły w `CLAUDE.md`, sekcja „Autor”.
+Po polsku, krótko, wynik najpierw, jedna polecana opcja. Jest początkujący w IT, ale bardzo logiczny: tłumacz decyzje, nie żargon. Nie każ mu używać gita. Zawsze pisz, czego NIE sprawdziłeś. Szczegóły: `ZASADY.md` (F, G), wzory wiadomości: `PROCES.md` §5–6.
 
 ## 6. Na koniec sesji
-Dopisz wpis na górze `docs/DZIENNIK.md` (wzór jest w pliku). Bez tego następny agent startuje w ciemno.
+Commit i push gałęzi, wpis na górze `docs/DZIENNIK.md` (wzór w `PROCES.md` §3), aktualizacja §3 tego pliku, meldunek. Bez tego następny agent startuje w ciemno.
