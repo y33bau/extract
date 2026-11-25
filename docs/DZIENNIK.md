@@ -17,6 +17,21 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 21:30 — konto autora / agent główny (grafik + gamedev), rola: grafik
+- Gałąź: `mapy-runda-2`, commity `94d625c` (NPC, światło) i `66dc53b` (wrogowie). main nietknięty.
+- Zlecenie autora (/goal „pracuj dopóki postacie nie będą żyły”): NPC i moby szare, poświata na bohaterze brzydka, Chojrak „jak po udarze”, chłop „jak połamany”; kolory mają być nasycone jak w podglądzie Meshy; wolno generować nowe postacie w Meshy.
+- Przyczyny: tekstury Meshy prawie bez nasycenia, niebieskie światło otoczenia, tonemapper AgX (odbarwia), nakładka-poświata (szarzyła), a u NPC przenoszenie ruchu Mixamo (poza T) na szkielet w pozie A i bojowe pozy postoju.
+- Zrobione:
+  - światło: Filmic zamiast AgX; każda postać ma własne ciepłe światło działające tylko na postacie (warstwa 2, `godot/skrypty/wyglad_postaci.gd`); wbudowany „rim” materiału zamiast nakładki; usunięta poświata bohatera;
+  - kolory: `narzedzia/gra_3d/ozyw_postacie.py` (nasycenie, ciepło, rozjaśnienie cieni na postać);
+  - NPC (chłop, Chojrak, Marga, przewoźnik) wygenerowani na nowo w Meshy w pozie T, animacje z darmowej biblioteki Meshy (bez przenoszenia ruchu); `npc_z_meshy.py`; w Przystani złoty krąg pod rozmówcą, rozmowa gestami, zmiana póz;
+  - wrogowie zwiadowca (zombie), łucznik (topielec), krzepki (robotnik), strażnik (gnijący rycerz) na nowo w pozie T → czyste zginanie;
+  - rycerz i boss zostają na starych wypiekach z poprawką skrętu — nie znalazłem ich modeli w Meshy.
+- Kredyty Meshy łącznie w dniu: ok. 390 z 1000 dozwolonych (remesh i rig 0 kr).
+- Testy: `testy.py godot` 61/61 OK (nowy: krąg pod rozmówcą). Galeria kontrolna (`zblizenia.gd`, teraz Filmic) — wszyscy wrogowie i NPC obejrzani.
+- NIE sprawdzone: wygląd na monitorze autora, prawdziwy pad, dźwięk, wydajność z dodatkowymi światłami postaci (do 50 wrogów, światła bez cieni) na słabszym GPU.
+- Następny krok: ocena autora; ewentualnie rycerz i boss na nowo w pozie T; „publikuj” dla mapy-runda-2.
+
 ## 2026-11-25 19:40 — konto autora / agent główny (grafik + gamedev), rola: gamedev
 - Gałąź: `mapy-runda-2` (main nietknięty).
 - Zlecenie autora (/goal): postacie „powyginane” jak bohater; mapy kilkukrotnie większe i bogatsze; dopieścić Warownię.
