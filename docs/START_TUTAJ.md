@@ -31,7 +31,7 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 - Postacie: Hadræn (płynny ruch i walka przyjęte przez autora), 6 typów wrogów i NPC z Meshy w pozie T — **autor 26.11.2026: „Postacie są super”**.
 - Testy: `testy.py godot` 61/61.
 - Prototyp JS (`zrodlo/`) = archiwum.
-- `main` zawiera tylko pierwszy commit. Gałęzie nieopublikowane, każda zawiera poprzednią; najnowsza: **`mapy-runda-2`** (wcześniej `mapy-i-zapowiedzi`, `plynna-walka`, `gra-3d`, `hadraen-3d`…). **Pracę zaczynaj od najnowszej**, chyba że dziennik mówi inaczej.
+- **`main` = opublikowana wersja** (26.11.2026, stan gałęzi `mapy-runda-2`, przyjęty przez autora). Nowa runda: nowa gałąź od `main`.
 - Liczby do strojenia czekające na decyzję autora: wrogowie 34/44/50 na mapę, czas rajdu 15 min, skrzynie 40–80, nagrody kontraktów 40/60/150–400.
 - Otwarte tematy (z `FUNDAMENT.md`): ekonomia, lista broni v1, struktura mapy rajdu, liczby odblokowań biotopów i kary za śmierć; pilot grafiki Spalonej Osady.
 

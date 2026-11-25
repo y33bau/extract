@@ -17,7 +17,13 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
-## 2026-11-26 00:10 — konto 2 / agent główny, rola: agent główny
+## 2026-11-26 00:10 — konto 2 / agent główny, rola: agent główny — PUBLIKACJA
+- **Opublikowano na main** na „publikuj” autora (00:06): fast-forward `2945bea → be34911` (cała linia gałęzi do `mapy-runda-2` włącznie). main = `mapy-runda-2`.
+- Testy: 61/61 OK (test bazowy tej sesji, kod bez zmian od tamtej chwili).
+- NIE sprawdzone: prawdziwy pad, dźwięk, wydajność na komputerze autora przy 96×96 i 34–50 wrogach.
+- Następny krok: decyzja autora o liczbach do strojenia (wrogowie 34/44/50, czas rajdu 15 min, skrzynie 40–80, kontrakty 40/60/150–400); następna runda na nowej gałęzi od main.
+
+## 2026-11-26 00:05 — konto 2 / agent główny, rola: agent główny
 - Gałąź i commit: `mapy-runda-2` (zmiany tylko w dokumentach). main nietknięty.
 - Start sesji na nowym koncie: repo podpięte z zapisem, folder NIGHTBRAND podpięty (także Pobrane), skill `warownia-start` jest; Godot 4.7.2 zainstalowany od nowa.
 - Testy: test bazowy `testy.py godot` 61/61 OK przed zmianami.
