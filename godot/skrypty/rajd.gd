@@ -28,6 +28,7 @@ var zwloki: Array = []     # {w, rodzaj, kat, nazwa, boss, sakwa, przedmioty, we
 var strzaly: Array = []    # {w, v, dmg, zasieg, od_gracza}
 var widok := PackedByteArray()  # 0 nieznane, 1 widziane, 2 widoczne
 var czas := 0.0
+var czas_trafienia := -1.0  # kiedy ostatnio cios wroga trafił gracza (podpowiedź „za późno”)
 var czas_pozostaly := CZAS_RAJDU
 var zabici := 0
 var parowania := 0
@@ -411,6 +412,8 @@ func atak_wrecz() -> void:
 	if swiat3d != null:
 		swiat3d.impuls(p, doskok)
 	Dzwiek.zamach(ciezki)
+	if swiat3d != null:
+		swiat3d.efekt("ciecie_zar" if ciezki else "ciecie", p.w + Vector2(cos(p.kat), sin(p.kat)) * 0.75, 1.05, p.kat, 1.5 if ciezki else 1.25, 0.24, 0.08)
 	var kuznia := 1.0 + Profil.budynek("forge") * 0.12
 	var bieglosc := 1.0 + (Profil.poziom("melee") - 1) * 0.06
 	var trafil := false
@@ -431,6 +434,9 @@ func atak_wrecz() -> void:
 			hitstop = 0.11
 			wstrzas = minf(14.0, wstrzas + 10.0)
 			efekty.czastki_dodaj(en.w, 18, Color("ffd166"), 4.2, 0.6)
+			if swiat3d != null:
+				swiat3d.efekt("riposta", en.w, 1.1, kat_do, 1.6, 0.4, 0.05)
+				swiat3d.krew(en.w, kat_do, true)
 			napis(en.w - Vector2(0.9, 0.9), "RIPOSTA -%d!" % roundi(obr), Color("ffd166"), 14)
 			xp("parry", 35)
 			p.riposta_niet = 0.5
@@ -440,6 +446,9 @@ func atak_wrecz() -> void:
 			hitstop = 0.05 if ciezki else 0.025
 			wstrzas = minf(9.0, wstrzas + (5.0 if ciezki else 2.5))
 			efekty.czastki_dodaj(en.w, 7, Color("b51d29"), 2.8, 0.4)
+			if swiat3d != null:
+				swiat3d.efekt("ciecie_krew", en.w, 1.1, kat_do, 1.1, 0.26, 0.04)
+				swiat3d.krew(en.w, kat_do, ciezki)
 			napis(en.w - Vector2(0.6, 0.6), "-%d" % roundi(obr), Color("f59e0b") if ciezki else Color("f5f0e6"), 12)
 			xp("melee", 12)
 			postura(en, float(bron["dmg"]) * kuznia * (1.9 if ciezki else 0.85))
@@ -533,10 +542,18 @@ func parowanie_start() -> void:
 	if p.pochodnia_w_rece:
 		napis(p.w - Vector2(0.9, 0.9), "POCHODNIA W RĘCE — [F]", Color("f59e0b"), 10)
 		return
+	if czas - czas_trafienia < 0.35 and czas_trafienia > 0.0:
+		napis(p.w - Vector2(0.8, 0.8), "ZA PÓŹNO", Color("fca5a5"), 11)
 	if p.parowanie_cd <= 0.0:
-		var tarcza: float = float(Dane.p(p.rynsztunek["shield"]["id"])["parryBonus"]) if p.rynsztunek["shield"] else 0.0
-		p.okno_parowania = 0.28 + tarcza + Profil.budynek("altar") * 0.04 + (Profil.poziom("parry") - 1) * 0.015
+		p.okno_parowania = dlugosc_okna_parowania()
 		p.parowanie_cd = 0.65
+
+
+## Długość okna parowania gracza (s): ta sama liczba steruje regułą i zapowiedzią ciosu na ekranie.
+func dlugosc_okna_parowania() -> float:
+	var p := gracz
+	var tarcza: float = float(Dane.p(p.rynsztunek["shield"]["id"])["parryBonus"]) if p.rynsztunek["shield"] else 0.0
+	return 0.28 + tarcza + Profil.budynek("altar") * 0.04 + (Profil.poziom("parry") - 1) * 0.015
 
 
 func pochodnia() -> void:
@@ -645,10 +662,16 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 			wstrzas = minf(12.0, wstrzas + 8.0)
 			Dzwiek.parowanie()
 			efekty.czastki_dodaj((p.w + en.w) / 2.0, 22, Color("ffd166"), 4.5, 0.55)
+			if swiat3d != null:
+				swiat3d.efekt("parowanie", (p.w + en.w) / 2.0, 1.25, 0.0, 1.7, 0.42, 0.0)
 			napis(en.w - Vector2(0.95, 0.95), "PAROWANIE! [ATAK = RIPOSTA]", Color("ffd166"), 13)
 			xp("parry", 30)
 			return
 	var obr := surowe
+	if not dystansowe and en != null and not en.ciezki and not p.pochodnia_w_rece:
+		czas_trafienia = czas
+		if p.parowanie_cd > 0.0 and p.okno_parowania <= 0.0:
+			napis(p.w - Vector2(0.8, 1.2), "ZA WCZEŚNIE", Color("fcd34d"), 11)
 	if p.blok and p.stamina > 6.0:
 		var redukcja: float = 0.3 if p.pochodnia_w_rece else (float(Dane.p(p.rynsztunek["shield"]["id"])["blockRed"]) if p.rynsztunek["shield"] else 0.45)
 		p.stamina = maxf(0.0, p.stamina - surowe * 0.65 * (1.8 if (en != null and en.ciezki) else 1.0))
@@ -680,6 +703,8 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 
 
 func zabij(en: Wrog) -> void:
+	if swiat3d != null:
+		swiat3d.krew(en.w, en.kat + PI, true, true)
 	wrogowie.erase(en)
 	zabici += 1
 	efekty.czastki_dodaj(en.w, 16, Color("8f151d"), 3.2, 0.65)

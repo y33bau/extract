@@ -56,13 +56,22 @@ var _mat := {}
 var _sceny := {}
 var _dekor := []         # [Node3D, idx kafla] - rekwizyty widoczne wg mgły wojny
 var _skala_rek := {}     # nazwa -> [skala, przesunięcie y]
-var lekki := false  # tryb testowy: bez cieni i efektów ekranowych (software rendering w testach)
+var lekki := false  # tryb testowy albo jakość Niska: bez cieni i efektów ekranowych
+var jakosc := 2      # 0 Niska, 1 Średnia, 2 Wysoka, 3 Ultra (Profil.jakosc)
 
 
 func zbuduj(r) -> void:
 	rajd = r
 	lekki = "--test" in OS.get_cmdline_user_args() and not "--pelna" in OS.get_cmdline_user_args()
-	if lekki:
+	jakosc = 3 if "--pelna" in OS.get_cmdline_user_args() else Profil.jakosc()
+	if not lekki:
+		var vp0 := get_viewport()
+		vp0.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][jakosc]
+		vp0.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if jakosc <= 1 else Viewport.SCREEN_SPACE_AA_DISABLED
+		vp0.scaling_3d_scale = 0.75 if jakosc == 0 else 1.0
+		if jakosc == 0:
+			lekki = true  # Niska: ścieżka jak w trybie lekkim (bez cieni świateł, SSAO, odbić, mgły, plam)
+	if lekki and jakosc != 0:
 		var vp := get_viewport()
 		vp.msaa_3d = Viewport.MSAA_DISABLED
 		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
@@ -270,9 +279,9 @@ func _srodowisko() -> void:
 	e.ssao_enabled = true
 	e.ssao_radius = 1.4
 	e.ssao_intensity = 1.6
-	e.ssil_enabled = true
+	e.ssil_enabled = jakosc >= 3
 	e.ssil_radius = 3.0
-	e.ssr_enabled = wyglad["kaluze"] > 0.0
+	e.ssr_enabled = wyglad["kaluze"] > 0.0 and jakosc >= 2
 	e.ssr_max_steps = 48
 	e.ssr_fade_in = 0.2
 	e.ssr_fade_out = 2.0
@@ -288,7 +297,7 @@ func _srodowisko() -> void:
 		e.ssr_enabled = false
 		e.ssao_enabled = false
 		e.ssil_enabled = false
-		e.glow_enabled = false
+		e.glow_enabled = jakosc == 0 and not ("--test" in OS.get_cmdline_user_args())
 		e.fog_enabled = false
 	srodowisko.environment = e
 	add_child(srodowisko)
@@ -332,7 +341,7 @@ func _ustaw_kamere() -> void:
 func _mapa() -> void:
 	var siatki := {
 		"podloga": _plyta(), "sciezka": _plyta(), "ekstrakcja": _plyta(),
-		"mur": _box(Vector3(1.0, WYS_MURU, 1.0)), "filar": _filar(), "gruz": _gruz(), "kamyki": _kamyk(),
+		"filar": _filar(), "gruz": _gruz(), "kamyki": _kamyk(), "naroznik": _naroznik(),
 	}
 	var listy := {}
 	for k in siatki.keys():
@@ -351,10 +360,21 @@ func _mapa() -> void:
 				listy[podl].append([i, Basis(), 0.0])
 			match t:
 				K.MUR:
-					# ruiny: nierówna wysokość murów (wyższe na obwodzie), lekki przekos
+					# ruiny: nierówna wysokość murów (wyższe na obwodzie), moduł wg odsłoniętych boków
 					var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
 					var h := (1.25 if brzeg else 1.0) + float(_hash(x, y) % 9 - 4) * 0.045
-					listy["mur"].append([i, Basis().scaled(Vector3(1.0, h, 1.0)), WYS_MURU * 0.5 * h])
+					var maska := _maska_muru(x, y)
+					var wariant := _hash(y * 3, x * 5) % 3
+					var klucz := "mur_%d_%d" % [maska, wariant]
+					if not listy.has(klucz):
+						listy[klucz] = []
+						siatki[klucz] = _mesh_muru(maska, wariant)
+					listy[klucz].append([i, Basis().scaled(Vector3(1.0, h, 1.0)), WYS_MURU * 0.5 * h])
+					# filar w zewnętrznym narożniku: rytm architektury jak w ruinach Diablo II
+					for nr in [[1, 2, Vector2(0.5, 0.5)], [2, 4, Vector2(-0.5, 0.5)], [4, 8, Vector2(-0.5, -0.5)], [8, 1, Vector2(0.5, -0.5)]]:
+						if (maska & nr[0]) and (maska & nr[1]) and _hash(x * 13, y * 7) % 2 == 0:
+							var c: Vector2 = nr[2] * 0.86
+							listy["naroznik"].append([i, Basis().scaled(Vector3(1.0, h, 1.0)), (WYS_MURU + 0.3) * 0.5 * h, Vector3(c.x, 0, c.y)])
 				K.FILAR:
 					if _hash(x, y) % 3 == 0:
 						_postaw(i, "posag", 2.1, _hash(x, y) % 4 * PI * 0.5)
@@ -397,11 +417,142 @@ func _mapa() -> void:
 				_indeks[i] = []
 			_indeks[i].append([k, n, p, wp[1], wp[2]])
 		mmi.multimesh = mm
-		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz"}.get(k, k)
+		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar"}.get(k, k)
+		if k.begins_with("mur"):
+			mk = "mur"
 		mmi.material_override = _mat[mk]
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if k in ["mur", "filar", "gruz"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi)
 		_mm[k] = mmi
+
+
+## Bity odsłoniętych boków muru: 1 = +x, 2 = +z (y mapy), 4 = -x, 8 = -z.
+func _maska_muru(x: int, y: int) -> int:
+	var mapa = rajd.mapa
+	var m := 0
+	for b in [[1, 1, 0], [2, 0, 1], [4, -1, 0], [8, 0, -1]]:
+		var t: int = mapa.kafel(x + b[1], y + b[2])
+		if t != K.MUR and x + b[1] >= 0 and y + b[2] >= 0 and x + b[1] < N and y + b[2] < N:
+			m |= b[0]
+	return m
+
+
+## Moduł muru: bryła z nierówną, wyszczerbioną koroną, fazą na odsłoniętych krawędziach i cokołem
+## u podstawy od strony podłogi. Środek w (0, 0, 0), wysokość WYS_MURU (jak dawny klocek).
+func _mesh_muru(maska: int, wariant: int) -> Mesh:
+	var H := WYS_MURU
+	var G := 4
+	var faza := 0.07
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0xFFFFFFFF)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 9001 + maska * 31 + wariant * 977
+	# siatka korony
+	var gora := []
+	var ubytek := rng.randi_range(0, 3) if wariant == 2 else -1  # wyłamana ćwiartka korony
+	for j in G + 1:
+		var wiersz := []
+		for i in G + 1:
+			var u := float(i) / G - 0.5
+			var v := float(j) / G - 0.5
+			var px := u
+			var pz := v
+			# faza: zewnętrzny pierścień odsunięty do środka na odsłoniętych bokach
+			if i == G and (maska & 1): px -= faza
+			if j == G and (maska & 2): pz -= faza
+			if i == 0 and (maska & 4): px += faza
+			if j == 0 and (maska & 8): pz += faza
+			var hy := H * 0.5 + rng.randf_range(-0.07, 0.05)
+			if ubytek >= 0:
+				var qx := 1 if u > 0.0 else 0
+				var qz := 1 if v > 0.0 else 0
+				if qx + qz * 2 == ubytek and absf(u) > 0.1 and absf(v) > 0.1:
+					hy -= rng.randf_range(0.25, 0.4)
+			wiersz.append(Vector3(px, hy, pz))
+		gora.append(wiersz)
+	for j in G:
+		for i in G:
+			var a: Vector3 = gora[j][i]
+			var b: Vector3 = gora[j][i + 1]
+			var c: Vector3 = gora[j + 1][i + 1]
+			var d: Vector3 = gora[j + 1][i]
+			_quad_n(st, a, b, c, d, Vector3.UP)
+	# boki: od dołu do krawędzi korony (z fazą na odsłoniętych)
+	var dol := -H * 0.5
+	var boki := [[1, func(k): return gora[k][G], Vector3(0.5, 0, 0)], [2, func(k): return gora[G][k], Vector3(0, 0, 0.5)],
+		[4, func(k): return gora[k][0], Vector3(-0.5, 0, 0)], [8, func(k): return gora[0][k], Vector3(0, 0, -0.5)]]
+	for bok in boki:
+		var bit: int = bok[0]
+		var kraw: Callable = bok[1]
+		var n: Vector3 = bok[2]
+		var odsl := (maska & bit) != 0
+		for k in G:
+			var t0: Vector3 = kraw.call(k)
+			var t1: Vector3 = kraw.call(k + 1)
+			# punkty lica na granicy pola (x lub z = ±0.5)
+			# lico zawsze na pełnej szerokości pola (bez szczelin w narożnikach)
+			var w0 := float(k) / G - 0.5
+			var w1 := float(k + 1) / G - 0.5
+			var f0 := Vector3(n.x if n.x != 0 else w0, 0, n.z if n.z != 0 else w0)
+			var f1 := Vector3(n.x if n.x != 0 else w1, 0, n.z if n.z != 0 else w1)
+			var hf0 := t0.y - (faza if odsl else 0.0)
+			var hf1 := t1.y - (faza if odsl else 0.0)
+			var p0 := Vector3(f0.x, dol, f0.z)
+			var p1 := Vector3(f1.x, dol, f1.z)
+			var q0 := Vector3(f0.x, hf0, f0.z)
+			var q1 := Vector3(f1.x, hf1, f1.z)
+			_quad_n(st, p0, p1, q1, q0, n)
+			if odsl:
+				_quad_n(st, q0, q1, t1, t0, n)  # pas fazy
+	# cokół na odsłoniętych bokach
+	for bok in boki:
+		if (maska & int(bok[0])) == 0:
+			continue
+		var n: Vector3 = bok[2] * 2.0  # jednostkowa normalna boku
+		var polowa := Vector3(0.035 if n.x != 0 else 0.5, 0.12, 0.035 if n.z != 0 else 0.5)
+		var srodek := n * 0.535
+		_skrzynka(st, Vector3(srodek.x, dol + 0.12, srodek.z), polowa)
+	st.generate_normals()
+	return st.commit()
+
+
+func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
+	for v in [a, b, c, a, c, d]:
+		st.add_vertex(v)
+
+
+func _quad_n(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3) -> void:
+	# kolejność wierzchołków tak, by normalna trójkąta patrzyła w n (Godot: przednia ściana zgodnie z ruchem wskazówek)
+	var nn := (b - a).cross(c - a)
+	if nn.dot(n) > 0.0:
+		_quad(st, a, d, c, b)
+	else:
+		_quad(st, a, b, c, d)
+
+
+func _skrzynka(st: SurfaceTool, c: Vector3, r: Vector3) -> void:
+	var dx := Vector3(r.x, 0, 0)
+	var dy := Vector3(0, r.y, 0)
+	var dz := Vector3(0, 0, r.z)
+	for sc in [[dx, dy, dz], [-dx, dy, -dz], [dz, dy, -dx], [-dz, dy, dx], [dy, dz, dx], [-dy, dz, -dx]]:
+		var n: Vector3 = sc[0]
+		var u: Vector3 = sc[1]
+		var v: Vector3 = sc[2]
+		var o: Vector3 = c + n
+		_quad_n(st, o - u - v, o - u + v, o + u + v, o + u - v, n.normalized())
+
+
+## Filar narożny: kwadratowy trzon z głowicą i cokołem.
+func _naroznik() -> Mesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var H := WYS_MURU + 0.3
+	_skrzynka(st, Vector3(0, 0, 0), Vector3(0.2, H * 0.5, 0.2))
+	_skrzynka(st, Vector3(0, H * 0.5 - 0.06, 0), Vector3(0.25, 0.07, 0.25))
+	_skrzynka(st, Vector3(0, -H * 0.5 + 0.1, 0), Vector3(0.25, 0.1, 0.25))
+	st.generate_normals()
+	return st.commit()
 
 
 func _kamyk() -> Mesh:
@@ -622,7 +773,7 @@ func _plamy() -> void:
 			if rodzaj == "":
 				continue
 			var d := Decal.new()
-			d.texture_albedo = tex_krew if rodzaj == "krew" else tex_sadza
+			d.texture_albedo = _tex_ef("krew_kaluza_%d" % (hh % 4)) if rodzaj == "krew" else tex_sadza
 			var r := 0.45 + float(hh % 60) / 80.0
 			d.size = Vector3(r * 1.6, 0.6, r * 1.6)
 			d.position = Vector3(x + 0.5 + float(hh % 7 - 3) * 0.08, 0.0, y + 0.5 + float((hh / 7) % 7 - 3) * 0.08)
@@ -727,9 +878,9 @@ func odswiez_widok() -> void:
 			if v == 0:
 				b = Basis().scaled(Vector3.ZERO)
 			# mur między kamerą a graczem obniżony do cokołu (jak w grach izometrycznych AAA)
-			if przezr and (rodzaj == "mur" or rodzaj == "filar") and v != 0:
+			if przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik") and v != 0:
 				var h := 0.22
-				var pelna := WYS_MURU if rodzaj == "mur" else WYS_MURU + 0.4
+				var pelna := WYS_MURU if rodzaj.begins_with("mur") else (WYS_MURU + 0.3 if rodzaj == "naroznik" else WYS_MURU + 0.4)
 				b = Basis(b.get_rotation_quaternion()).scaled(Vector3(1.0, h / pelna, 1.0))
 				y = h * 0.5
 			if rodzaj == "ekstrakcja":
@@ -813,7 +964,7 @@ func _swiatlo(kolor: Color, energia: float, zasieg: float, cien := true) -> Omni
 	l.light_energy = energia
 	l.omni_range = zasieg
 	l.omni_attenuation = 1.0
-	l.shadow_enabled = cien and not lekki
+	l.shadow_enabled = cien and not lekki and (jakosc >= 2 or energia >= 3.0)
 	l.shadow_blur = 1.5
 	l.light_specular = 0.6
 	return l
@@ -1138,19 +1289,35 @@ func _wrog3d(en) -> Dictionary:
 	gw.top_level = true
 	gw.visible = false
 	n.add_child(gw)
+	# pierścień rytmu: zwęża się do koła wewnętrznego w chwili ciosu; jasny = paruj teraz
+	var pr := MeshInstance3D.new()
+	var pp := PlaneMesh.new()
+	pp.size = Vector2(3.2, 3.2) * s
+	pr.mesh = pp
+	var prm := ShaderMaterial.new()
+	prm.shader = _shader_pierscienia()
+	prm.set_shader_parameter("kolor", Color(1.0, 0.25, 0.12) if en.ciezki else Color(1.0, 0.82, 0.3))
+	prm.set_shader_parameter("ciezki", 1.0 if en.ciezki else 0.0)
+	pr.material_override = prm
+	pr.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	pr.top_level = true
+	pr.visible = false
+	n.add_child(pr)
 	var bron: Node3D = null
 	for c in n.find_children("bron_*", "", true, false):
 		if c is Node3D and (c as Node3D).visible and c.name != "bron_tarcza":
 			bron = c
 			break
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
-		"znak": znak, "znak_mat": zm, "glint": gw, "bron": bron, "zamach_byl": false, "glint_byl": false}
+		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false}
 	_wrogowie[id] = d
 	return d
 
 
-## Czas przed uderzeniem, w którym pojawia się błysk „paruj teraz” (okno parowania ≥ 0,28 s, więc wciśnięcie na błysk zawsze zdąży).
-const BLYSK_PRZED := 0.26
+## Błysk „paruj teraz” zapala się dokładnie wtedy, gdy wciśnięcie parowania już zdąży (początek okna gracza),
+## a zwężający się pierścień od początku zamachu pokazuje, kiedy to nastąpi (jak w grach rytmicznych).
+var BLYSK_PRZED := 0.28
+var _podpowiedz_pochodni := 0.0
 
 
 func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
@@ -1166,8 +1333,19 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 	znak.global_rotation = Vector3(0, -en.kat, 0)
 	zm.set_shader_parameter("postep", t)
 	zm.set_shader_parameter("sila", 1.0)
-	var gw: Sprite3D = d["glint"]
+	BLYSK_PRZED = rajd.dlugosc_okna_parowania()
+	var pr: MeshInstance3D = d["pierscien"]
+	var pm: ShaderMaterial = d["pierscien_mat"]
 	var zostalo: float = en.zamach
+	pr.visible = widac and en.rodzaj != "archer"
+	pr.global_position = Vector3(en.w.x, 0.04, en.w.y)
+	# promień: od szerokiego do wewnętrznego koła dokładnie w chwili ciosu
+	pm.set_shader_parameter("promien_frontu", clampf(zostalo / maxf(en.zamach_dl, 0.01), 0.0, 1.0))
+	pm.set_shader_parameter("w_oknie", 1.0 if zostalo <= BLYSK_PRZED else 0.0)
+	if widac and rajd.gracz.pochodnia_w_rece and not en.ciezki and en.rodzaj != "archer" and _podpowiedz_pochodni <= 0.0:
+		_podpowiedz_pochodni = 6.0
+		rajd.napis(rajd.gracz.w - Vector2(1.1, 1.1), "🔥 Z POCHODNIĄ NIE SPARUJESZ — [F / ↓]", Color("f59e0b"), 11)
+	var gw: Sprite3D = d["glint"]
 	if en.rodzaj != "archer" and zostalo <= BLYSK_PRZED:
 		if not d["glint_byl"]:
 			d["glint_byl"] = true
@@ -1186,6 +1364,7 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 
 func _zgas_zapowiedz(d: Dictionary, dt: float) -> void:
 	d["zamach_byl"] = false
+	(d["pierscien"] as MeshInstance3D).visible = false
 	(d["glint"] as Sprite3D).visible = false
 	var znak: MeshInstance3D = d["znak"]
 	if znak.visible:
@@ -1196,6 +1375,37 @@ func _zgas_zapowiedz(d: Dictionary, dt: float) -> void:
 		zm.set_shader_parameter("postep", 1.0)
 		if sila <= 0.0:
 			znak.visible = false
+
+
+var _sh_pier: Shader
+func _shader_pierscienia() -> Shader:
+	if _sh_pier == null:
+		_sh_pier = Shader.new()
+		_sh_pier.code = """shader_type spatial;
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled, shadows_disabled;
+uniform vec4 kolor : source_color = vec4(1.0, 0.8, 0.3, 1.0);
+uniform float promien_frontu = 1.0;
+uniform float w_oknie = 0.0;
+uniform float ciezki = 0.0;
+varying vec2 lok;
+void vertex() { lok = VERTEX.xz / 1.6; }
+void fragment() {
+	float r = length(lok);
+	// koło docelowe (chwila ciosu)
+	float r0 = 0.32;
+	float cel = exp(-pow((r - r0) * 38.0, 2.0));
+	// front zwęża się od krawędzi do koła docelowego
+	float rf = mix(r0, 1.0, promien_frontu);
+	float front = exp(-pow((r - rf) * 22.0, 2.0));
+	// w oknie parowania: wypełnienie i mocny, biały rozbłysk
+	float wyp = w_oknie * (1.0 - smoothstep(r0 - 0.02, r0 + 0.02, r)) * 0.35;
+	vec3 k = mix(kolor.rgb, vec3(1.0, 0.97, 0.85), w_oknie * (1.0 - ciezki) * 0.7);
+	float a = cel * (0.45 + 0.55 * w_oknie) + front * (0.8 + 0.6 * w_oknie) + wyp;
+	ALBEDO = k * (1.2 + 1.8 * w_oknie);
+	ALPHA = clamp(a, 0.0, 1.0);
+}
+"""
+	return _sh_pier
 
 
 var _sh_znak: Shader
@@ -1251,6 +1461,7 @@ func _tekstura_blysku() -> Texture2D:
 
 
 func _aktualizuj_wrogow(dt: float, czas: float) -> void:
+	_podpowiedz_pochodni = maxf(0.0, _podpowiedz_pochodni - dt)
 	var zywi := {}
 	for en in rajd.wrogowie:
 		var d := _wrog3d(en)
@@ -1297,6 +1508,7 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			(d2["blysk"] as StandardMaterial3D).albedo_color.a = 0.0
 			(d2["znak"] as MeshInstance3D).visible = false
 			(d2["glint"] as Sprite3D).visible = false
+			(d2["pierscien"] as MeshInstance3D).visible = false
 		d2["smierc"] += dt
 		var ap2: AnimationPlayer = d2["ap"]
 		_graj(ap2, "smierc", minf(1.0, d2["smierc"] / 1.4))
@@ -1336,8 +1548,82 @@ func _aktualizuj_rekwizyty(czas: float) -> void:
 			l.light_energy = baza * (1.0 + sin(czas * 13.0 + l.position.x * 7.0) * 0.06 + sin(czas * 31.0 + l.position.z) * 0.04)
 
 
+# ---------------------------------------------------------------- EFEKTY WALKI (arkusze NightBrand)
+var _efekty3d: Array = []   # [Sprite3D, czas, długość, opóźnienie]
+var _plamy_krwi: Array = []
+var _tex_efekt := {}
+
+
+func _tex_ef(nazwa: String) -> Texture2D:
+	if not _tex_efekt.has(nazwa):
+		_tex_efekt[nazwa] = load("res://zasoby/3d/efekty/%s.png" % nazwa)
+	return _tex_efekt[nazwa]
+
+
+## Krótka animacja z paska 4 klatek nad sceną. kat: kierunek w świecie (odbicie w poziomie wg kierunku na ekranie).
+func efekt(nazwa: String, w: Vector2, wys: float, kat: float, skala: float, dlugosc: float, opoznienie := 0.0, losowa := false) -> void:
+	var sp := Sprite3D.new()
+	sp.texture = _tex_ef(nazwa)
+	sp.hframes = 4
+	sp.frame = randi() % 4 if losowa else 0
+	sp.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sp.shaded = false
+	sp.double_sided = true
+	sp.pixel_size = skala / 256.0
+	sp.render_priority = 5
+	sp.position = Vector3(w.x, wys, w.y)
+	# kierunek na ekranie izometrycznym: x świata w prawo-dół, y świata w lewo-dół
+	sp.flip_h = (cos(kat) - sin(kat)) < 0.0
+	sp.visible = opoznienie <= 0.0
+	add_child(sp)
+	_efekty3d.append([sp, 0.0, dlugosc, opoznienie, losowa])
+
+
+## Krew: bryzg w kierunku ciosu i (czasem) kałuża na podłodze; kałuże zostają (limit).
+func krew(w: Vector2, kat: float, mocno := false, zawsze_kaluza := false) -> void:
+	efekt("krew_bryzg", w + Vector2(cos(kat), sin(kat)) * 0.35, 0.9, kat, 1.2 if mocno else 0.9, 0.35, 0.03, true)
+	if lekki or not (zawsze_kaluza or (mocno and randf() < 0.6) or randf() < 0.25):
+		return
+	var d := Decal.new()
+	d.texture_albedo = _tex_ef("krew_kaluza_%d" % (randi() % 4))
+	var r := randf_range(0.9, 1.5) * (1.3 if zawsze_kaluza else 1.0)
+	d.size = Vector3(r, 0.6, r)
+	d.position = Vector3(w.x + cos(kat) * 0.3, 0.0, w.y + sin(kat) * 0.3)
+	d.rotation.y = randf() * TAU
+	d.albedo_mix = 0.95
+	d.upper_fade = 0.4
+	d.lower_fade = 0.4
+	add_child(d)
+	_plamy_krwi.append(d)
+	if _plamy_krwi.size() > 60:
+		(_plamy_krwi.pop_front() as Node).queue_free()
+
+
+func _aktualizuj_efekty(dt: float) -> void:
+	for i in range(_efekty3d.size() - 1, -1, -1):
+		var e: Array = _efekty3d[i]
+		var sp: Sprite3D = e[0]
+		if e[3] > 0.0:
+			e[3] -= dt
+			if e[3] > 0.0:
+				continue
+			sp.visible = true
+		e[1] += dt
+		var t: float = e[1] / e[2]
+		if t >= 1.0:
+			sp.queue_free()
+			_efekty3d.remove_at(i)
+			continue
+		if e[4]:
+			sp.modulate.a = 1.0 - t * t
+		else:
+			sp.frame = mini(3, int(t * 4.0))
+			sp.modulate.a = 1.0 if t < 0.75 else (1.0 - t) * 4.0
+
+
 func aktualizuj(dt: float, czas: float) -> void:
 	_ustaw_kamere()
+	_aktualizuj_efekty(dt)
 	if _pyl:
 		_pyl.position = Vector3(rajd.gracz.w.x, 1.2, rajd.gracz.w.y)
 	_aktualizuj_bohatera(dt)

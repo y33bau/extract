@@ -132,3 +132,23 @@ func dodaj_xp(umiejetnosc: String, ile: float) -> void:
 		sk["xp"] -= wymagane
 		sk["lv"] = int(sk["lv"]) + 1
 		awans.emit(umiejetnosc, sk["lv"])
+
+
+# ---------------------------------------------------------------- USTAWIENIA (osobno od profilu: reset postaci ich nie kasuje)
+const PLIK_USTAWIEN := "user://ustawienia.cfg"
+const JAKOSCI := ["Niska", "Średnia", "Wysoka", "Ultra"]
+
+
+## Jakość grafiki 0..3 (domyślnie Wysoka).
+func jakosc() -> int:
+	var c := ConfigFile.new()
+	if c.load(PLIK_USTAWIEN) != OK:
+		return 2
+	return clampi(int(c.get_value("grafika", "jakosc", 2)), 0, 3)
+
+
+func ustaw_jakosc(j: int) -> void:
+	var c := ConfigFile.new()
+	c.load(PLIK_USTAWIEN)
+	c.set_value("grafika", "jakosc", clampi(j, 0, 3))
+	c.save(PLIK_USTAWIEN)

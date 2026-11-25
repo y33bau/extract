@@ -25,6 +25,7 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
   - Shadery: `teren.gdshader` (3 warstwy mieszane po wysokości i szumie w przestrzeni świata — bez kafelkowania; ciemnienie przy murach z maski mapy; pamięć mapy wyblakła), `mur.gdshader` (trójpłaszczyznowo, brud/mech/żar przy podstawie, ciemna korona), `mgla.gdshader` (przyziemna mgła tylko nad odkrytą geometrią), `czastka.gdshader` (pył/iskry tylko przy odkrytych miejscach).
   - Ruiny: nierówna wysokość murów (wyższe na obwodzie), osypany gruz u podstaw, pochodnie w uchwytach na murach (znikają z obniżonym murem), plamy krwi i sadzy, kosze ogniowe ukryte w mgle wojny, większy przekrój murów od strony kamery (jak w Diablo II).
 - Testy: 40/40 (nowe: klin w stronę ciosu, błysk do parowania, materiały krainy, pochodnie na obniżonych murach). Narzędzie podglądu: `godot --path godot -- --pelna --podglad=kraina,ziarno,katalog`.
+- **Ocena autora (16:52): „Niesamowite. Idźmy dalej w tym kierunku.”** Runda 2 (gałąź mapy-runda-2): mury z bryły, efekty walki z arkuszy NightBrand, ustawienie jakości grafiki.
 - NIE sprawdzone: wydajność na komputerze autora (Forward+, cienie wielu świateł, SSR), wrażenie w ruchu (oceniano zrzuty), pad i dźwięk na żywo; balans bez zmian.
 
 ## 2026-11-25 15:40 — agent główny (konto autora), rola: gamedev

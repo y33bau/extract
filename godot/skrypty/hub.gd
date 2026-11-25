@@ -19,6 +19,7 @@ var t_warownia: VBoxContainer
 var t_umiej: VBoxContainer
 var dialog_reset: ConfirmationDialog
 var przycisk_dzwieku: Button
+var przycisk_grafiki: Button
 var _fokus_klucz := ""
 
 
@@ -53,6 +54,14 @@ func _ready() -> void:
 		Dzwiek.wyciszony = not Dzwiek.wyciszony
 		przycisk_dzwieku.text = "🔇" if Dzwiek.wyciszony else "🔊")
 	gora.add_child(przycisk_dzwieku)
+	przycisk_grafiki = Button.new()
+	przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()]
+	przycisk_grafiki.tooltip_text = "Jakość grafiki rajdu (cienie, odbicia, mgła). Niższa = płynniej."
+	przycisk_grafiki.pressed.connect(func():
+		Profil.ustaw_jakosc((Profil.jakosc() + 1) % Profil.JAKOSCI.size())
+		Dzwiek.ui()
+		przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()])
+	gora.add_child(przycisk_grafiki)
 	var reset := Button.new()
 	reset.text = "Reset"
 	reset.pressed.connect(func(): dialog_reset.popup_centered())

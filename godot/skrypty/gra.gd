@@ -60,6 +60,13 @@ func _podglad(arg: String) -> void:
 			en.stan = "walka"
 			en.zamach = en.zamach_dl * 0.75
 		await _czekaj(0.6)
+		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0 and rajd.swiat3d:
+			var en = rajd.wrogowie[0]
+			p.pochodnia_w_rece = false
+			en.kat = atan2(p.w.y - en.w.y, p.w.x - en.w.x)
+			en.zamach = rajd.dlugosc_okna_parowania() * 0.6
+			var d3: Dictionary = rajd.swiat3d._wrogowie[en.get_instance_id()]
+			rajd.swiat3d._zapowiedz(en, d3, 1.0 - en.zamach / en.zamach_dl, true)
 		_zrzuty = cz[2]
 		DirAccess.make_dir_recursive_absolute(_zrzuty)
 		await _zrzut("%s_%d" % [cz[0], i])
@@ -413,6 +420,12 @@ func _test() -> void:
 	await _zrzut("2_ekwipunek")
 	hub.zakladki.current_tab = 0
 	await _czekaj(0.2)
+	# ustawienie jakości grafiki: przycisk przełącza i zapamiętuje
+	var j0: int = Profil.jakosc()
+	hub.przycisk_grafiki.pressed.emit()
+	var j1: int = Profil.jakosc()
+	_ok("przycisk Grafika zmienia i zapamiętuje jakość", j1 == (j0 + 1) % 4 and hub.przycisk_grafiki.text.ends_with(Profil.JAKOSCI[j1]), "%s → %s" % [Profil.JAKOSCI[j0], Profil.JAKOSCI[j1]])
+	Profil.ustaw_jakosc(j0)
 
 	rozpocznij_rajd("catacombs", "TEST01")
 	await _czekaj(0.5)
@@ -475,9 +488,11 @@ func _test() -> void:
 		rajd.swiat3d._zapowiedz(en, d3, 0.9, true)
 		var gw: Sprite3D = d3.get("glint")
 		var widac_blysk: bool = gw != null and gw.visible
+		var pr: MeshInstance3D = d3.get("pierscien")
+		var pierscien_jasny: bool = pr != null and pr.visible and float(d3["pierscien_mat"].get_shader_parameter("w_oknie")) > 0.5
 		en.zamach = maxf(zostaw, 0.3)
 		await _zrzut("3b_zapowiedz_blysk")
-		_ok("zapowiedź: błysk broni w chwili parowania", widac_blysk and rajd.swiat3d.BLYSK_PRZED < 0.28, "błysk %.2f s przed ciosem" % rajd.swiat3d.BLYSK_PRZED)
+		_ok("zapowiedź: błysk i jasny pierścień, gdy parowanie już zdąży", widac_blysk and pierscien_jasny and absf(rajd.swiat3d.BLYSK_PRZED - rajd.dlugosc_okna_parowania()) < 0.001, "błysk %.2f s przed ciosem = okno parowania" % rajd.swiat3d.BLYSK_PRZED)
 	# LB wciśnięty, a cios wroga spada w oknie parowania (deterministycznie, niezależnie od FPS)
 	await _pad(JOY_BUTTON_LEFT_SHOULDER, 0.02)
 	en.zamach = 0.01
@@ -488,6 +503,20 @@ func _test() -> void:
 	await _pad(JOY_BUTTON_X, 0.05)
 	await _czekaj_az(func(): return en.hp < hp0, 1.5)
 	_ok("X: riposta", hp0 - en.hp > 50.0 and en.ogluszenie <= 0.0, "-%d HP" % int(hp0 - en.hp))
+
+	# podpowiedź: parowanie wciśnięte za wcześnie (okno wygasło przed ciosem)
+	p.okno_parowania = 0.0
+	p.parowanie_cd = 0.3
+	p.riposta_niet = 0.0
+	p.unik_czas = 0.0
+	var en_ciezki_byl: bool = en.ciezki
+	en.ciezki = false
+	rajd.trafienie_gracza(en, 1.0)
+	en.ciezki = en_ciezki_byl
+	var jest_napis := rajd.efekty.napisy.any(func(n): return str(n["tekst"]).contains("ZA WCZEŚNIE"))
+	_ok("podpowiedź „ZA WCZEŚNIE” przy oknie parowania wygasłym przed ciosem", jest_napis)
+	p.hp = p.hp_max
+	p.parowanie_cd = 0.0
 
 	# postura
 	var pekla := false
