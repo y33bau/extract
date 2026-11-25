@@ -12,7 +12,7 @@ Wszystko, co agent musi wiedzieć, żeby bezpiecznie zmieniać kod gry. Zasady n
 |---|---|
 | Silnik | **Godot 4.7.2** stable (`4.7.2.stable.official.ed1daf0bf`) |
 | Język | GDScript z typami (bez C#/.NET) |
-| Renderer | Compatibility (OpenGL) — działa na słabych kartach i pod Mesa w środowisku agenta |
+| Renderer | **Forward+** (`project.godot`: `rendering_method="forward_plus"`, decyzja autora 25.11.2026: 3D jakości AAA); awaryjnie Compatibility, gdy brak Vulkana. W środowisku agenta działa pod Mesa (render programowy, niski FPS) |
 | Rozdzielczość bazowa | 1280×720, `stretch/mode = canvas_items`, `aspect = expand` |
 | Filtr tekstur | najbliższy sąsiad (piksele ostre) |
 | Folder projektu | `godot/` (w edytorze otwórz ten folder) |

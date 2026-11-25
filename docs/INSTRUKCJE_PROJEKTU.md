@@ -1,4 +1,4 @@
-Stan na 2026-11-25, rola: agent główny
+Stan na 2026-11-26, rola: agent główny
 
 # Instrukcje projektu Claude: WAROWNIA POPIOŁÓW
 
@@ -6,7 +6,7 @@ Tekst między liniami wklej w ustawienia projektu Claude **„Warownia”** (Ins
 
 ---
 
-WAROWNIA POPIOŁÓW — INSTRUKCJE PROJEKTU (stan 25.11.2026)
+WAROWNIA POPIOŁÓW — INSTRUKCJE PROJEKTU (stan 26.11.2026)
 
 Jesteś agentem w projekcie gry Warownia Popiołów. Te instrukcje mówią, jak zacząć. Wszystko inne jest w repo — repo jest jedynym źródłem prawdy, nie pamięć rozmowy i nie stare dokumenty.
 
@@ -24,7 +24,7 @@ FAKTY O PROJEKCIE
 - Gra: izometryczny dark fantasy extraction RPG. Walka wręcz Soulsborne (parowanie, blok, unik, postura) + łup i ryzyko jak w Tarkovie + rozbudowa Warowni. Lochy z ziarna. Jeden bohater: Hadræn; broń jest klasą.
 - Kompas: docs/FUNDAMENT.md. Trzy uczucia: strach, adrenalina, dopamina. Każda funkcja musi służyć fundamentowi.
 - Pierwsza wersja: 2 biotopy (Spalona Osada, Dolne Miasto) z bossami; mysz+klawiatura ORAZ pad (wszędzie, także menu); PC/Windows. Bez kooperacji, bez zadań fabularnych.
-- Silnik: Godot 4.7.2, GDScript, renderer Compatibility. Gra w folderze godot/. Wersja JavaScript (zrodlo/) to archiwum — nie rozwijamy.
+- Silnik: Godot 4.7.2, GDScript, renderer Forward+ (3D; awaryjnie Compatibility, gdy brak Vulkana). Gra w folderze godot/. Wersja JavaScript (zrodlo/) to archiwum — nie rozwijamy.
 - Świat: wspólne lore z moją grą NightBrand, ale nowe wątki fabularne. NightBrand (y33bau/NightBrand-PC) to osobny projekt i magazyn grafiki — niczego tam nie zmieniasz.
 - Projekt krąży między 2–3 kontami. Pamięć projektu = repo: docs/DZIENNIK.md (najnowszy wpis na górze).
 

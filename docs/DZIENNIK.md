@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 00:10 — konto 2 / agent główny, rola: agent główny
+- Gałąź i commit: `mapy-runda-2` (zmiany tylko w dokumentach). main nietknięty.
+- Start sesji na nowym koncie: repo podpięte z zapisem, folder NIGHTBRAND podpięty (także Pobrane), skill `warownia-start` jest; Godot 4.7.2 zainstalowany od nowa.
+- Testy: test bazowy `testy.py godot` 61/61 OK przed zmianami.
+- **Decyzja / ocena autora (00:03): „Postacie są super.”** Cel „pracuj dopóki postacie nie będą żyły” ZAMKNIĘTY.
+- Zrobione: poprawiona rozbieżność renderera — `project.godot` ma Forward+, a `INSTRUKCJE_PROJEKTU.md` i `SILNIK_GODOT.md` §1 mówiły Compatibility (teraz Forward+, awaryjnie Compatibility); `START_TUTAJ.md` §3 zaktualizowany do stanu `mapy-runda-2`. Autor musi ponownie wkleić instrukcje projektu na wszystkich kontach.
+- NIE sprawdzone: prawdziwy pad, dźwięk, wydajność na komputerze autora przy 96×96 i 34–50 wrogach.
+- Następny krok: na „publikuj” zmergować `mapy-runda-2` do main; potem decyzja autora o liczbach do strojenia (wrogowie, czas rajdu, skrzynie, kontrakty).
+
 ## 2026-11-25 23:58 — konto autora (1), rola: agent główny — PRZEKAZANIE na inne konto
 - Gałąź `mapy-runda-2`, ostatni commit kodu `188b324`, wszystko wypchnięte. main nietknięty (merge tylko na „publikuj”/„wrzucaj”).
 - Stan: cel autora („pracuj dopóki postacie nie będą żyły”) NIEZAMKNIĘTY — autor nie ocenił jeszcze nowej wersji. Wszystkie postacie (6 wrogów, NPC, bohater) są z Meshy w pozie T, z ożywionymi kolorami; testy 61/61.
