@@ -18,3 +18,9 @@ Stan na 2026-11-25, rola: gamedev
 
 ## Testy
 `testy.py godot` uruchamia grę z `--test` w trybie lekkim (bez cieni i efektów ekranowych, 3D w połowie rozdzielczości), bo w środowisku agenta render jest programowy (~2-5 FPS). Pełna jakość do zrzutów: `--rendering-driver vulkan -- --test --pelna` (lavapipe: `apt-get install mesa-vulkan-drivers`).
+
+## Świat: tekstury NightBrand i oprawa map (25.11.2026)
+- `tekstury_swiat.py` + `tekstury_swiat.json`: 13 tekstur z paczki autora `Downloads\GRAFIKI_SWIAT\GRAFIKI_SWIAT\tekstury` -> `godot/zasoby/3d/swiat/<nazwa>_albedo.jpg / _normal.png / _rh.png` (R szorstkość, G wysokość). Szwy wygładzane automatycznie.
+- Wygląd krain: stała `WYGLAD` w `swiat3d.gd` (tekstury warstw, skale, kałuże, żar, kolory światła i mgły).
+- Shadery: `godot/zasoby/3d/shadery/` (teren, mur, mgla, czastka).
+- Podgląd bez grania: `godot --path godot --rendering-driver vulkan -- --pelna --podglad=catacombs,ZIARNO,/tmp/podglad` (5 zrzutów: start, kosze, ekstrakcja, wróg z zapowiedzią ciosu).

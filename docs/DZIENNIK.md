@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 16:45 — agent główny (konto autora), rola: gamedev + grafik
+- Gałąź: mapy-i-zapowiedzi (z plynna-walka). Zlecenie autora: (1) wrogowie lepiej zapowiadają ciosy pod parowanie, (2) mapy z tekstur NightBrand „jak gotowy produkt”, inspiracja Diablo II i podobnymi grami izometrycznymi.
+- (1) Zapowiedzi ciosów (bez zmiany czasów): klin zasięgu na ziemi wypełniający się do chwili uderzenia (złoty = do sparowania, czerwony = ciężki, wąski niebieskawy = strzała łucznika), błysk na broni 0,26 s przed ciosem (okno parowania ≥ 0,28 s, więc wciśnięcie na błysk zdąży), dźwięki: zamach (metaliczny / niski pomruk) i błysk.
+- (2) Mapy: przejrzane wszystkie 137 tekstur paczki `GRAFIKI_SWIAT\tekstury`, wybrane 13 (lista i źródła: `narzedzia/gra_3d/tekstury_swiat.json`, przetwarzanie: `tekstury_swiat.py` -> `godot/zasoby/3d/swiat/`).
+  - Katakumby: wielkie płyty + kostka + mech, kałuże z odbiciami (SSR), chłodne światło. Podgrodzie: bruk, błoto, trawa w spoinach, kamienne mury, księżyc. Krypta: rzeźbione płyty, popiół, pęknięcia z żarem (świecą), spękana skała, czerwona mgła i iskry.
+  - Shadery: `teren.gdshader` (3 warstwy mieszane po wysokości i szumie w przestrzeni świata — bez kafelkowania; ciemnienie przy murach z maski mapy; pamięć mapy wyblakła), `mur.gdshader` (trójpłaszczyznowo, brud/mech/żar przy podstawie, ciemna korona), `mgla.gdshader` (przyziemna mgła tylko nad odkrytą geometrią), `czastka.gdshader` (pył/iskry tylko przy odkrytych miejscach).
+  - Ruiny: nierówna wysokość murów (wyższe na obwodzie), osypany gruz u podstaw, pochodnie w uchwytach na murach (znikają z obniżonym murem), plamy krwi i sadzy, kosze ogniowe ukryte w mgle wojny, większy przekrój murów od strony kamery (jak w Diablo II).
+- Testy: 40/40 (nowe: klin w stronę ciosu, błysk do parowania, materiały krainy, pochodnie na obniżonych murach). Narzędzie podglądu: `godot --path godot -- --pelna --podglad=kraina,ziarno,katalog`.
+- NIE sprawdzone: wydajność na komputerze autora (Forward+, cienie wielu świateł, SSR), wrażenie w ruchu (oceniano zrzuty), pad i dźwięk na żywo; balans bez zmian.
+
 ## 2026-11-25 15:40 — agent główny (konto autora), rola: gamedev
 - Gałąź: plynna-walka (z gra-3d). Cel autora: płynna walka i ruch, „jak taniec z mieczem”, bez epileptycznych podrygów.
 - **Przyczyna**: klipy ataków trwają 0,8–2,5 s, a gra grała je w 0,3–0,42 s (3–8 razy szybciej); przewrót 1 s w 0,3 s; chód 1 m/s przy ruchu 3,4 m/s (ślizganie); ciało obracało się natychmiast za myszką; doskok to teleport; brak przejść między animacjami.

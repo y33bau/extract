@@ -465,7 +465,9 @@ func _test() -> void:
 		_ok("3D: zapowiedź ciosu wroga (zamach + rozbłysk)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy > 0.5,
 			"%s, %.1f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0])
 		var zn: MeshInstance3D = d3.get("znak")
-		_ok("zapowiedź: klin zasięgu na ziemi", zn != null and zn.visible, "widoczny" if zn and zn.visible else "brak")
+		var przod := Vector2(zn.global_transform.basis.x.x, zn.global_transform.basis.x.z).normalized() if zn else Vector2.ZERO
+		var cel := Vector2(cos(en.kat), sin(en.kat))
+		_ok("zapowiedź: klin zasięgu na ziemi, w stronę ciosu", zn != null and zn.visible and przod.dot(cel) > 0.95, "zgodność kierunku %.2f" % przod.dot(cel))
 		# błysk „paruj teraz” pojawia się przed uderzeniem, w czasie krótszym niż okno parowania
 		# (wywołanie wprost, bez czekania na klatki: przy małym FPS cios spadłby w trakcie testu)
 		var zostaw: float = en.zamach

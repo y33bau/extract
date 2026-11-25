@@ -121,7 +121,7 @@ const WYGLAD := {
 		"ton": Color(0.88, 0.9, 0.96), "jasnosc": 0.95,
 		"mur": "kat_mur", "mur_skala": 0.55, "akcent": "kat_mech", "wys_akcentu": 0.7, "sila_akcentu": 0.85, "mur_ton": Color(0.9, 0.95, 1.0), "mur_zar": 0.0,
 		"otoczenie": Color(0.3, 0.38, 0.5), "otoczenie_sila": 0.38, "mgla": Color(0.32, 0.42, 0.5, 0.42), "ksiezyc": Color(0.5, 0.62, 0.9), "ksiezyc_sila": 0.3,
-		"tlo": Color(0.006, 0.01, 0.014), "nasycenie": 0.88, "kontrast": 1.12, "pochodnie": Color(1.0, 0.68, 0.38), "swiatla": 1.0, "mur_jasnosc": 1.35,
+		"tlo": Color(0.006, 0.01, 0.014), "nasycenie": 0.88, "kontrast": 1.12, "pochodnie": Color(1.0, 0.68, 0.38), "swiatla": 1.3, "mur_jasnosc": 1.35,
 	},
 	"outskirts": {
 		"a": "pod_bruk", "a_skala": 0.3, "b": "pod_ziemia", "b_skala": 0.2, "c": "pod_trawa", "c_skala": 0.3,
@@ -743,7 +743,7 @@ func odswiez_widok() -> void:
 	for d in _dekor:
 		(d[0] as Node3D).visible = widok[d[1]] > 0
 	for pm in _pochodnie_murow:
-		(pm[0] as Node3D).visible = widok[pm[1]] > 0 and not _mury_ciete.get(pm[2], false)
+		(pm[0] as Node3D).visible = widok[pm[1]] > 0 and widok[pm[2]] > 0 and not _mury_ciete.get(pm[2], false)
 
 
 # ---------------------------------------------------------------- REKWIZYTY I ŚWIATŁA

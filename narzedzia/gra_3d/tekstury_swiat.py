@@ -62,10 +62,16 @@ def zrob(src, nazwa, wyj, rozm, sila):
     gy = (np.roll(hgt, -1, 0) - np.roll(hgt, 1, 0)) * sila * s
     n = np.dstack([-gx, gy, np.ones_like(hgt)])
     n /= np.linalg.norm(n, axis=2, keepdims=True)
-    Image.fromarray(((n * 0.5 + 0.5) * 255).astype(np.uint8)).save(f'{wyj}/{nazwa}_normal.png')
+    # mapy normalnych i szorstkości max 1024 px (detal niesie albedo; mniejsza paczka gry)
+    def zapisz(arr, plik):
+        im2 = Image.fromarray(arr)
+        if rozm > 1024:
+            im2 = im2.resize((1024, 1024), Image.LANCZOS)
+        im2.save(plik)
+    zapisz(((n * 0.5 + 0.5) * 255).astype(np.uint8), f'{wyj}/{nazwa}_normal.png')
     rough = np.clip(0.97 - (hgt - 0.5) * 0.35 - (L - L.mean()) * 0.3, 0.6, 1.0)
     rh = np.dstack([rough, hgt, np.zeros_like(hgt)])
-    Image.fromarray((rh * 255).astype(np.uint8)).save(f'{wyj}/{nazwa}_rh.png')
+    zapisz((rh * 255).astype(np.uint8), f'{wyj}/{nazwa}_rh.png')
     print('TEKSTURA', nazwa, rozm, 'szew %.1f/%.1f typ %.1f' % (sx, sy, typ))
 
 
