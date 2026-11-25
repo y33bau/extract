@@ -642,6 +642,7 @@ func atak_wrecz() -> void:
 			postura(en, float(bron["dmg"]) * kuznia * (1.9 if ciezki else 0.85))
 		en.hp -= obr
 		en.trafiony = 0.15
+		en.licznik_trafien += 1
 		en.stan = "walka"
 		var odrzut := 0.45 if riposta else (0.25 if ciezki else 0.12)
 		var odrzut_wek := Vector2(cos(kat_do), sin(kat_do)) * odrzut
@@ -1293,6 +1294,7 @@ func _strzaly(dt: float) -> void:
 					var obr: float = a["dmg"] * (1.0 - en.pancerz * 0.7)
 					en.hp -= obr
 					en.trafiony = 0.14
+					en.licznik_trafien += 1
 					en.stan = "walka"
 					postura(en, a["dmg"] * 0.4)
 					Dzwiek.trafienie()

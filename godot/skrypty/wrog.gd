@@ -39,6 +39,7 @@ var ogluszenie := 0.0
 var cios_anim := 0.0
 var krok_anim := 0.0
 var trafiony := 0.0
+var licznik_trafien := 0  # rośnie przy każdym trafieniu (wygląd: reakcja w 3D nie zależy od klatek)
 var _ostatni_krok := 0.0
 var _ruch_czas := -1.0
 

@@ -1454,7 +1454,7 @@ func _wrog3d(en) -> Dictionary:
 	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
-		"krag": krag, "skala": s, "ost_traf": 0.0, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
+		"krag": krag, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
 	return d
 
@@ -1706,8 +1706,8 @@ var lekki_krag := false
 
 
 func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
-	var nowe_traf: bool = en.trafiony > float(d["ost_traf"]) + 0.01
-	d["ost_traf"] = en.trafiony
+	var nowe_traf: bool = en.licznik_trafien != int(d["ost_traf"])
+	d["ost_traf"] = en.licznik_trafien
 	if nowe_traf:
 		var strata: float = maxf(0.0, float(d["ost_hp"]) - en.hp) / maxf(1.0, en.hp_max)
 		var mocno: float = clampf(0.45 + strata * 3.0, 0.45, 1.0)
@@ -1743,10 +1743,11 @@ func _krag(kolor: Color, promien: float) -> MeshInstance3D:
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
 uniform vec4 kolor : source_color = vec4(0.85, 0.12, 0.08, 1.0);
 uniform float sila = 1.0;
+uniform float promien = 1.0;
 varying vec2 lok;
-void vertex() { lok = VERTEX.xz * 2.0; }
+void vertex() { lok = VERTEX.xz / promien; }
 void fragment() {
-	float r = length(lok) / 2.0;
+	float r = length(lok);
 	float obwod = exp(-pow((r - 0.86) * 11.0, 2.0));
 	float wnetrze = (1.0 - smoothstep(0.2, 0.95, r)) * 0.12;
 	ALBEDO = kolor.rgb;
@@ -1760,6 +1761,7 @@ void fragment() {
 	var mat := ShaderMaterial.new()
 	mat.shader = _sh_krag
 	mat.set_shader_parameter("kolor", kolor)
+	mat.set_shader_parameter("promien", promien)
 	m.material_override = mat
 	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	m.top_level = true

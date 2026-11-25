@@ -383,10 +383,11 @@ func _test_oprawy_walki(p, en) -> void:
 	_ok("trafienie: zatrzymanie klatki i kopnięcie obrazu", rajd.hitstop >= 0.05 and rajd.kop_kamery.length() > 1.0,
 		"hitstop %.3f s, kop %.1f px" % [rajd.hitstop, rajd.kop_kamery.length()])
 	_ok("trafienie: iskry/krople krwi w 3D (nie piksele 2D)", s3.get_child_count() > dzieci_przed)
+	await _klatka()
+	_ok("pasek HP: jasny ślad utraconego życia zostaje chwilę za paskiem", en.hp_cien > en.hp, "hp %d, ślad %d" % [en.hp, en.hp_cien])
 	await _czekaj_az(func(): return int(d3["traf_licznik"]) > licznik_przed, 2.0)
 	_ok("trafiony wróg: błysk, odchylenie i wzdrygnięcie (wygląd)", int(d3["traf_licznik"]) > licznik_przed and float(d3["odchyl_v"]) != 0.0,
 		"wykryte trafienia %d → %d" % [licznik_przed, d3["traf_licznik"]])
-	_ok("pasek HP: jasny ślad utraconego życia zostaje chwilę za paskiem", en.hp_cien > en.hp, "hp %d, ślad %d" % [en.hp, en.hp_cien])
 	# napisy: liczby się nie zlewają, komunikaty nie nachodzą na siebie
 	rajd.efekty.napisy.clear()
 	rajd.napis(en.w, "-10", Color.WHITE, 12)
