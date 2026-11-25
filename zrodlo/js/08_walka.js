@@ -84,6 +84,11 @@ function performMeleeAttack() {
         en.hp -= dmg;
         en.hitFlash = 0.15;
         en.state = 'combat';
+        if (isRiposte) {
+            p.riposteIframe = 0.5; // krótka nietykalność w trakcie egzekucji
+        } else {
+            damagePoise(en, wDef.dmg * forgeMult * (isHeavy ? 1.9 : 0.85));
+        }
         // Knockback
         const kb = isRiposte ? 0.45 : (isHeavy ? 0.25 : 0.12);
         moveEntity(en, Math.cos(angTo) * kb, Math.sin(angTo) * kb);
@@ -92,6 +97,77 @@ function performMeleeAttack() {
         if (en.hp <= 0) killEnemy(en, i);
     }
     if (hitAny && p.comboStep === 2) addSkillXp('melee', 6);
+}
+
+// ---------- POSTURA ----------
+function damagePoise(en, amount) {
+    if (en.staggerTimer > 0 || en.hp <= 0) return;
+    en.poise -= amount;
+    en.poiseRegenDelay = 2.5;
+    if (en.poise <= 0) {
+        en.poise = en.maxPoise;
+        en.staggerTimer = en.isBoss ? 1.8 : 2.2;
+        en.windupTimer = 0;
+        en.atkTimer = en.staggerTimer;
+        raid.hitstop = Math.max(raid.hitstop, 0.09);
+        raid.shake = Math.min(12, raid.shake + 6);
+        SFX.parryClang();
+        spawnParticles(en.x, en.y, 16, '#ffd166', 3.6, 0.5);
+        spawnText(en.x, en.y - 1.05, 'POSTURA ZŁAMANA! [LPM]', '#ffd166', 13);
+    }
+}
+
+// ---------- POCHODNIA (klawisz F) ----------
+function toggleTorch() {
+    const p = raid.player;
+    if (raid.modalOpen || p.dead) return;
+    if (p.torchInHand) {
+        p.torchInHand = false;
+        p.blocking = false;
+        raid.groundTorch = { x: p.x + Math.cos(p.angle) * 0.6, y: p.y + Math.sin(p.angle) * 0.6 };
+        if (isSolidAt(raid.groundTorch.x, raid.groundTorch.y)) raid.groundTorch = { x: p.x, y: p.y };
+        SFX.dodge();
+        spawnParticles(raid.groundTorch.x, raid.groundTorch.y, 10, '#ffb347', 2.2, 0.5);
+        spawnText(p.x, p.y - 0.9, 'POCHODNIA NA ZIEMI — TARCZA GOTOWA', '#fbbf24', 11);
+    } else if (raid.groundTorch && Math.hypot(raid.groundTorch.x - p.x, raid.groundTorch.y - p.y) < 1.6) {
+        p.torchInHand = true;
+        p.blocking = false;
+        p.parryWindow = 0;
+        raid.groundTorch = null;
+        SFX.loot();
+        spawnText(p.x, p.y - 0.9, 'POCHODNIA W DŁONI', '#fbbf24', 11);
+    } else {
+        spawnText(p.x, p.y - 0.9, raid.groundTorch ? 'Pochodnia za daleko!' : 'Brak pochodni', '#a8a29e', 10);
+    }
+    computeVisibility();
+    updateRaidHUD();
+}
+
+// ---------- PLECAK (klawisz G) ----------
+// Mikstury i strzały są na pasie: zostają przy tobie. Reszta sakwy ląduje na ziemi.
+function isBeltItem(it) {
+    const t = ITEMS_DB[it.id].type;
+    return t === 'elixir' || t === 'arrow';
+}
+function backpackLoad() {
+    return raid.player.loadout.backpack.filter(it => !isBeltItem(it)).length;
+}
+function dropBackpack() {
+    const p = raid.player;
+    if (raid.modalOpen || p.dead) return;
+    const l = p.loadout;
+    const dropped = l.backpack.filter(it => !isBeltItem(it));
+    if (dropped.length === 0) return spawnText(p.x, p.y - 0.9, 'Sakwa pusta', '#a8a29e', 10);
+    l.backpack = l.backpack.filter(isBeltItem);
+    raid.corpses.push({
+        id: 'bag_' + Date.now(), kind: 'bag', isBag: true,
+        x: p.x - Math.cos(p.angle) * 0.4, y: p.y - Math.sin(p.angle) * 0.4,
+        name: 'Twoja porzucona sakwa',
+        items: dropped.map(item => ({ item, revealed: true }))
+    });
+    SFX.block();
+    spawnText(p.x, p.y - 0.9, `SAKWA ZRZUCONA (${dropped.length})`, '#e6ba63', 11);
+    updateRaidHUD();
 }
 
 function performBowShot() {
@@ -150,6 +226,12 @@ function performDodge() {
 function triggerParryStart() {
     const p = raid.player;
     if (raid.modalOpen || p.dodgeTimer > 0) return;
+    if (p.torchInHand) {
+        // Ręka zajęta pochodnią: tylko słaby blok, bez parowania
+        p.blocking = true;
+        spawnText(p.x, p.y - 0.9, 'POCHODNIA W RĘCE — [F]', '#f59e0b', 10);
+        return;
+    }
     p.blocking = true;
     if (p.parryCd <= 0) {
         const shBonus = p.loadout.shield ? ITEMS_DB[p.loadout.shield.id].parryBonus : 0;
@@ -162,6 +244,7 @@ function triggerParryStart() {
 
 function applyEnemyHitToPlayer(en, rawDmg, isRanged = false) {
     const p = raid.player;
+    if (p.riposteIframe > 0) return;
     if (p.dodgeTimer > 0) {
         spawnText(p.x, p.y - 0.7, 'UNIK!', '#6ee7b7', 11);
         addSkillXp('endurance', 14);
@@ -192,7 +275,8 @@ function applyEnemyHitToPlayer(en, rawDmg, isRanged = false) {
     let dmg = rawDmg;
     // Shield Block
     if (p.blocking && p.stamina > 6) {
-        const blockRed = p.loadout.shield ? ITEMS_DB[p.loadout.shield.id].blockRed : 0.45;
+        // Pochodnią da się tylko odbić cios (słabo); pełny blok wymaga tarczy w wolnej ręce
+        const blockRed = p.torchInHand ? 0.3 : (p.loadout.shield ? ITEMS_DB[p.loadout.shield.id].blockRed : 0.45);
         const stamCost = rawDmg * 0.65 * (en && en.heavy ? 1.8 : 1);
         p.stamina = Math.max(0, p.stamina - stamCost);
         dmg *= (1 - blockRed);

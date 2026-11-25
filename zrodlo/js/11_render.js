@@ -123,6 +123,19 @@ function drawPostGlints() {
     POST_GLINTS.length = 0;
 }
 
+// Płomień pochodni (rysowany przed warstwą światła, więc oświetla go własny blask)
+function drawFlame(x, y, s = 1) {
+    const t = raid.elapsed;
+    const h = (9 + Math.sin(t * 17) * 2 + Math.cos(t * 29)) * s;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(224, 83, 26, 0.9)';
+    ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y), 4 * s, h * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 209, 102, 0.95)';
+    ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y + 1), 2.2 * s, h * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+}
+
 function drawShadow(sx, sy, rx, ry) {
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.beginPath();
@@ -172,6 +185,14 @@ function drawPlayerSprite(p, camX, camY) {
             hasShield: !!p.loadout.shield, blocking: p.blocking, parryWindow: p.parryWindow > 0,
             swingProgress: p.attackDur > 0 ? p.attackTimer / p.attackDur : 0, isHeavy: p.comboStep === 2
         });
+    }
+    // Pochodnia w ręce tarczy
+    if (p.torchInHand && !p.dead) {
+        const hand = flip ? 13 : -13;
+        ctx.strokeStyle = '#3a2618'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(Math.round(sc.x + hand), Math.round(sc.y - 30)); ctx.lineTo(Math.round(sc.x + hand * 1.2), Math.round(sc.y - 50)); ctx.stroke();
+        drawFlame(sc.x + hand * 1.2, sc.y - 58, 1.5);
+        if (Math.random() < 0.3) spawnParticles(p.x - 0.05, p.y - 0.05, 1, '#ffb347', 0.6, 0.4);
     }
     // Złota aura okna parowania
     if (p.parryWindow > 0 && !p.dead) {
@@ -245,6 +266,14 @@ function drawEnemySprite(en, camX, camY) {
         ctx.fillStyle = en.isBoss ? '#e06324' : '#c92a35';
         ctx.fillRect(Math.round(sc.x - bw / 2), Math.round(topY), Math.round(bw * Math.max(0, en.hp / en.maxHp)), 4);
     }
+    // Pasek postury (żółty): po wyzerowaniu wróg traci równowagę
+    if (en.poise < en.maxPoise && en.staggerTimer <= 0) {
+        const bw = en.isBoss ? 70 : 30;
+        ctx.fillStyle = 'rgba(10,8,12,0.85)';
+        ctx.fillRect(Math.round(sc.x - bw / 2), Math.round(topY + 5), bw, 2);
+        ctx.fillStyle = '#f2c14e';
+        ctx.fillRect(Math.round(sc.x - bw / 2), Math.round(topY + 5), Math.round(bw * Math.max(0, en.poise / en.maxPoise)), 2);
+    }
     if (en.isBoss) {
         ctx.fillStyle = '#f0b96e';
         ctx.font = 'bold 11px Cinzel, serif';
@@ -279,9 +308,19 @@ function renderLighting() {
 
     // Player warm flickering torch
     const flick = Math.sin(raid.elapsed * 14) * 8 + Math.cos(raid.elapsed * 23) * 4;
-    addGlow(p.x, p.y - 0.2, 270 + flick, 'rgba(255, 205, 138, 0.96)', 'rgba(220, 130, 62, 0.45)');
-    // Directional torch beam toward cursor
-    addGlow(p.x + Math.cos(p.angle) * 2.2, p.y + Math.sin(p.angle) * 2.2, 185 + flick * 0.5, 'rgba(255, 215, 155, 0.55)', 'rgba(190, 115, 55, 0.18)');
+    if (p.torchInHand) {
+        addGlow(p.x, p.y - 0.2, 270 + flick, 'rgba(255, 205, 138, 0.96)', 'rgba(220, 130, 62, 0.45)');
+        // Directional torch beam toward cursor
+        addGlow(p.x + Math.cos(p.angle) * 2.2, p.y + Math.sin(p.angle) * 2.2, 185 + flick * 0.5, 'rgba(255, 215, 155, 0.55)', 'rgba(190, 115, 55, 0.18)');
+    } else {
+        // Bez pochodni: tylko słaba poświata wokół rycerza
+        addGlow(p.x, p.y - 0.2, 105, 'rgba(150, 140, 175, 0.55)', 'rgba(70, 60, 90, 0.2)');
+    }
+    // Pochodnia rzucona na ziemię oświetla krąg areny
+    if (raid.groundTorch) {
+        const gt = raid.groundTorch;
+        addGlow(gt.x, gt.y, 300 + flick, 'rgba(255, 200, 130, 0.95)', 'rgba(215, 125, 55, 0.42)');
+    }
 
     // Iron Braziers
     for (const br of raid.map.braziers) {
@@ -370,6 +409,7 @@ function renderRaid() {
         const v = vis[Math.floor(en.y) * MAP_SIZE + Math.floor(en.x)];
         if (v === 2) drawList.push({ depth: en.x + en.y, type: 'enemy', obj: en });
     }
+    if (raid.groundTorch) drawList.push({ depth: raid.groundTorch.x + raid.groundTorch.y, type: 'torch' });
     drawList.push({ depth: p.x + p.y, type: 'player' });
 
     drawList.sort((a, b) => a.depth - b.depth);
@@ -399,6 +439,25 @@ function renderRaid() {
                 ctx.fillRect(Math.round(sc.x - 2), Math.round(sc.y - 10 + Math.sin(raid.elapsed * 5) * 2), 4, 4);
             }
             ctx.globalAlpha = 1;
+        } else if (item.type === 'torch') {
+            const gt = raid.groundTorch;
+            const sc = worldToScreen(gt.x, gt.y, camX, camY);
+            drawFlame(sc.x + 5, sc.y - 12, 1.1);
+            ctx.strokeStyle = '#4a3222'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(Math.round(sc.x - 7), Math.round(sc.y + 2)); ctx.lineTo(Math.round(sc.x + 5), Math.round(sc.y - 8)); ctx.stroke();
+        } else if (item.type === 'corpse' && item.obj.isBag) {
+            const cp = item.obj;
+            const sc = worldToScreen(cp.x, cp.y, camX, camY);
+            ctx.globalAlpha = item.v === 2 ? 1 : 0.45;
+            drawShadow(sc.x, sc.y + 2, 11, 5);
+            ctx.fillStyle = '#5a3d24'; ctx.fillRect(Math.round(sc.x - 9), Math.round(sc.y - 14), 18, 15);
+            ctx.fillStyle = '#7a5532'; ctx.fillRect(Math.round(sc.x - 7), Math.round(sc.y - 18), 14, 6);
+            ctx.fillStyle = '#c79c4c'; ctx.fillRect(Math.round(sc.x - 9), Math.round(sc.y - 9), 18, 2);
+            ctx.globalAlpha = 1;
+            if (cp.items.length > 0 && item.v === 2) {
+                ctx.fillStyle = '#e6ba63';
+                ctx.fillRect(Math.round(sc.x - 2), Math.round(sc.y - 28 + Math.sin(raid.elapsed * 5) * 2), 4, 4);
+            }
         } else if (item.type === 'corpse') {
             const cp = item.obj;
             const sc = worldToScreen(cp.x, cp.y, camX, camY);
@@ -539,9 +598,10 @@ function updateRaidHUD() {
     document.getElementById('hud-elix-3').textContent = allInv.filter(i => ITEMS_DB[i.id].elixKind === 'salve').length;
 
     document.getElementById('hud-weapon-name').textContent = p.loadout.weapon ? ITEMS_DB[p.loadout.weapon.id].name : 'Gołe Pięści';
-    document.getElementById('hud-shield-name').textContent = p.loadout.shield ? ITEMS_DB[p.loadout.shield.id].name : 'Brak';
+    document.getElementById('hud-shield-name').textContent = p.torchInHand ? '🔥 Pochodnia [F]' : (p.loadout.shield ? ITEMS_DB[p.loadout.shield.id].name : 'Brak');
     document.getElementById('hud-arrows').textContent = countRaidArrows();
-    document.getElementById('hud-bp-slots').textContent = `${p.loadout.backpack.length}/12`;
+    const load = backpackLoad();
+    document.getElementById('hud-bp-slots').textContent = `${p.loadout.backpack.length}/12` + (load > 0 ? ` (−${Math.round(Math.min(45, load * 3.5))}% st.)` : '');
 
     const stance = p.parryWindow > 0 ? 'PAROWANIE!' : (p.blocking ? 'BLOK' : (p.dodgeTimer > 0 ? 'UNIK' : 'GOTOWY'));
     const sb = document.getElementById('hud-stance-badge');
@@ -566,8 +626,12 @@ function updateRaidHUD() {
     // Interact prompt
     const near = !raid.modalOpen ? findNearestInteractable() : null;
     const pr = document.getElementById('hud-interact-prompt');
+    const gt = raid.groundTorch;
     if (near) {
         pr.textContent = `[E] Przeszukaj: ${near.name}`;
+        pr.classList.remove('hidden');
+    } else if (!raid.modalOpen && gt && !p.torchInHand && Math.hypot(gt.x - p.x, gt.y - p.y) < 1.6) {
+        pr.textContent = '[F] Podnieś pochodnię';
         pr.classList.remove('hidden');
     } else {
         pr.classList.add('hidden');

@@ -11,6 +11,8 @@ window.addEventListener('keydown', e => {
     } else if (!raid.modalOpen) {
         if (e.code === 'Space') { e.preventDefault(); performDodge(); }
         else if (e.code === 'KeyQ') performBowShot();
+        else if (e.code === 'KeyF') toggleTorch();
+        else if (e.code === 'KeyG') dropBackpack();
         else if (e.code === 'KeyE') {
             const near = findNearestInteractable();
             if (near) openRaidModal(near);

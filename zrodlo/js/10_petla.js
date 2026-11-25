@@ -35,12 +35,15 @@ function updateRaid(dt) {
     p.bowCd = Math.max(0, p.bowCd - dt);
     p.stamRegenBoost = Math.max(0, p.stamRegenBoost - dt);
     p.swingAnim = Math.max(0, p.swingAnim - dt);
+    p.riposteIframe = Math.max(0, p.riposteIframe - dt);
     p.moving = false;
 
     // Stamina regeneration
     const stamBase = 24 * (1 + (profile.skills.endurance.lv - 1) * 0.08) * (p.stamRegenBoost > 0 ? 1.65 : 1.0);
     const stamMult = p.blocking ? 0.35 : (p.attackTimer > 0 ? 0.2 : 1.0);
-    p.stamina = Math.min(p.maxStamina, p.stamina + stamBase * stamMult * dt);
+    // Obciążenie: każdy przedmiot w sakwie (poza pasem) spowalnia odnowę staminy o 3.5%
+    const loadMult = Math.max(0.55, 1 - backpackLoad() * 0.035);
+    p.stamina = Math.min(p.maxStamina, p.stamina + stamBase * stamMult * loadMult * dt);
 
     // Player Movement & Dodge Roll
     if (!raid.modalOpen) {
@@ -116,6 +119,8 @@ function updateRaid(dt) {
         en.hitFlash = Math.max(0, en.hitFlash - dt);
         en.atkSwingVisual = Math.max(0, en.atkSwingVisual - dt);
 
+        if (en.poiseRegenDelay > 0) en.poiseRegenDelay -= dt;
+        else if (en.poise < en.maxPoise) en.poise = Math.min(en.maxPoise, en.poise + en.maxPoise * 0.25 * dt);
         if (en.staggerTimer > 0) {
             en.staggerTimer -= dt;
             continue;
@@ -208,6 +213,7 @@ function updateRaid(dt) {
                 if (Math.hypot(en.x - a.x, en.y - a.y) < en.radius + 0.2) {
                     const dmg = a.dmg * (1 - en.armorRed * 0.7);
                     en.hp -= dmg;
+                    damagePoise(en, a.dmg * 0.4);
                     en.hitFlash = 0.14;
                     en.state = 'combat';
                     SFX.hitFlesh();

@@ -14,9 +14,9 @@ Zbiór pomysłów autora z 25.11.2026 (cztery pakiety) z uwagami agenta. Decyzje
 ## 1. Walka i mechaniki rajdu (pakiet 1)
 | Pomysł | Ocena agenta | Kiedy |
 |---|---|---|
-| Dylemat pochodni (pochodnia zajmuje rękę tarczy, F = rzut na ziemię) | Biorę: najlepszy pomysł, silnik światła już jest | Runda 1 |
-| Postura / pasek równowagi wrogów | Biorę: ciężkie combo też otwiera ripostę | Runda 1 |
-| Zrzucanie plecaka przed walką | Biorę: tanie, czysty Tarkov | Runda 1 |
+| Dylemat pochodni (pochodnia zajmuje rękę tarczy, F = rzut na ziemię) | Biorę: najlepszy pomysł, silnik światła już jest | ZROBIONE (runda 1) |
+| Postura / pasek równowagi wrogów | Biorę: ciężkie combo też otwiera ripostę | ZROBIONE (runda 1) |
+| Zrzucanie plecaka przed walką | Biorę: tanie, czysty Tarkov | ZROBIONE (runda 1) |
 | Hałas (krąg dźwięku, wrogowie słyszą) | Fundament pod wagę, dzwon, osełkę | Runda 2 |
 | Waga pancerza = ciężki unik + hałas | Biorę, po systemie hałasu | Runda 2 |
 | Typy ekstrakcji: Dzwon / Studnia / Szczelina | Biorę | Runda 3 |
@@ -79,6 +79,6 @@ Uwagi agenta:
 - 25.11: rezygnujemy z ubezpieczenia (Pakt Przewoźnika).
 
 ## 7. Kolejność prac
-1. Runda 1 walki: postura, pochodnia vs tarcza, zrzut plecaka.
+1. ZROBIONE 25.11 — runda 1 walki: postura, pochodnia vs tarcza, zrzut plecaka (gałąź `runda-1-walka`).
 2. Równolegle pilot grafiki: Spalona Osada (zestaw kafli, jedna gęstość pikseli, nowy generator z POI).
 3. Dalej rundy 2–5 z tabeli w punkcie 1, potem Warownia-makieta i kolejne biotopy.

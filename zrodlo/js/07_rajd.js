@@ -47,6 +47,9 @@ function startRaid() {
     const maxHp = 100 + profile.stronghold.altar * 18;
     const maxStam = 100 + profile.stronghold.altar * 15;
 
+    // Postura (równowaga) wrogów: po wyzerowaniu wróg jest ogłuszony i otwarty na ripostę
+    const POISE_MAX = { scout: 40, warden: 75, archer: 30, knight: 95, brute: 120, boss: 230 };
+
     const player = {
         x: map.spawn.x, y: map.spawn.y, radius: 0.28, angle: 0,
         hp: maxHp, maxHp,
@@ -60,6 +63,8 @@ function startRaid() {
         dodgeTimer: 0, dodgeDx: 0, dodgeDy: 0, dodgeCd: 0,
         bowCd: 0,
         swingAnim: 0, swingAnimMax: 0.3, moving: false, dead: false,
+        // Runda 1: pochodnia w ręce tarczy, nietykalność riposty
+        torchInHand: true, riposteIframe: 0,
         loadout: raidLoadout
     };
 
@@ -101,7 +106,8 @@ function startRaid() {
             windupDur: cfg.windup, atkCdMax: cfg.cd,
             state: 'patrol', patrolTarget: { x: ex, y: ey },
             atkTimer: 0, windupTimer: 0, staggerTimer: 0, atkSwingVisual: 0,
-            walkFrame: 0, hitFlash: 0
+            walkFrame: 0, hitFlash: 0,
+            poise: POISE_MAX[kind], maxPoise: POISE_MAX[kind], poiseRegenDelay: 0
         });
     }
 
@@ -121,7 +127,8 @@ function startRaid() {
             windupDur: 0.72, atkCdMax: 1.35,
             state: 'patrol', patrolTarget: { x: bx, y: by },
             atkTimer: 0, windupTimer: 0, staggerTimer: 0, atkSwingVisual: 0,
-            walkFrame: 0, hitFlash: 0
+            walkFrame: 0, hitFlash: 0,
+            poise: POISE_MAX.boss, maxPoise: POISE_MAX.boss, poiseRegenDelay: 0
         });
     }
 
@@ -142,7 +149,8 @@ function startRaid() {
         timeLeft: 480, elapsed: 0, kills: 0, parries: 0,
         extracting: false, extractTimer: 6.0, extractLastSec: 6,
         modalOpen: false, activeLoot: null, searchProg: 0,
-        ended: false, lastTime: performance.now(), visTimer: 0
+        ended: false, lastTime: performance.now(), visTimer: 0,
+        groundTorch: null
     };
 
     document.getElementById('hub-screen').classList.add('hidden');
@@ -156,6 +164,7 @@ function startRaid() {
     computeVisibility();
     updateRaidHUD();
     requestAnimationFrame(raidLoop);
+    setTimeout(() => showToast('🔥 Pochodnia zajmuje rękę tarczy: nie parujesz. [F] rzuć ją przed walką.', 'info'), 400);
 }
 
 // ==================== 11. COLLISION & VISIBILITY ====================
@@ -188,17 +197,31 @@ function hasLOS(x1, y1, x2, y2) {
     return true;
 }
 
+// Jak daleko widzi gracz: pełny wzrok z pochodnią w ręce lub w kręgu innego światła, inaczej połowa
+function nearLightSource(x, y) {
+    const gt = raid.groundTorch;
+    if (gt && Math.hypot(gt.x - x, gt.y - y) < 4.6) return true;
+    for (const br of raid.map.braziers) if (Math.hypot(br.x - x, br.y - y) < 3.4) return true;
+    for (const ex of raid.map.extracts) if (Math.hypot(ex.x - x, ex.y - y) < 3.4) return true;
+    return false;
+}
+function playerSightFactor() {
+    const p = raid.player;
+    return (p.torchInHand || nearLightSource(p.x, p.y)) ? 1 : 0.5;
+}
+
 function computeVisibility() {
     const vis = raid.visMap;
     for (let i = 0; i < vis.length; i++) if (vis[i] === 2) vis[i] = 1;
     const px = raid.player.x, py = raid.player.y, aim = raid.player.angle;
+    const sight = playerSightFactor();
     const rays = 128;
     for (let r = 0; r < rays; r++) {
         const ang = (r / rays) * Math.PI * 2;
         let diff = ang - aim;
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
-        const maxD = Math.abs(diff) < 1.1 ? 11.5 : 4.8;
+        const maxD = (Math.abs(diff) < 1.1 ? 11.5 : 4.8) * sight;
         const c = Math.cos(ang), s = Math.sin(ang);
         for (let d = 0.25; d <= maxD; d += 0.38) {
             const tx = Math.floor(px + c * d), ty = Math.floor(py + s * d);
