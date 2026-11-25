@@ -26,7 +26,8 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 - Dostarczono: nowe `WAROWNIA_POPIOLOW\Warownia_Popiolow_3D\Warownia_Popiolow.exe` (zip obok jest starszy — bez tej poprawki).
 - NIE sprawdzone: wygląd animacji na PC autora i na padzie.
 - Decyzje autora: cel „modele AAA w grze” uznany za zrealizowany na tym etapie (przed zgłoszeniem błędu animacji).
-- Następny krok: autor sprawdza ataki/przewrót/parowanie w grze.
+- **Potwierdzenie autora po zagraniu nowym exe: „Tak, wszystko widać”** (ataki, przewrót, parowanie Hadræna i zamachy wrogów).
+- Następny krok: kolejna runda wg wyboru autora (polecane: strzały i trafienia w 3D); `main` po „publikuj”.
 
 ## 2026-11-25 14:00 — konto (Claude, sesja Warownia), rola: gamedev + grafik (cel autora „/goal”: modele w jakości AAA w grze)
 - Gałąź i commit: `gra-3d` (od `hadraen-3d`).
