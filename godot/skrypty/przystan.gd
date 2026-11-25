@@ -61,6 +61,9 @@ var cel := ""             # najbliższe miejsce interakcji
 var _anim := ""
 var _szum: Texture2D
 var _pyl: GPUParticles3D
+var _budynki: Node3D
+var _przeszkody_bud: Array = []
+var poziomy := {}         # budynek -> poziom pokazany na scenie (do testów)
 
 
 func _ready() -> void:
@@ -325,31 +328,12 @@ func _oboz() -> void:
 	# stół wypraw Chojraka przy pomoście
 	_rek(P + "lectern.glb", 1.2, Vector2(13.8, 8.0), -0.6, 0.45)
 	_rek(P + "order_banner.glb", 2.6, Vector2(14.6, 7.0), 0.2, 0.3)
-	# kuźnia
-	_rek(P + "anvil.glb", 0.8, Vector2(25.0, 11.0), 0.5, 0.6)
-	_rek(P + "bellows.glb", 1.0, Vector2(27.2, 11.2), 0.0, 0.6)
-	_rek(P + "pickaxe_rack.glb", 1.5, Vector2(27.6, 13.8), -0.8, 0.5)
-	var lk := _swiatlo(Color(1.0, 0.45, 0.15), 3.2, 6.5)
-	lk.position = Vector3(27.0, 1.0, 11.4)
-	add_child(lk)
-	# zielarnia
-	_rek(P + "desk.glb", 1.0, Vector2(11.5, 26.0), 0.9, 0.8)
-	_rek(P + "bookcase_a.glb", 2.0, Vector2(9.6, 24.0), 1.57, 0.6)
-	_latarnia(Vector2(12.0, 23.0), 1.6, Color(0.7, 1.0, 0.6))
-	# ołtarz żaru
-	_rek(P + "idol.glb", 2.2, Vector2(18.0, 28.6), 0.0, 0.6)
-	var misa := _rek(R + "misa_zar.glb", 1.0, Vector2(20.0, 28.0), 0.0, 0.5)
-	misa.name = "misa_oltarza"
-	var og2 := _ogien(1.2, 1.4)
-	og2.position = Vector3(20.0, 1.0, 28.0)
-	add_child(og2)
-	var lo := _swiatlo(Color(1.0, 0.5, 0.2), 2.8, 6.0)
-	lo.position = Vector3(20.0, 1.5, 28.0)
-	add_child(lo)
+	_budynki = Node3D.new()
+	add_child(_budynki)
+	odswiez_budynki()
 	# namiot i skrytka
 	_rek(P + "tent.glb", 2.3, Vector2(27.5, 20.5), -2.2, 1.4)
 	_rek(P + "pelts.glb", 0.9, Vector2(25.2, 23.6), 0.4, 0.5)
-	_rek(P + "vault.glb", 1.6, Vector2(29.4, 27.8), -0.8, 0.9)
 	# niska palisada od strony lądu (zaostrzone pale)
 	var d := _drewno()
 	for i in int((ROZMIAR - LAD_OD) / 0.36):
@@ -372,6 +356,95 @@ func _oboz() -> void:
 	for w in [Vector2(16.0, 10.0), Vector2(23.5, 25.0), Vector2(8.0, 20.0)]:
 		_rek(P + "street_lantern.glb", 2.6, w, 0.0, 0.25)
 		_latarnia(w + Vector2(0.15, 0.15), 2.3)
+
+
+## Budynki obozu rosną z poziomem z Warowni (Profil.budynek): 0 = puste miejsce, 1–3 = coraz więcej i jaśniej.
+## Wywoływane przy starcie i po zamknięciu menu (np. po rozbudowie).
+func odswiez_budynki() -> void:
+	for pr in _przeszkody_bud:
+		_przeszkody.erase(pr)
+	_przeszkody_bud.clear()
+	for c in _budynki.get_children():
+		c.queue_free()
+	var kont := _budynki
+	var dodaj := func(sc: String, wys: float, w: Vector2, obr: float, prz: float) -> void:
+		var n := _rek(sc, wys, w, obr, 0.0)
+		n.reparent(kont)
+		if prz > 0.0:
+			var pr := [w, prz]
+			_przeszkody.append(pr)
+			_przeszkody_bud.append(pr)
+	var swiatlo := func(kol: Color, e: float, z: float, w: Vector3) -> void:
+		var l := _swiatlo(kol, e, z)
+		l.position = w
+		kont.add_child(l)
+	var plac := func(w: Vector2) -> void:  # pusty plac budowy: krąg kamieni i pal z szarfą
+		for i in 6:
+			var a := TAU * i / 6.0
+			var k := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			sm.radius = 0.16
+			sm.height = 0.18
+			k.mesh = sm
+			k.material_override = _drewno()
+			k.position = Vector3(w.x + cos(a) * 1.0, 0.05, w.y + sin(a) * 1.0)
+			kont.add_child(k)
+	# Kuźnia
+	var lk: int = Profil.budynek("forge")
+	poziomy["forge"] = lk
+	dodaj.call(P + "pickaxe_rack.glb", 1.5, Vector2(27.6, 13.8), -0.8, 0.5)
+	if lk == 0:
+		plac.call(Vector2(25.5, 11.5))
+	if lk >= 1:
+		dodaj.call(P + "anvil.glb", 0.8, Vector2(25.0, 11.0), 0.5, 0.6)
+		swiatlo.call(Color(1.0, 0.5, 0.2), 1.6, 4.5, Vector3(25.5, 1.0, 11.5))
+	if lk >= 2:
+		dodaj.call(P + "bellows.glb", 1.0, Vector2(27.2, 11.2), 0.0, 0.6)
+		var og := _ogien(1.0, 1.0)
+		og.position = Vector3(27.2, 0.9, 11.2)
+		kont.add_child(og)
+		swiatlo.call(Color(1.0, 0.45, 0.15), 3.2, 6.5, Vector3(27.0, 1.0, 11.4))
+	if lk >= 3:
+		dodaj.call(P + "clan_banner.glb", 2.8, Vector2(28.6, 9.6), -0.4, 0.3)
+		dodaj.call(R + "zbroja.glb", 1.6, Vector2(23.4, 10.2), 0.6, 0.4)
+	# Zielarnia (Alchemik)
+	var la: int = Profil.budynek("alchemist")
+	poziomy["alchemist"] = la
+	if la == 0:
+		plac.call(Vector2(11.5, 25.5))
+	if la >= 1:
+		dodaj.call(P + "desk.glb", 1.0, Vector2(11.5, 26.0), 0.9, 0.8)
+		swiatlo.call(Color(0.7, 1.0, 0.6), 1.4, 4.0, Vector3(12.0, 1.6, 23.0))
+	if la >= 2:
+		dodaj.call(P + "bookcase_a.glb", 2.0, Vector2(9.6, 24.0), 1.57, 0.6)
+	if la >= 3:
+		dodaj.call(P + "lectern.glb", 1.2, Vector2(13.6, 27.0), 0.3, 0.45)
+		swiatlo.call(Color(0.6, 1.0, 0.55), 2.6, 6.0, Vector3(11.5, 1.8, 25.5))
+	# Ołtarz Żaru
+	var lo: int = Profil.budynek("altar")
+	poziomy["altar"] = lo
+	dodaj.call(P + "idol.glb", 2.2, Vector2(18.0, 28.6), 0.0, 0.6)
+	if lo >= 1:
+		dodaj.call(R + "misa_zar.glb", 1.0, Vector2(20.0, 28.0), 0.0, 0.5)
+		var og2 := _ogien(0.8 + lo * 0.4, 1.0 + lo * 0.3)
+		og2.position = Vector3(20.0, 1.0, 28.0)
+		kont.add_child(og2)
+		swiatlo.call(Color(1.0, 0.5, 0.2), 1.6 + lo * 0.9, 4.5 + lo, Vector3(20.0, 1.5, 28.0))
+	if lo >= 3:
+		dodaj.call(P + "order_banner.glb", 2.6, Vector2(16.4, 27.6), 0.4, 0.3)
+	# Skarbiec / Skrytka
+	var lv: int = Profil.budynek("vault")
+	poziomy["vault"] = lv
+	if lv == 0:
+		dodaj.call(R + "kufer.glb", 0.7, Vector2(29.0, 27.6), -0.8, 0.6)
+	if lv >= 1:
+		dodaj.call(P + "vault.glb", 1.6, Vector2(29.4, 27.8), -0.8, 0.9)
+	if lv >= 2:
+		dodaj.call(R + "kufer.glb", 0.7, Vector2(27.4, 29.4), 0.3, 0.5)
+		dodaj.call(R + "beczka.glb", 0.95, Vector2(30.4, 25.6), 0.0, 0.4)
+	if lv >= 3:
+		dodaj.call(P + "street_lantern.glb", 2.6, Vector2(27.0, 26.0), 0.0, 0.25)
+		swiatlo.call(Color(1.0, 0.75, 0.45), 2.2, 6.0, Vector3(27.1, 2.3, 26.1))
 
 
 func _npc_wszyscy() -> void:

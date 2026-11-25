@@ -1156,9 +1156,10 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 	Profil.awans.disconnect(polacz)
 	if Profil.budynek("alchemist") > 0 and prof["stash"].size() < Profil.max_skrytka():
 		prof["stash"].append(Profil.nowy_przedmiot("ember_flask"))
+	var kontrakty: Array = Profil.rozlicz_kontrakty(kraina["id"], zabici, parowania, przezyl)
 	Profil.zapisz()
 	var podsumowanie := {"kraina": kraina["name"], "ziarno": ziarno, "czas": czas, "zabici": zabici, "parowania": parowania,
-		"wartosc": wartosc, "mnoznik_xp": mnoznik_xp, "awanse": awanse}
+		"wartosc": wartosc, "mnoznik_xp": mnoznik_xp, "awanse": awanse, "kontrakty": kontrakty}
 	var opoznienie := 1.7 if p.martwy else 0.0
 	if opoznienie > 0.0:
 		await get_tree().create_timer(opoznienie).timeout

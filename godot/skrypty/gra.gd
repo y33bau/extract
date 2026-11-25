@@ -120,6 +120,7 @@ func zamknij_menu() -> void:
 	hub_warstwa.visible = false
 	hub.visible = false
 	przystan.aktywna = true
+	przystan.odswiez_budynki()
 
 
 func _unhandled_input(e: InputEvent) -> void:
@@ -187,6 +188,8 @@ func _koniec_rajdu(przezyl: bool, powod: String, s: Dictionary) -> void:
 		"zaliczone w całości" if przezyl else "zaliczona połowa"]
 	if przezyl:
 		txt += "\nWartość łupu z sakwy: %d zł" % s["wartosc"]
+	for kt in s.get("kontrakty", []):
+		txt += "\n📜 Kontrakt Chojraka wykonany: %s" % kt
 	for a in s["awanse"]:
 		txt += "\n📜 Awans: %s — poziom %d" % [Dane.umiejetnosci[a[0]]["name"], a[1]]
 	v.add_child(Ui.etykieta(txt, 14))
@@ -506,6 +509,12 @@ func _test() -> void:
 	_ok("przycisk Grafika zmienia i zapamiętuje jakość", j1 == (j0 + 1) % 4 and hub.przycisk_grafiki.text.ends_with(Profil.JAKOSCI[j1]), "%s → %s" % [Profil.JAKOSCI[j0], Profil.JAKOSCI[j1]])
 	Profil.ustaw_jakosc(j0)
 
+	# kontrakt Chojraka do sprawdzenia przy ekstrakcji
+	Profil.d["kontrakty"] = [{"typ": "ekstrakcja", "kraina": "catacombs", "cel": 1, "postep": 0, "nagroda": 150}]
+	var zloto_przed_rajdem: int = int(Profil.d["gold"])
+	hub.zakladki.current_tab = 0
+	hub.odswiez()
+	_ok("Wyprawa: lista kontraktów Chojraka", hub.t_wyprawa.get_children().any(func(c): return c is Label and c.text.contains("KONTRAKTY")))
 	rozpocznij_rajd("catacombs", "TEST01")
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)
@@ -673,6 +682,9 @@ func _test() -> void:
 	await _pad(JOY_BUTTON_A)
 	await _czekaj(0.3)
 	_ok("A wraca do Warowni (Przystań)", przystan != null and rajd == null and not hub.is_visible_in_tree())
+	var kw: Array = ostatni_wynik["s"].get("kontrakty", [])
+	_ok("kontrakt wykonany po ekstrakcji: złoto i nowy kontrakt", kw.size() == 1 and int(Profil.d["gold"]) >= zloto_przed_rajdem + 150 and Profil.d["kontrakty"].size() == 1 and Profil.d["kontrakty"][0]["postep"] == 0, "%s, złoto %d → %d" % [str(kw), zloto_przed_rajdem, int(Profil.d["gold"])])
+	_ok("Przystań: budynki wg poziomu Warowni", przystan.poziomy.get("forge", -1) == Profil.budynek("forge") and przystan.poziomy.size() == 4, str(przystan.poziomy))
 	Profil.wczytaj()
 	_ok("zapis po ekstrakcji", Profil.d["stats"]["survived"] == 1 and Profil.d["stats"]["raids"] == 1)
 	_ok("idol trafił do Skrytki", Profil.d["stash"].any(func(i): return i["id"] == "golden_idol"))

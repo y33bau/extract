@@ -248,6 +248,10 @@ func _wyprawa() -> void:
 	hz.add_child(pole)
 	hz.add_child(_przycisk("🎲 Losuj", "losuj", func(): ziarno = _losowe_ziarno(); _wyprawa()))
 	t_wyprawa.add_child(hz)
+	# kontrakty Chojraka: liczą się tylko po udanej ekstrakcji
+	t_wyprawa.add_child(Ui.etykieta("KONTRAKTY CHOJRAKA (liczą się po powrocie z wyprawy)", 15, Ui.ZLOTO))
+	for k in Profil.d.get("kontrakty", []):
+		t_wyprawa.add_child(Ui.etykieta("   • %s — %d/%d — nagroda %d zł" % [Profil.opis_kontraktu(k), int(k["postep"]), int(k["cel"]), int(k["nagroda"])], 13))
 	var l: Dictionary = Profil.d["loadout"]
 	var nazwa := func(k): return Dane.p(l[k]["id"])["name"] if l[k] else "BRAK"
 	var flaszki := 0

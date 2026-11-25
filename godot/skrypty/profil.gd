@@ -46,6 +46,7 @@ func domyslny() -> Dictionary:
 				nowy_przedmiot("stamina_tonic"), nowy_przedmiot("ash_salve")],
 			"reliquary": [nowy_przedmiot("ember_flask")],
 		},
+		"kontrakty": nowe_kontrakty(3),
 		"stash": [nowy_przedmiot("steel_falchion"), nowy_przedmiot("iron_arrows", 16), nowy_przedmiot("ember_flask"),
 			nowy_przedmiot("iron_ingot"), nowy_przedmiot("ash_essence"), nowy_przedmiot("silver_goblet")],
 	}
@@ -57,6 +58,8 @@ func wczytaj() -> void:
 		var w: Variant = JSON.parse_string(f.get_as_text())
 		if w is Dictionary and w.has("loadout") and w.has("stronghold") and w.has("skills"):
 			d = w
+			if not d.has("kontrakty"):  # migracja zapisu sprzed kontraktów (25.11.2026)
+				d["kontrakty"] = nowe_kontrakty(3)
 			_napraw_liczby()
 			return
 	d = domyslny()
@@ -71,6 +74,9 @@ func _napraw_liczby() -> void:
 		d["stronghold"][k] = int(d["stronghold"][k])
 	for k in d["skills"]:
 		d["skills"][k]["lv"] = int(d["skills"][k]["lv"])
+	for k in d.get("kontrakty", []):
+		for pole in ["cel", "postep", "nagroda"]:
+			k[pole] = int(k[pole])
 	for lista in [d["stash"], d["loadout"]["backpack"], d["loadout"]["reliquary"]]:
 		for it in lista:
 			if it.has("qty"):
@@ -152,3 +158,70 @@ func ustaw_jakosc(j: int) -> void:
 	c.load(PLIK_USTAWIEN)
 	c.set_value("grafika", "jakosc", clampi(j, 0, 3))
 	c.save(PLIK_USTAWIEN)
+
+
+# ---------------------------------------------------------------- KONTRAKTY CHOJRAKA (KONCEPCJE pkt 1, runda 5)
+## Kontrakt liczy się tylko po udanej ekstrakcji (śmierć = nic, jak w Tarkovie). Nagrody: DO STROJENIA przez autora.
+const NAGRODA_ZA_WROGA := 40
+const NAGRODA_ZA_PAROWANIE := 60
+const NAGRODA_EKSTRAKCJA := {"catacombs": 150, "outskirts": 250, "crypt": 400}
+
+
+func nowy_kontrakt() -> Dictionary:
+	var kr: Array = []
+	for k in Dane.krainy:
+		kr.append(k["id"])
+	var kraina: String = kr[randi() % kr.size()]
+	match randi() % 3:
+		0:
+			var n := 3 + randi() % 4
+			return {"typ": "zabij", "kraina": kraina, "cel": n, "postep": 0, "nagroda": n * NAGRODA_ZA_WROGA}
+		1:
+			var n2 := 2 + randi() % 3
+			return {"typ": "parowania", "kraina": "", "cel": n2, "postep": 0, "nagroda": n2 * NAGRODA_ZA_PAROWANIE}
+		_:
+			return {"typ": "ekstrakcja", "kraina": kraina, "cel": 1, "postep": 0, "nagroda": int(NAGRODA_EKSTRAKCJA.get(kraina, 200))}
+
+
+func nowe_kontrakty(ile: int) -> Array:
+	var l: Array = []
+	for i in ile:
+		l.append(nowy_kontrakt())
+	return l
+
+
+func opis_kontraktu(k: Dictionary) -> String:
+	var nazwa := ""
+	for kr in Dane.krainy:
+		if kr["id"] == k.get("kraina", ""):
+			nazwa = kr["name"]
+	match str(k["typ"]):
+		"zabij": return "Pokonaj %d wrogów: %s" % [int(k["cel"]), nazwa]
+		"parowania": return "Sparuj %d ciosów w jednej wyprawie" % int(k["cel"])
+		_: return "Wróć żywy z wyprawy: %s" % nazwa
+
+
+## Rozliczenie po wyprawie. Zwraca opisy wykonanych kontraktów (złoto już dodane).
+func rozlicz_kontrakty(kraina: String, zabici: int, parowania: int, przezyl: bool) -> Array:
+	var wykonane: Array = []
+	if not przezyl:
+		return wykonane
+	var lista: Array = d.get("kontrakty", [])
+	for i in lista.size():
+		var k: Dictionary = lista[i]
+		match str(k["typ"]):
+			"zabij":
+				if k["kraina"] == kraina:
+					k["postep"] = mini(int(k["cel"]), int(k["postep"]) + zabici)
+			"parowania":
+				if parowania >= int(k["cel"]):
+					k["postep"] = int(k["cel"])
+			_:
+				if k["kraina"] == kraina:
+					k["postep"] = 1
+		if int(k["postep"]) >= int(k["cel"]):
+			d["gold"] = int(d["gold"]) + int(k["nagroda"])
+			wykonane.append("%s  (+%d zł)" % [opis_kontraktu(k), int(k["nagroda"])])
+			lista[i] = nowy_kontrakt()
+	d["kontrakty"] = lista
+	return wykonane
