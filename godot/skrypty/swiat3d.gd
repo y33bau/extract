@@ -1217,7 +1217,7 @@ func _bohater() -> void:
 	bohater = _scena(GLB_BOHATERA).instantiate()
 	add_child(bohater)
 	WygladPostaci.ozyw(bohater, 0.35, 0.4)
-	WygladPostaci.swiatlo_postaci(bohater, 0.9)
+	WygladPostaci.swiatlo_postaci(bohater, 1.35)  # ciemna zbroja: mocniejsze światło postaci, żeby nie ginął w mroku
 	_ap_bohatera = bohater.find_child("AnimationPlayer", true, false)
 	_przygotuj_ap(_ap_bohatera)
 	for n in ["bron_dwureczny", "bron_glewia", "bron_topor", "bron_miecz", "bron_tarcza", "bron_pochodnia"]:
@@ -1235,6 +1235,16 @@ func _bohater() -> void:
 	_poswiata.position.y = 1.6
 	bohater.add_child(_poswiata)
 	_cienie(bohater)
+	_blysk_bohatera = StandardMaterial3D.new()
+	_blysk_bohatera.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_blysk_bohatera.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_blysk_bohatera.albedo_color = Color(1, 1, 1, 0)
+	var cialo_b: MeshInstance3D = bohater.find_child("cialo", true, false)
+	if cialo_b:
+		cialo_b.material_overlay = _blysk_bohatera
+	_krag_bohatera = _krag(Color(1.0, 0.75, 0.4), 0.6)
+	(_krag_bohatera.material_override as ShaderMaterial).set_shader_parameter("sila", 0.7)
+	add_child(_krag_bohatera)
 
 
 func _cienie(n: Node) -> void:
@@ -1440,8 +1450,11 @@ func _wrog3d(en) -> Dictionary:
 		if c is Node3D and (c as Node3D).visible and c.name != "bron_tarcza":
 			bron = c
 			break
+	var krag := _krag(Color(0.62, 0.07, 0.05), 0.62 * s if not en.boss else 0.95 * s)
+	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
-		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false}
+		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
+		"krag": krag, "skala": s, "ost_traf": 0.0, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
 	return d
 
@@ -1567,6 +1580,8 @@ void fragment() {
 	float brzeg = smoothstep(0.9, 0.975, r) * w_kole;
 	float boki = smoothstep(kat - 0.1, kat - 0.03, a) * w_kacie;
 	float m = obszar * (0.05 + 0.16 * wyp + 0.55 * front + 0.5 * brzeg + 0.35 * boki);
+	// wąski klin strzały: wygasa z odległością, żeby nie wyglądał jak snop światła
+	if (kat < 0.1) { m *= 1.0 - smoothstep(0.15, 0.85, r); }
 	ALBEDO = kolor.rgb;
 	ALPHA = clamp(m * sila, 0.0, 1.0);
 }
@@ -1618,16 +1633,18 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			_zapowiedz(en, d, t, n.visible)
 		elif en.cios_anim > 0.0:
 			_graj(ap, "cios", 1.0 - en.cios_anim / 0.34)
-		elif en.trafiony > 0.0:
-			_graj(ap, "trafienie", 1.0 - en.trafiony / 0.15)
+		elif d["reakcja"] > 0.0:
+			_graj(ap, "trafienie", 1.0 - d["reakcja"] / REAKCJA)
 		elif czas - en._ruch_czas < 0.15:
 			_graj(ap, "chod", -1.0, en.spd / 2.0)
 		else:
 			_graj(ap, "postoj", -1.0)
 		if en.zamach <= 0.0 or en.ogluszenie > 0.0:
 			_zgas_zapowiedz(d, dt)
-		var b: StandardMaterial3D = d["blysk"]
-		b.albedo_color.a = 0.28 if en.trafiony > 0.0 else 0.0
+		_reakcja_wroga(en, d, n, dt)
+		var krag: MeshInstance3D = d["krag"]
+		krag.visible = n.visible and en.stan == "walka" and not lekki_krag
+		krag.global_position = Vector3(n.position.x, 0.025, n.position.z)
 	# polegli: animacja śmierci i ciało zostaje na ziemi
 	for id in _wrogowie.keys():
 		if zywi.has(id):
@@ -1678,6 +1695,162 @@ func _aktualizuj_rekwizyty(czas: float) -> void:
 			var baza: float = l.get_meta("baza", l.light_energy)
 			l.set_meta("baza", baza)
 			l.light_energy = baza * (1.0 + sin(czas * 13.0 + l.position.x * 7.0) * 0.06 + sin(czas * 31.0 + l.position.z) * 0.04)
+
+
+
+# ---------------------------------------------------------------- MIĘSO TRAFIEŃ (tylko wygląd)
+## Reakcja na trafienie trwa dłużej niż okno logiki (en.trafiony 0,15 s), żeby cios był widoczny:
+## błysk ciała, wzdrygnięcie (klip „trafienie”), odchylenie do tyłu na sprężynie i krótki „przysiad” sylwetki.
+const REAKCJA := 0.42
+var lekki_krag := false
+
+
+func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
+	var nowe_traf: bool = en.trafiony > float(d["ost_traf"]) + 0.01
+	d["ost_traf"] = en.trafiony
+	if nowe_traf:
+		var strata: float = maxf(0.0, float(d["ost_hp"]) - en.hp) / maxf(1.0, en.hp_max)
+		var mocno: float = clampf(0.45 + strata * 3.0, 0.45, 1.0)
+		d["flash"] = 1.0
+		d["traf_licznik"] = int(d["traf_licznik"]) + 1
+		d["odchyl_v"] = float(d["odchyl_v"]) - 7.5 * mocno
+		if en.zamach <= 0.0 and en.cios_anim <= 0.0 and en.ogluszenie <= 0.0:
+			d["reakcja"] = REAKCJA
+	d["ost_hp"] = en.hp
+	d["reakcja"] = maxf(0.0, float(d["reakcja"]) - dt)
+	d["flash"] = maxf(0.0, float(d["flash"]) - dt / 0.16)
+	# sprężyna odchylenia (rad): szybki odrzut, sprężysty powrót
+	var o: float = d["odchyl"]
+	var v: float = d["odchyl_v"]
+	v += (-o * 220.0 - v * 18.0) * dt
+	o += v * dt
+	d["odchyl"] = clampf(o, -0.35, 0.2)
+	d["odchyl_v"] = v
+	n.rotation.x = d["odchyl"]
+	var f: float = d["flash"]
+	var sk: float = d["skala"]
+	n.scale = Vector3(sk * (1.0 + 0.05 * f), sk * (1.0 - 0.07 * f), sk * (1.0 + 0.05 * f))
+	var b: StandardMaterial3D = d["blysk"]
+	b.albedo_color = Color(1.0, 0.93, 0.82, 0.75 * f * f)
+
+
+## Krąg pod stopami: czerwony pod wrogiem w walce, ciepły pod bohaterem — postać nie ginie w mroku.
+var _sh_krag: Shader
+func _krag(kolor: Color, promien: float) -> MeshInstance3D:
+	if _sh_krag == null:
+		_sh_krag = Shader.new()
+		_sh_krag.code = """shader_type spatial;
+render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
+uniform vec4 kolor : source_color = vec4(0.85, 0.12, 0.08, 1.0);
+uniform float sila = 1.0;
+varying vec2 lok;
+void vertex() { lok = VERTEX.xz * 2.0; }
+void fragment() {
+	float r = length(lok) / 2.0;
+	float obwod = exp(-pow((r - 0.86) * 11.0, 2.0));
+	float wnetrze = (1.0 - smoothstep(0.2, 0.95, r)) * 0.12;
+	ALBEDO = kolor.rgb;
+	ALPHA = clamp((obwod * 0.5 + wnetrze) * sila, 0.0, 1.0) * step(r, 1.0);
+}
+"""
+	var m := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(promien * 2.0, promien * 2.0)
+	m.mesh = pm
+	var mat := ShaderMaterial.new()
+	mat.shader = _sh_krag
+	mat.set_shader_parameter("kolor", kolor)
+	m.material_override = mat
+	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	m.top_level = true
+	m.visible = false
+	return m
+
+
+## Wybuch cząsteczek w 3D (zamiast kwadratowych pikseli 2D): jasne = iskry z poświatą, ciemne = krople krwi.
+var _mat_iskry: StandardMaterial3D
+var _mat_krople: StandardMaterial3D
+func czastki(w: Vector2, ile: int, kolor: Color, predkosc: float, zycie: float) -> void:
+	var jasne := kolor.get_luminance() > 0.45
+	var gp := GPUParticles3D.new()
+	gp.one_shot = true
+	gp.explosiveness = 0.95
+	gp.amount = clampi(int(ile * (1.6 if jasne else 2.2)), 4, 64)
+	gp.lifetime = zycie * (0.9 if jasne else 1.6)
+	gp.local_coords = false
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(0, 1, 0)
+	pm.spread = 75.0
+	pm.initial_velocity_min = predkosc * 0.5
+	pm.initial_velocity_max = predkosc * 1.2
+	pm.gravity = Vector3(0, -9.0 if jasne else -12.0, 0)
+	pm.damping_min = 1.0
+	pm.damping_max = 3.0
+	pm.scale_min = 0.6
+	pm.scale_max = 1.3
+	var krzywa := Curve.new()
+	krzywa.add_point(Vector2(0, 1))
+	krzywa.add_point(Vector2(1, 0.15))
+	var ct := CurveTexture.new()
+	ct.curve = krzywa
+	pm.scale_curve = ct
+	pm.color = kolor
+	gp.process_material = pm
+	var q := QuadMesh.new()
+	if jasne:
+		q.size = Vector2(0.07, 0.07)
+		if _mat_iskry == null:
+			_mat_iskry = StandardMaterial3D.new()
+			_mat_iskry.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			_mat_iskry.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			_mat_iskry.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_mat_iskry.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+			_mat_iskry.vertex_color_use_as_albedo = true
+			_mat_iskry.albedo_texture = _kropka()
+			_mat_iskry.albedo_color = Color(2.2, 2.0, 1.7)
+		q.material = _mat_iskry
+	else:
+		q.size = Vector2(0.06, 0.06)
+		if _mat_krople == null:
+			_mat_krople = StandardMaterial3D.new()
+			_mat_krople.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			_mat_krople.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_mat_krople.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+			_mat_krople.vertex_color_use_as_albedo = true
+			_mat_krople.albedo_texture = _kropka()
+		q.material = _mat_krople
+	gp.draw_pass_1 = q
+	gp.position = Vector3(w.x, 1.0, w.y)
+	add_child(gp)
+	gp.emitting = true
+	get_tree().create_timer(gp.lifetime + 0.3, false).timeout.connect(gp.queue_free)
+
+
+## Zamrożenie klatki przy trafieniu (rajd.hitstop): animacje stają razem z logiką.
+func zamroz() -> void:
+	if _ap_bohatera:
+		_ap_bohatera.speed_scale = 0.0
+	for id in _wrogowie:
+		(_wrogowie[id]["ap"] as AnimationPlayer).speed_scale = 0.0
+
+
+## Bohater: błysk ciała przy otrzymanym ciosie (czerwony) i przy parowaniu (złoty).
+var _blysk_bohatera: StandardMaterial3D
+var _krag_bohatera: MeshInstance3D
+
+
+func _aktualizuj_blysk_bohatera() -> void:
+	if _blysk_bohatera == null:
+		return
+	var tr: float = rajd.blysk_trafienia
+	var pa: float = rajd.blysk_parowania
+	if pa > tr:
+		_blysk_bohatera.albedo_color = Color(1.0, 0.85, 0.45, 0.55 * pa * pa)
+	else:
+		_blysk_bohatera.albedo_color = Color(1.0, 0.2, 0.15, 0.6 * tr * tr)
+	if _krag_bohatera:
+		_krag_bohatera.global_position = Vector3(bohater.position.x, 0.024, bohater.position.z)
+		_krag_bohatera.visible = not rajd.gracz.martwy and not lekki_krag
 
 
 # ---------------------------------------------------------------- EFEKTY WALKI (arkusze NightBrand)
@@ -1759,5 +1932,6 @@ func aktualizuj(dt: float, czas: float) -> void:
 	if _pyl:
 		_pyl.position = Vector3(rajd.gracz.w.x, 1.2, rajd.gracz.w.y)
 	_aktualizuj_bohatera(dt)
+	_aktualizuj_blysk_bohatera()
 	_aktualizuj_wrogow(dt, czas)
 	_aktualizuj_rekwizyty(czas)

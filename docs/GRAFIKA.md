@@ -71,6 +71,17 @@ Zestaw na biotop (minimum): 4–6 wariantów podłogi, ścieżka, krąg ekstrakc
 złoto `#e6ba63`, żar `#e07a38`, popiół (tekst) `#dcd6ce`, tło paneli `#1a171c`, rama `#352f38`.
 Rzadkość: zwykły `#78736d`, niepospolity `#4ca676`, rzadki `#4d88c7`, epicki `#c79c4c`, legendarny `#d43f49`.
 
+### Oprawa walki (runda `walka-oprawa`, 26.11.2026)
+- **Czcionka walki: Cinzel** (SIL OFL, `godot/zasoby/czcionki/cinzel.ttf` + licencja, która jedzie w paczce). `Ui.czcionka(waga)` — grubość 400–900; klucz wariantu musi być liczbowym tagiem OpenType (tekstowy „wght” nie działa — sprawdzone testem).
+- **Pasek wroga** (`Ui.rysuj_pasek`, `wrog.gd`): ciemne tło, brązowa rama, czerwone życie `#c4252f` z jaśniejszą górą, jasny „ślad” utraconego życia (dogania po 0,45 s). Postura jak w Sekiro: rośnie od środka, złoto → żar, pulsuje >75%. Pojawia się płynnie tylko w walce.
+- **Riposta możliwa:** pulsujący złoty romb nad głową (zamiast napisu „★ RIPOSTA ★”). W 3D brak starego krążka z krzyżykiem — zamach pokazują klin, pierścień rytmu i błysk broni.
+- **Boss:** pasek na dole ekranu (HUD, `hud.gd`), imię Cinzel, bez paska nad głową.
+- **Napisy** (`efekty.gd`): liczby duże i „wyskakują”, komunikaty mniejsze; układanie piętrami wg położenia na ekranie; ten sam komunikat się nie dubluje, liczby zawsze osobno.
+- **Cząsteczki:** wybuchy ≥6 cząstek idą do 3D (`swiat3d.czastki`): jasne = iskry z poświatą, ciemne = krople krwi z grawitacją; drobne 2D to miękkie kropki, nie kwadraty.
+- **Mięso trafień** (`swiat3d.gd`, `rajd.gd` — tylko wygląd): zatrzymanie klatki zamraża też animacje, kierunkowe „kopnięcie” obrazu w stronę ciosu, płynny wstrząs zamiast losowego, krótkie przybliżenie przy ripoście/parowaniu/złamaniu postury, błysk ciała i wzdrygnięcie wroga (0,42 s, klip „trafienie”) z odchyleniem na sprężynie, czerwony/złoty błysk bohatera.
+- **Czytelność:** krąg pod wrogiem w walce (ciemnoczerwony), ciepły krąg pod bohaterem, mocniejsze światło postaci bohatera (1,35).
+- Podgląd dla agenta: `godot --path godot --rendering-driver vulkan -- --podglad-walki=/tmp/katalog[,kraina]` (seria zrzutów: cios, ciężki cios, zamach, parowanie, riposta, ból, śmierć).
+
 ## 5. Proces produkcji grafiki
 1. **Grafik pisze prompty** (dla ChatGPT / Gemini — jak w NightBrand; narzędzia płatne typu PixelLab tylko za zgodą autora). Prompt zawsze zawiera: styl („dark fantasy painted pixel art, isometric 2:1”), widok, rozmiar siatki, przezroczyste tło, paletę biotopu, brak tekstu i podpisów.
 2. **Autor generuje** i wrzuca pliki do swojego folderu (agent wskazuje ścieżkę, np. `NIGHTBRAND\WAROWNIA_GRAFIKA\spalona_osada\`).

@@ -43,6 +43,8 @@ var zakonczony := false
 var koniec_za := -1.0
 var hitstop := 0.0
 var wstrzas := 0.0
+var kop_kamery := Vector2.ZERO    # kierunkowe „kopnięcie” obrazu przy trafieniu (piksele, tylko wygląd)
+var przyblizenie := 0.0           # krótkie przybliżenie przy ripoście / parowaniu / złamaniu postury (tylko wygląd)
 var blysk_trafienia := 0.0
 var blysk_parowania := 0.0
 var pochodnia_na_ziemi = null  # Vector2 albo null
@@ -83,6 +85,7 @@ func start(id_krainy: String, ziarno_mapy: String) -> void:
 		swiat3d = Swiat3D.new()
 		add_child(swiat3d)
 		swiat3d.zbuduj(self)
+		efekty.swiat3d = swiat3d
 	_licz_widok()
 	_buduj_mape_komnat()
 
@@ -613,8 +616,10 @@ func atak_wrecz() -> void:
 			obr *= 2.6 + (Profil.poziom("parry") - 1) * 0.15
 			en.ogluszenie = 0.0
 			Dzwiek.riposta()
-			hitstop = 0.11
+			hitstop = 0.15
 			wstrzas = minf(14.0, wstrzas + 10.0)
+			_kopnij(kat_do, 11.0)
+			przyblizenie = 1.0
 			efekty.czastki_dodaj(en.w, 18, Color("ffd166"), 4.2, 0.6)
 			if swiat3d != null:
 				swiat3d.efekt("riposta", en.w, 1.1, kat_do, 1.6, 0.4, 0.05)
@@ -625,8 +630,9 @@ func atak_wrecz() -> void:
 		else:
 			obr *= 1.0 - en.pancerz
 			Dzwiek.trafienie()
-			hitstop = 0.05 if ciezki else 0.025
+			hitstop = 0.085 if ciezki else 0.055
 			wstrzas = minf(9.0, wstrzas + (5.0 if ciezki else 2.5))
+			_kopnij(kat_do, 7.0 if ciezki else 4.0)
 			efekty.czastki_dodaj(en.w, 7, Color("b51d29"), 2.8, 0.4)
 			if swiat3d != null:
 				swiat3d.efekt("ciecie_krew", en.w, 1.1, kat_do, 1.1, 0.26, 0.04)
@@ -659,8 +665,9 @@ func postura(en: Wrog, ile: float) -> void:
 		en.ogluszenie = 1.8 if en.boss else 2.2
 		en.zamach = 0.0
 		en.atak_timer = en.ogluszenie
-		hitstop = maxf(hitstop, 0.09)
+		hitstop = maxf(hitstop, 0.12)
 		wstrzas = minf(12.0, wstrzas + 6.0)
+		przyblizenie = maxf(przyblizenie, 0.8)
 		Dzwiek.parowanie()
 		efekty.czastki_dodaj(en.w, 16, Color("ffd166"), 3.6, 0.5)
 		napis(en.w - Vector2(1.05, 1.05), "POSTURA ZŁAMANA!", Color("ffd166"), 13)
@@ -839,9 +846,10 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 			en.zamach = 0.0
 			en.atak_timer = 2.8
 			parowania += 1
-			hitstop = 0.13
+			hitstop = 0.15
 			blysk_parowania = 0.85
 			wstrzas = minf(12.0, wstrzas + 8.0)
+			przyblizenie = 1.0
 			Dzwiek.parowanie()
 			efekty.czastki_dodaj((p.w + en.w) / 2.0, 22, Color("ffd166"), 4.5, 0.55)
 			if swiat3d != null:
@@ -873,6 +881,9 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		Dzwiek.bol()
 		blysk_trafienia = 0.85
 		wstrzas = minf(12.0, wstrzas + 6.0)
+		if en != null:
+			_kopnij(atan2(p.w.y - en.w.y, p.w.x - en.w.x), 9.0)
+		hitstop = maxf(hitstop, 0.06)
 		efekty.czastki_dodaj(p.w, 10, Color("a31820"), 2.6, 0.45)
 		napis(p.w - Vector2(0.6, 0.6), "-%d" % roundi(obr), Color("ff4d4d"), 12)
 		if en != null and en.boss and mapa.rng_wrogowie.randf() < 0.35 and not p.plonie:
@@ -1016,6 +1027,8 @@ func _process(dt_surowe: float) -> void:
 			bufor_uniku = 0.2
 	if hitstop > 0.0:
 		hitstop -= dt
+		if swiat3d:
+			swiat3d.zamroz()
 		return
 	_wejscie()
 	_aktualizuj(dt)
@@ -1167,6 +1180,8 @@ func _aktualizuj(dt: float) -> void:
 	blysk_trafienia = maxf(0.0, blysk_trafienia - dt * 2.8)
 	blysk_parowania = maxf(0.0, blysk_parowania - dt * 3.0)
 	wstrzas = maxf(0.0, wstrzas - dt * 24.0)
+	kop_kamery = kop_kamery.lerp(Vector2.ZERO, minf(1.0, dt * 14.0))
+	przyblizenie = maxf(0.0, przyblizenie - dt * 4.0)
 	timer_widoku -= dt
 	if timer_widoku <= 0.0:
 		_sprawdz_obszar()
@@ -1299,7 +1314,20 @@ func _kamera(dt: float) -> void:
 	var p := gracz
 	var cel := Iso.ekran(p.w) + Vector2(cos(p.kat) * 28.0, sin(p.kat) * 18.0) + Vector2(0, -30)
 	kamera.position = kamera.position.lerp(cel, minf(1.0, dt * 8.0))
-	kamera.offset = Vector2(randf() - 0.5, randf() - 0.5) * wstrzas if wstrzas > 0.0 else Vector2.ZERO
+	# wstrząs: płynny szum (nie losowy skok co klatkę) + kierunkowe kopnięcie w stronę ciosu
+	var t := czas * 47.0
+	var szum := Vector2(sin(t) + sin(t * 2.31 + 1.7) * 0.5, cos(t * 1.13) + sin(t * 2.87 + 0.4) * 0.5) * 0.45
+	kamera.offset = kop_kamery + szum * wstrzas
+	if GRAFIKA_3D:
+		var z := ZOOM_3D * (1.0 + 0.045 * przyblizenie * przyblizenie)
+		kamera.zoom = Vector2(z, z)
+
+
+## Kierunek świata (kąt) -> przesunięcie obrazu w tę stronę (rzut izometryczny), suma ograniczona.
+func _kopnij(kat_swiata: float, sila: float) -> void:
+	var d := Iso.ekran(Vector2(cos(kat_swiata), sin(kat_swiata))) - Iso.ekran(Vector2.ZERO)
+	if d.length() > 0.001:
+		kop_kamery = (kop_kamery + d.normalized() * sila).limit_length(16.0)
 
 
 # ---------------------------------------------------------------- KONIEC RAJDU

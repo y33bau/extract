@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 00:45 — konto 2, rola: grafik
+- Gałąź `walka-oprawa` (od main `97c0c22`). main nietknięty.
+- Zlecenie autora (00:08): przed liczbami do strojenia dopracować walkę, świat i menu; „walka wygląda średnio, ikony nad wrogami jak ze SNES-a, menu też”. Kolejność wybrana przez autora: **najpierw oprawa walki**; w walce przeszkadza mu wszystko: brak mięsa trafień, znaczki nad wrogami, animacje wrogów, słaba widoczność, „animacje walki miałkie, nie czuć ciosów”.
+- Zrobione (szczegóły: `GRAFIKA.md` → „Oprawa walki”): nowe paski HP/postury nad wrogami (rama, ślad utraty, postura od środka), złoty romb riposty zamiast napisu, usunięty krążek z krzyżykiem w 3D, pasek bossa na dole ekranu, liczby i komunikaty czcionką Cinzel (OFL) z „wyskokiem” i bez nakładania, iskry i krople krwi w 3D zamiast kwadratów, zatrzymanie klatki zamraża animacje, kierunkowe kopnięcie i płynny wstrząs obrazu, przybliżenie przy ripoście/parowaniu, błysk i wzdrygnięcie wroga z odchyleniem, błysk bohatera, kręgi pod postaciami, mocniejsze światło bohatera. Narzędzie `--podglad-walki`.
+- **LICZBY DO STROJENIA (wyczucie, nie obrażenia ani okna):** zatrzymanie klatki — zwykły cios 0,025 → 0,055 s, ciężki 0,05 → 0,085 s, riposta 0,11 → 0,15 s, złamanie postury 0,09 → 0,12 s, parowanie 0,13 → 0,15 s, nowe 0,06 s, gdy bohater obrywa. Zatrzymuje obie strony jednakowo; obrażenia, okna parowania i uniku, koszty bez zmian. Proszę o ocenę autora.
+- Testy: `testy.py godot` 67/67 OK (nowe: zatrzymanie klatki i kopnięcie, iskry 3D, reakcja wroga, ślad paska HP, napisy bez nakładania, pasek bossa). Kontrola spakowanej gry Linux 67/67 OK (pierwsza próba wykryła test zależny od czasu — przerobiony na czekanie na licznik trafień).
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Walka.zip` (310 MB: exe + `TEST_WALKA.bat` + licencja czcionki).
+- NIE sprawdzone: wyczucie na żywo u autora (oceniałem klatki z podglądu), prawdziwy pad, dźwięk, wydajność iskier 3D przy wielu wrogach na słabszym GPU, wygląd na monitorze autora. Animacje wrogów (klipy Mixamo) bez zmian — poprawiona tylko reakcja na trafienie.
+- Następny krok: ocena autora; potem runda „menu i interfejs” (malowane ikony, ramki, Cinzel w menu), potem „świat rajdu” (mgła wojny bez schodków). Propozycja do decyzji: kamera bliżej postaci (dziś postacie są małe) — zmienia, ile gracz widzi, więc tylko za zgodą.
+
 ## 2026-11-26 00:10 — konto 2 / agent główny, rola: agent główny — PUBLIKACJA
 - **Opublikowano na main** na „publikuj” autora (00:06): fast-forward `2945bea → be34911` (cała linia gałęzi do `mapy-runda-2` włącznie). main = `mapy-runda-2`.
 - Testy: 61/61 OK (test bazowy tej sesji, kod bez zmian od tamtej chwili).

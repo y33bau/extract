@@ -36,6 +36,85 @@ func _ready() -> void:
 			_podglad.call_deferred(a.substr(10))
 		if a.begins_with("--podglad-przystan="):
 			_podglad_przystani.call_deferred(a.substr(19))
+		if a.begins_with("--podglad-walki="):
+			_podglad_walki.call_deferred(a.substr(16))
+
+
+## Podgląd oprawy walki dla agenta: --podglad-walki=katalog[,kraina]. Seria zrzutów klatka po klatce
+## (cios, ciężki cios, zamach wroga, parowanie, riposta, trafienie gracza, śmierć wroga, boss). Bez asercji.
+func _podglad_walki(arg: String) -> void:
+	var cz := arg.split(",")
+	_zrzuty = cz[0]
+	DirAccess.make_dir_recursive_absolute(_zrzuty)
+	Profil.resetuj()
+	rozpocznij_rajd(cz[1] if cz.size() > 1 else "catacombs", "WALKA1")
+	await _czekaj(0.3)
+	var p = rajd.gracz
+	p.pochodnia_w_rece = false
+	for en in rajd.wrogowie:
+		en.uspiony = true
+	# dwóch wrogów przed graczem w otwartym miejscu startu
+	var a = rajd.wrogowie[0]
+	var b = rajd.wrogowie[1] if rajd.wrogowie.size() > 1 else null
+	p.kat = 0.6
+	var seria := func(nazwa: String, ile: int) -> void:
+		for i in ile:
+			await _zrzut("%s_%02d" % [nazwa, i])
+	for en in [a, b]:
+		if en != null:
+			en.uspiony = true
+			en.stan = "walka"
+			en.atak_timer = 99.0
+			en.hp_max = 400.0
+			en.hp = 400.0
+	_ustaw_wroga_przed(a, 1.35)
+	if b != null:
+		b.w = p.w + Vector2(cos(p.kat - 1.3), sin(p.kat - 1.3)) * 2.4
+	await _czekaj(0.4)
+	await _zrzut("w0_stoja")
+	# zwykłe ciosy (combo 1, 2)
+	rajd.atak_wrecz()
+	await seria.call("w1_cios", 8)
+	p.atak_cd = 0.0
+	await _czekaj(0.1)
+	rajd.atak_wrecz()
+	p.atak_cd = 0.0
+	rajd.atak_wrecz()
+	await seria.call("w2_ciezki", 8)
+	# zamach wroga z zapowiedzią
+	_ustaw_wroga_przed(a, 1.3)
+	a.kat = atan2(p.w.y - a.w.y, p.w.x - a.w.x)
+	a.uspiony = false
+	a.zamach = a.zamach_dl
+	a.atak_timer = 0.0
+	await seria.call("w3_zamach", 6)
+	# parowanie w oknie
+	p.riposta_niet = 0.0
+	p.unik_czas = 0.0
+	p.okno_parowania = 0.3
+	rajd.trafienie_gracza(a, 12.0)
+	a.uspiony = true
+	await seria.call("w4_parowanie", 6)
+	p.atak_cd = 0.0
+	p.combo_reset = 0.0
+	rajd.atak_wrecz()
+	await seria.call("w5_riposta", 8)
+	# trafienie gracza
+	if b != null:
+		b.uspiony = true
+		p.riposta_niet = 0.0
+		p.okno_parowania = 0.0
+		p.blok = false
+		rajd.trafienie_gracza(b, 14.0)
+		await seria.call("w6_bol", 5)
+	# śmierć wroga
+	if is_instance_valid(a) and a.hp > 0.0:
+		a.hp = 1.0
+		p.atak_cd = 0.0
+		rajd.atak_wrecz()
+		await seria.call("w7_smierc", 10)
+	print("PODGLAD WALKI gotowy")
+	get_tree().quit(0)
 
 
 func _podglad_przystani(katalog: String) -> void:
@@ -283,6 +362,63 @@ func _zrzut(nazwa: String) -> void:
 		return
 	await _klatka()
 	get_viewport().get_texture().get_image().save_png(_zrzuty.path_join(nazwa + ".png"))
+
+
+## Oprawa walki (runda walka-oprawa): mięso trafień, paski, napisy, pasek bossa. Tylko wygląd — reguły bez zmian.
+func _test_oprawy_walki(p, en) -> void:
+	var s3 = rajd.swiat3d
+	var d3: Dictionary = s3._wrog3d(en)
+	# cios: wróg wzdryga się dłużej niż okno logiki, błyska i odchyla; obraz „kopie” w stronę ciosu
+	en.ogluszenie = 0.0
+	en.zamach = 0.0
+	en.hp = en.hp_max
+	en.hp_cien = en.hp_max
+	_ustaw_wroga_przed(en, 0.9)
+	en.atak_timer = 99.0
+	p.atak_cd = 0.0
+	p.stamina = p.stamina_max
+	var dzieci_przed := s3.get_child_count()
+	var licznik_przed: int = d3["traf_licznik"]
+	rajd.atak_wrecz()
+	_ok("trafienie: zatrzymanie klatki i kopnięcie obrazu", rajd.hitstop >= 0.05 and rajd.kop_kamery.length() > 1.0,
+		"hitstop %.3f s, kop %.1f px" % [rajd.hitstop, rajd.kop_kamery.length()])
+	_ok("trafienie: iskry/krople krwi w 3D (nie piksele 2D)", s3.get_child_count() > dzieci_przed)
+	await _czekaj_az(func(): return int(d3["traf_licznik"]) > licznik_przed, 2.0)
+	_ok("trafiony wróg: błysk, odchylenie i wzdrygnięcie (wygląd)", int(d3["traf_licznik"]) > licznik_przed and float(d3["odchyl_v"]) != 0.0,
+		"wykryte trafienia %d → %d" % [licznik_przed, d3["traf_licznik"]])
+	_ok("pasek HP: jasny ślad utraconego życia zostaje chwilę za paskiem", en.hp_cien > en.hp, "hp %d, ślad %d" % [en.hp, en.hp_cien])
+	# napisy: liczby się nie zlewają, komunikaty nie nachodzą na siebie
+	rajd.efekty.napisy.clear()
+	rajd.napis(en.w, "-10", Color.WHITE, 12)
+	rajd.napis(en.w, "-10", Color.WHITE, 12)
+	rajd.napis(en.w + Vector2(0.2, 0.0), "POSTURA ZŁAMANA!", Color.WHITE, 13)
+	var sloty := {}
+	for n in rajd.efekty.napisy:
+		sloty[int(n["slot"])] = true
+	_ok("napisy: osobne liczby i osobne piętra (bez nakładania)", rajd.efekty.napisy.size() == 3 and sloty.size() == 3)
+	await _zrzut("8_oprawa_trafienia")
+	# pasek bossa w HUD, gdy boss walczy
+	var boss = null
+	for w in rajd.wrogowie:
+		if w.boss:
+			boss = w
+	var nowy_boss: bool = boss == null
+	if nowy_boss:
+		boss = rajd._dodaj_wroga("boss", p.w + Vector2(3.0, 0.0), 0.0)
+	var boss_w: Vector2 = boss.w
+	boss.uspiony = true
+	boss.w = p.w + Vector2(2.5, 0.0)
+	boss.stan = "walka"
+	boss.widoczny_dla_gracza = true
+	await _czekaj_az(func(): return hud.pasek_bossa.visible, 1.5)
+	_ok("pasek bossa na dole ekranu, gdy boss walczy", hud.pasek_bossa.visible)
+	await _zrzut("8b_pasek_bossa")
+	boss.stan = "patrol"
+	boss.w = boss_w
+	if nowy_boss:
+		rajd.wrogowie.erase(boss)
+		boss.queue_free()
+	en.hp = en.hp_max
 
 
 func _ustaw_wroga_przed(en, odl := 1.0) -> void:
@@ -738,6 +874,7 @@ func _test() -> void:
 			break
 	_ok("ciosy łamią posturę", pekla)
 	_ok("combo ma własne animacje ciosów", ciosy.has("atak1") and ciosy.has("atak2"), ", ".join(ciosy.keys()))
+	await _test_oprawy_walki(p, en)
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true
 

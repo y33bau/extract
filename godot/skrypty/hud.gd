@@ -25,6 +25,9 @@ var podpowiedz: Label
 var toasty: VBoxContainer
 var winieta_trafienie: ColorRect
 var winieta_parowanie: ColorRect
+var pasek_bossa: Control
+var _boss = null
+var _boss_alfa := 0.0
 
 
 func _init() -> void:
@@ -41,6 +44,16 @@ func _ready() -> void:
 	korzen.add_child(winieta_trafienie)
 	winieta_parowanie = _winieta(Color(0.92, 0.75, 0.3))
 	korzen.add_child(winieta_parowanie)
+	# dół środek: pasek bossa (jak w Soulsach) — imię, życie z cieniem utraty, postura
+	pasek_bossa = Control.new()
+	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	pasek_bossa.offset_left = -280.0
+	pasek_bossa.offset_right = 280.0
+	pasek_bossa.offset_top = -150.0
+	pasek_bossa.offset_bottom = -86.0
+	pasek_bossa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pasek_bossa.draw.connect(_rysuj_pasek_bossa)
+	korzen.add_child(pasek_bossa)
 
 	# lewy górny: kraina, czas, wynik
 	var p1 := Ui.panel()
@@ -250,6 +263,40 @@ func _process(_dt: float) -> void:
 	(winieta_trafienie.material as ShaderMaterial).set_shader_parameter("sila", r.blysk_trafienia)
 	(winieta_parowanie.material as ShaderMaterial).set_shader_parameter("sila", r.blysk_parowania)
 	minimapa.queue_redraw()
+	_aktualizuj_bossa(_dt)
+
+
+func _aktualizuj_bossa(dt: float) -> void:
+	var cel = null
+	for en in rajd.wrogowie:
+		if en.boss and en.hp > 0.0 and (en.stan == "walka" or en.hp < en.hp_max):
+			cel = en
+	if cel != null:
+		_boss = cel
+	elif _boss != null and (not is_instance_valid(_boss) or _boss.hp <= 0.0 or not rajd.wrogowie.has(_boss)):
+		_boss = null if _boss_alfa <= 0.01 else _boss
+	_boss_alfa = move_toward(_boss_alfa, 1.0 if cel != null else 0.0, dt * 3.0)
+	pasek_bossa.visible = _boss_alfa > 0.01 and _boss != null and is_instance_valid(_boss)
+	if pasek_bossa.visible:
+		pasek_bossa.queue_redraw()
+
+
+func _rysuj_pasek_bossa() -> void:
+	var b = _boss
+	if b == null or not is_instance_valid(b):
+		return
+	var a := _boss_alfa
+	var f := Ui.czcionka(700)
+	var szer := pasek_bossa.size.x
+	pasek_bossa.draw_string_outline(f, Vector2(0, 20), str(b.nazwa).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, 5, Color(0, 0, 0, 0.9 * a))
+	pasek_bossa.draw_string(f, Vector2(0, 20), str(b.nazwa).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.95, 0.78, 0.5, a))
+	Ui.rysuj_pasek(pasek_bossa, Rect2(0, 30, szer, 10), maxf(0.0, b.hp) / b.hp_max, maxf(0.0, b.hp_cien) / b.hp_max, Color("b8321c"), a)
+	var zuzyte := 1.0 - clampf(b.postura / b.postura_max, 0.0, 1.0)
+	if zuzyte > 0.01 and b.ogluszenie <= 0.0:
+		var sz := szer * 0.6 * zuzyte
+		var kp := Color("f2c14e").lerp(Color("ff5a1f"), smoothstep(0.5, 1.0, zuzyte))
+		pasek_bossa.draw_rect(Rect2(szer * 0.2, 46, szer * 0.6, 3), Color(0.05, 0.035, 0.04, 0.8 * a))
+		pasek_bossa.draw_rect(Rect2(szer / 2.0 - sz / 2.0, 46, sz, 3), Color(kp, a))
 
 
 ## Minimapa: obraz N×N aktualizowany tylko w polach, które zmieniły stan mgły; widać okno wokół gracza.

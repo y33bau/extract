@@ -9,6 +9,36 @@ const TLO := Color("1a171c")
 const RAMA := Color("352f38")
 
 
+## Czcionka oprawy walki: Cinzel (SIL OFL, `zasoby/czcionki/cinzel_OFL.txt`) o zadanej grubości (400–900).
+static var _czcionki := {}
+static func czcionka(waga := 700) -> Font:
+	if not _czcionki.has(waga):
+		var fv := FontVariation.new()
+		fv.base_font = load("res://zasoby/czcionki/cinzel.ttf")
+		# klucz musi być liczbowym tagiem OpenType (sprawdzone testem: klucz tekstowy nie działa)
+		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): waga}
+		_czcionki[waga] = fv
+	return _czcionki[waga]
+
+
+## Ozdobny pasek (HP wrogów i bossa): ciemne tło, brązowa rama, wypełnienie z jaśniejszą górą,
+## „cień” utraconego życia (jasny ślad, który dogania wartość z opóźnieniem).
+static func rysuj_pasek(ci: CanvasItem, r: Rect2, ulamek: float, cien: float, kolor: Color, alfa := 1.0) -> void:
+	var ramka := Color(0.42, 0.32, 0.2, 0.95 * alfa)
+	ci.draw_rect(r.grow(2.0), Color(0.0, 0.0, 0.0, 0.55 * alfa))
+	ci.draw_rect(r.grow(1.0), ramka)
+	ci.draw_rect(r, Color(0.05, 0.035, 0.04, 0.92 * alfa))
+	var w_cien := r.size.x * clampf(cien, 0.0, 1.0)
+	var w_ul := r.size.x * clampf(ulamek, 0.0, 1.0)
+	if w_cien > w_ul:
+		ci.draw_rect(Rect2(r.position.x + w_ul, r.position.y, w_cien - w_ul, r.size.y), Color(1.0, 0.86, 0.6, 0.85 * alfa))
+	if w_ul > 0.0:
+		var k := Color(kolor, alfa)
+		ci.draw_rect(Rect2(r.position, Vector2(w_ul, r.size.y)), k.darkened(0.35))
+		ci.draw_rect(Rect2(r.position, Vector2(w_ul, ceilf(r.size.y * 0.55))), k)
+		ci.draw_rect(Rect2(r.position, Vector2(w_ul, 1.0)), Color(k.lightened(0.45), 0.8 * alfa))
+
+
 static func motyw() -> Theme:
 	var t := Theme.new()
 	t.default_font_size = 15

@@ -2,6 +2,7 @@ extends Node2D
 ## Wróg: stan i wygląd. Zachowanie (AI, ciosy) liczy rajd.gd.
 
 const Iso = preload("res://skrypty/iso.gd")
+const Ui = preload("res://skrypty/ui.gd")
 
 const TYPY := {
 	"scout": {"nazwa": "Popielny Zwiadowca", "hp": 65, "spd": 2.6, "dmg": 18, "zasieg": 1.45, "zamach": 0.42, "cd": 1.0, "pancerz": 0.0, "postura": 40, "promien": 0.27, "skala": 0.8},
@@ -91,33 +92,69 @@ func _ready() -> void:
 	add_child(nakladka)
 
 
+## Wysokość głowy modelu 3D (ekran, piksele świata przed zoomem) wg rodzaju — paski i znaki nad głową.
+const WYS_GLOWY := {"scout": 84.0, "warden": 88.0, "archer": 84.0, "knight": 90.0, "brute": 100.0, "boss": 118.0}
+var hp_cien := -1.0        # „cień” utraconego życia (dogania hp z opóźnieniem)
+var _cien_przerwa := 0.0
+var _alfa_paska := 0.0
+var _ostatni_czas := -1.0
+
+
+func _aktualizuj_nakladke(czas: float) -> void:
+	var dt := 0.016 if _ostatni_czas < 0.0 else clampf(czas - _ostatni_czas, 0.0, 0.1)
+	_ostatni_czas = czas
+	if hp_cien < 0.0:
+		hp_cien = hp
+	if hp < hp_cien:
+		if _cien_przerwa <= 0.0 and hp_cien >= hp_max - 0.01:
+			_cien_przerwa = 0.45
+		_cien_przerwa -= dt
+		if _cien_przerwa <= 0.0:
+			hp_cien = maxf(hp, hp_cien - hp_max * dt * 0.9)
+	else:
+		hp_cien = hp
+		_cien_przerwa = 0.0
+	var pokaz := hp > 0.0 and widoczny_dla_gracza and not boss and (hp < hp_max or postura < postura_max or stan == "walka")
+	_alfa_paska = move_toward(_alfa_paska, 1.0 if pokaz else 0.0, dt * 6.0)
+
+
 func _rysuj_nakladke() -> void:
 	if hp <= 0.0 or not widoczny_dla_gracza:
 		return
-	var gora := -(152.0 if boss else 92.0)
 	var t := Time.get_ticks_msec() / 1000.0
-	var f := font()
-	if zamach > 0.0:
+	var gora := -float(WYS_GLOWY.get(rodzaj, 88.0)) if tryb_3d else -(152.0 if boss else 92.0)
+	if zamach > 0.0 and not tryb_3d:
+		# stary wygląd 2D (w 3D zamach pokazują klin, pierścień rytmu i błysk broni)
 		var puls := 0.55 + sin(t * 30.0) * 0.45
 		var p := Vector2(-14.0 if sprite.flip_h else 14.0, -(110.0 if boss else 62.0))
-		if boss:
-			p.x *= 1.6
 		var kol := Color(1.0, 0.24, 0.16, puls) if ciezki else Color(1.0, 0.84, 0.31, puls)
 		nakladka.draw_circle(p, 7.0 + puls * 5.0, kol)
-		var srodek := Color("ffd0c8") if ciezki else Color("fff9db")
-		nakladka.draw_rect(Rect2(p.x - 10, p.y - 1, 20, 2), srodek)
-		nakladka.draw_rect(Rect2(p.x - 1, p.y - 10, 2, 20), srodek)
+	var bw := 46.0
+	var a := _alfa_paska
+	if a > 0.01:
+		Ui.rysuj_pasek(nakladka, Rect2(-bw / 2.0, gora, bw, 5.0), hp / hp_max, hp_cien / hp_max, Color("c4252f"), a)
+		# postura jak w Sekiro: pasek rośnie od środka, im bliżej złamania, tym goręcej i jaśniej
+		var zuzyte := 1.0 - clampf(postura / postura_max, 0.0, 1.0)
+		if zuzyte > 0.01 and ogluszenie <= 0.0:
+			var szer := bw * zuzyte
+			var kp := Color("f2c14e").lerp(Color("ff5a1f"), smoothstep(0.5, 1.0, zuzyte))
+			if zuzyte > 0.75:
+				kp = kp.lightened(0.25 * (0.5 + 0.5 * sin(t * 18.0)))
+				nakladka.draw_rect(Rect2(-szer / 2.0 - 1.0, gora + 7.0, szer + 2.0, 4.0), Color(kp, 0.35 * a))
+			nakladka.draw_rect(Rect2(-bw / 2.0, gora + 8.0, bw, 2.0), Color(0.05, 0.035, 0.04, 0.8 * a))
+			nakladka.draw_rect(Rect2(-szer / 2.0, gora + 8.0, szer, 2.0), Color(kp, a))
 	if ogluszenie > 0.0:
-		nakladka.draw_string(f, Vector2(-45, gora - 8), "★ RIPOSTA! ★", HORIZONTAL_ALIGNMENT_CENTER, 90, 11, Color("ffd166"))
-	var bw := 70.0 if boss else 30.0
-	if hp < hp_max:
-		nakladka.draw_rect(Rect2(-bw / 2, gora, bw, 4), Color(0.04, 0.03, 0.05, 0.85))
-		nakladka.draw_rect(Rect2(-bw / 2, gora, bw * maxf(0.0, hp / hp_max), 4), Color("e06324") if boss else Color("c92a35"))
-	if postura < postura_max and ogluszenie <= 0.0:
-		nakladka.draw_rect(Rect2(-bw / 2, gora + 5, bw, 2), Color(0.04, 0.03, 0.05, 0.85))
-		nakladka.draw_rect(Rect2(-bw / 2, gora + 5, bw * maxf(0.0, postura / postura_max), 2), Color("f2c14e"))
-	if boss:
-		nakladka.draw_string(f, Vector2(-80, gora - 10), "POPIELNY STRAŻNIK", HORIZONTAL_ALIGNMENT_CENTER, 160, 12, Color("f0b96e"))
+		# wróg odsłonięty: pulsujący złoty romb nad głową = czas na ripostę
+		var puls2 := 0.5 + 0.5 * sin(t * 12.0)
+		var c := Vector2(0.0, gora - 12.0 - puls2 * 2.0)
+		var r := 6.0 + puls2 * 1.5
+		var romb := PackedVector2Array([c + Vector2(0, -r * 1.35), c + Vector2(r, 0), c + Vector2(0, r * 1.35), c + Vector2(-r, 0)])
+		var poswiata := PackedVector2Array()
+		for v in romb:
+			poswiata.append(c + (v - c) * 1.9)
+		nakladka.draw_colored_polygon(poswiata, Color(1.0, 0.75, 0.25, 0.22 + 0.18 * puls2))
+		nakladka.draw_colored_polygon(romb, Color("ffd166"))
+		nakladka.draw_polyline(romb + PackedVector2Array([romb[0]]), Color("fff4cf"), 1.0)
 
 
 static var _font: Font
@@ -146,4 +183,5 @@ func animuj(czas: float) -> void:
 	sprite.flip_h = Iso.kierunek_arkusza(kat)["sdx"] < 0.0
 	sprite.position.x = sin(czas * 40.0) * 2.0 if ogluszenie > 0.0 else 0.0
 	sprite.modulate = Color(3, 3, 3) if trafiony > 0.0 else Color.WHITE
+	_aktualizuj_nakladke(czas)
 	nakladka.queue_redraw()
