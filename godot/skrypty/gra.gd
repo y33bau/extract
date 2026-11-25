@@ -6,9 +6,11 @@ const Hub = preload("res://skrypty/hub.gd")
 const Rajd = preload("res://skrypty/rajd.gd")
 const Hud = preload("res://skrypty/hud.gd")
 const Okno = preload("res://skrypty/okno_lupu.gd")
+const Przystan = preload("res://skrypty/przystan.gd")
 
 var hub_warstwa: CanvasLayer
 var hub: Hub
+var przystan: Przystan
 var rajd: Rajd
 var hud: Hud
 var okno: Okno
@@ -23,12 +25,28 @@ func _ready() -> void:
 	add_child(hub_warstwa)
 	hub = Hub.new()
 	hub.start_rajdu.connect(rozpocznij_rajd)
+	hub.zamknij.connect(zamknij_menu)
 	hub_warstwa.add_child(hub)
+	_przystan()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--podglad="):
 			_podglad.call_deferred(a.substr(10))
+		if a.begins_with("--podglad-przystan="):
+			_podglad_przystani.call_deferred(a.substr(19))
+
+
+func _podglad_przystani(katalog: String) -> void:
+	_zrzuty = katalog
+	DirAccess.make_dir_recursive_absolute(katalog)
+	await _czekaj(0.5)
+	for i in 4:
+		przystan.poz = [Vector2(18.0, 22.0), Vector2(13.0, 14.5), Vector2(14.0, 9.5), Vector2(24.0, 24.0)][i]
+		await _czekaj(0.8)
+		await _zrzut("przystan_%d" % i)
+		print("PODGLAD przystan ", i)
+	get_tree().quit(0)
 
 
 ## Podgląd oprawy dla agenta: --podglad=kraina,ziarno,katalog -> zrzuty kilku miejsc mapy (bez sterowania).
@@ -74,8 +92,48 @@ func _podglad(arg: String) -> void:
 	get_tree().quit(0)
 
 
+## Warownia-Przystań: miejsce startowe; menu Warowni (hub) otwiera się nad nią przy NPC i budynkach.
+func _przystan() -> void:
+	if przystan != null:
+		return
+	przystan = Przystan.new()
+	add_child(przystan)
+	move_child(przystan, 0)
+	przystan.otworz.connect(otworz_menu)
+	hub_warstwa.visible = false
+	hub.visible = false
+
+
+func otworz_menu(zakladka: int) -> void:
+	hub_warstwa.visible = true
+	hub.visible = true
+	if zakladka >= 0:
+		hub.zakladki.current_tab = zakladka
+	hub.odswiez()
+	if przystan:
+		przystan.aktywna = false
+
+
+func zamknij_menu() -> void:
+	if rajd != null or przystan == null:
+		return
+	hub_warstwa.visible = false
+	hub.visible = false
+	przystan.aktywna = true
+
+
+func _unhandled_input(e: InputEvent) -> void:
+	# Back / Tab w Przystani: całe menu Warowni
+	if przystan != null and przystan.aktywna and rajd == null and e.is_action_pressed("sakwa"):
+		otworz_menu(-1)
+		get_viewport().set_input_as_handled()
+
+
 func rozpocznij_rajd(kraina: String, ziarno: String) -> void:
 	Dzwiek.ui()
+	if przystan:
+		przystan.queue_free()
+		przystan = null
 	hub_warstwa.visible = false
 	hub.visible = false
 	rajd = Rajd.new()
@@ -147,10 +205,9 @@ func powrot_do_warowni() -> void:
 	hud = null
 	okno = null
 	wynik = null
-	hub_warstwa.visible = true
-	hub.visible = true
 	hub.zakladki.current_tab = 0
 	hub.odswiez()
+	_przystan()
 
 
 # ====================================================================== TEST AUTOMATYCZNY
@@ -412,12 +469,34 @@ func _test() -> void:
 	Profil.resetuj()
 	print("-- test gry Godot (symulowany pad)")
 	await _czekaj(0.4)
-	_ok("Warownia widoczna", hub.is_visible_in_tree())
-	await _zrzut("1_warownia")
+	# Warownia-Przystań: start w 3D, swobodny ruch, NPC otwierają menu
+	_ok("Przystań: start w 3D, menu Warowni ukryte", przystan != null and przystan.is_inside_tree() and not hub.is_visible_in_tree())
+	await _zrzut("1_przystan")
+	var s0: Vector2 = przystan.poz
+	_os(JOY_AXIS_LEFT_X, 1.0)
+	await _czekaj_az(func(): return przystan.poz.distance_to(s0) > 0.5, 8.0)
+	_os(JOY_AXIS_LEFT_X, 0.0)
+	_ok("Przystań: lewy drążek chodzi", przystan.poz.distance_to(s0) > 0.5, "%.2f m" % przystan.poz.distance_to(s0))
+	przystan.poz = przystan.MIEJSCA["marga"][2] + Vector2(0.9, 0.9)
+	await _czekaj_az(func(): return przystan.cel == "marga", 5.0)
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
+	_ok("Przystań: A przy Mardze otwiera Kupca", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2, "zakładka %d" % hub.zakladki.current_tab)
+	await _zrzut("1b_marga_kupiec")
 	# przejście zakładek padem (RB)
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
-	_ok("RB przełącza zakładkę", hub.zakladki.current_tab == 1)
+	_ok("RB przełącza zakładkę", hub.zakladki.current_tab == 3)
+	hub.zakladki.current_tab = 1
 	await _zrzut("2_ekwipunek")
+	await _pad(JOY_BUTTON_B)
+	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
+	_ok("B wraca do Przystani", not hub.is_visible_in_tree() and przystan.aktywna)
+	przystan.uzyj("chlop")
+	_ok("Przystań: gawędziarz mówi", przystan._dymek.visible and przystan._dymek.text.length() > 10)
+	przystan.poz = Vector2(18.0, 22.0)
+	await _pad(JOY_BUTTON_BACK)
+	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
+	_ok("Back otwiera całe menu Warowni", hub.is_visible_in_tree())
 	hub.zakladki.current_tab = 0
 	await _czekaj(0.2)
 	# ustawienie jakości grafiki: przycisk przełącza i zapamiętuje
@@ -593,7 +672,7 @@ func _test() -> void:
 	await _czekaj(0.2)
 	await _pad(JOY_BUTTON_A)
 	await _czekaj(0.3)
-	_ok("A wraca do Warowni", hub.is_visible_in_tree() and rajd == null)
+	_ok("A wraca do Warowni (Przystań)", przystan != null and rajd == null and not hub.is_visible_in_tree())
 	Profil.wczytaj()
 	_ok("zapis po ekstrakcji", Profil.d["stats"]["survived"] == 1 and Profil.d["stats"]["raids"] == 1)
 	_ok("idol trafił do Skrytki", Profil.d["stash"].any(func(i): return i["id"] == "golden_idol"))

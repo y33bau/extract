@@ -82,6 +82,7 @@ func zbuduj(r) -> void:
 	_mapa()
 	_rekwizyty()
 	_bohater()
+	_wyostrzenie()
 	_stan_widoku.resize(N * N)
 	_stan_widoku.fill(255)
 
@@ -1085,9 +1086,40 @@ func _przygotuj_ap(ap: AnimationPlayer) -> void:
 		a.loop_mode = Animation.LOOP_LINEAR if petla else Animation.LOOP_NONE
 
 
+var _obrysy := {}
+func _mat_obrysu(kolor: Color, sila: float) -> ShaderMaterial:
+	var k := "%s_%.2f" % [kolor.to_html(), sila]
+	if not _obrysy.has(k):
+		var m := ShaderMaterial.new()
+		m.shader = preload("res://zasoby/3d/shadery/obrys.gdshader")
+		m.set_shader_parameter("kolor", kolor)
+		m.set_shader_parameter("sila", sila)
+		_obrysy[k] = m
+	return _obrysy[k]
+
+
+## Wyostrzenie obrazu 3D (pod nakładkami 2D i HUD-em).
+func _wyostrzenie() -> void:
+	if lekki:
+		return
+	var w := CanvasLayer.new()
+	w.layer = -100
+	var r := ColorRect.new()
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://zasoby/3d/shadery/wyostrz.gdshader")
+	m.set_shader_parameter("sila", 0.55 if jakosc >= 2 else 0.4)
+	r.material = m
+	w.add_child(r)
+	add_child(w)
+
+
 func _bohater() -> void:
 	bohater = _scena(GLB_BOHATERA).instantiate()
 	add_child(bohater)
+	for mi in bohater.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_overlay = _mat_obrysu(Color(1.0, 0.72, 0.45), 1.0)
 	_ap_bohatera = bohater.find_child("AnimationPlayer", true, false)
 	_przygotuj_ap(_ap_bohatera)
 	for n in ["bron_dwureczny", "bron_glewia", "bron_topor", "bron_miecz", "bron_tarcza", "bron_pochodnia"]:
@@ -1259,6 +1291,10 @@ func _wrog3d(en) -> Dictionary:
 	var cialo: MeshInstance3D = n.find_child("cialo", true, false)
 	if cialo:
 		cialo.material_overlay = blysk
+	blysk.next_pass = _mat_obrysu(Color(0.7, 0.8, 1.0) if not en.boss else Color(1.0, 0.5, 0.3), 0.6)
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		if mi != cialo:
+			(mi as MeshInstance3D).material_overlay = _mat_obrysu(Color(0.75, 0.82, 1.0), 0.6)
 	_cienie(n)
 	# zapowiedź ciosu na ziemi: klin zasięgu wypełniający się aż do uderzenia
 	var znak := MeshInstance3D.new()

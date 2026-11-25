@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 17:40 — agent główny (konto autora), rola: grafik + gamedev
+- Gałąź: mapy-runda-2. Zlecenia autora: (a) idźmy dalej w kierunku map, (b) jeszcze lepsze zapowiedzi ciosów, „nadal ciężko sparować”, (c) **decyzja autora: Warownia jako przystań z swobodnym ruchem, NPC (handlarze, zleceniodawcy, gawędziarze) i obozem bohatera do rozbudowy**, (d) postacie ostrzejsze i bardziej widoczne, (e) wolna ręka, do 1000 kredytów Meshy.
+- Parowanie: główna przyczyna trudności — błysk był 0,26 s przed ciosem, czyli za późno na reakcję człowieka. Teraz: pierścień rytmu od początku zamachu zwęża się do chwili ciosu, rozbłyska, gdy wciśnięcie już zdąży (= długość okna parowania gracza, `rajd.dlugosc_okna_parowania()`), błysk broni w tej samej chwili; podpowiedzi „ZA WCZEŚNIE” / „ZA PÓŹNO”; ostrzeżenie, że z pochodnią nie sparujesz. Czasy ciosów bez zmian.
+- Mapy, runda 2: moduły murów (wyszczerbiona korona, fazy, cokół, filary narożne), efekty walki z arkuszy NightBrand (`narzedzia/gra_3d/efekty_swiat.py`: cięcia, ogniste cięcie, krwawe cięcie, bryzgi, kałuże krwi, iskry parowania, wybuch riposty), przycisk „Grafika” (Niska/Średnia/Wysoka/Ultra, `user://ustawienia.cfg`).
+- Widoczność postaci: obrys światłem na bohaterze (ciepły), wrogach (chłodny), bossie i NPC + wyostrzenie obrazu 3D.
+- **Warownia-Przystań** (projekt: `docs/WAROWNIA_PRZYSTAN.md`, kod: `godot/skrypty/przystan.gd`): start gry w 3D przy czarnej wodzie, pomost z łodzią, nabrzeże, palisada, ognisko; NPC autora (Marga = Kupiec, Chojrak = stół wypraw, Chłop = gawędziarz, wypieczone `cfg_npc_*.json`); obóz: kuźnia, zielarnia, ołtarz żaru, namiot, skrytka z modeli autora (`modele_meshy`, odchudzone do 1K: `odchudz_przystan.py`). A/E przy postaci/budynku otwiera zakładkę Warowni, B wraca, Back = całe menu; po rajdzie powrót do Przystani.
+- Meshy: kredytów NIE zużyto (wystarczyły modele autora). Konsolowe narzędzie Meshy zostało zablokowane w środowisku agenta; przeglądarka wbudowana działa.
+- Testy: 47/47 (nowe: Przystań — start, chód padem, A przy Mardze → Kupiec, B wraca, gawędziarz, Back = menu; jakość grafiki; ZA WCZEŚNIE; pierścień parowania).
+- NIE sprawdzone: wydajność na komputerze autora, wrażenie z grania, prawdziwy pad, dźwięk; budynki jeszcze nie zmieniają wyglądu z poziomem (runda 2 Przystani); kontrakty Chojraka (później); przewoźnik i łódź z Meshy (później).
+
 ## 2026-11-25 16:45 — agent główny (konto autora), rola: gamedev + grafik
 - Gałąź: mapy-i-zapowiedzi (z plynna-walka). Zlecenie autora: (1) wrogowie lepiej zapowiadają ciosy pod parowanie, (2) mapy z tekstur NightBrand „jak gotowy produkt”, inspiracja Diablo II i podobnymi grami izometrycznymi.
 - (1) Zapowiedzi ciosów (bez zmiany czasów): klin zasięgu na ziemi wypełniający się do chwili uderzenia (złoty = do sparowania, czerwony = ciężki, wąski niebieskawy = strzała łucznika), błysk na broni 0,26 s przed ciosem (okno parowania ≥ 0,28 s, więc wciśnięcie na błysk zdąży), dźwięki: zamach (metaliczny / niski pomruk) i błysk.

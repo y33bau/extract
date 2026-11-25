@@ -3,6 +3,7 @@ extends Control
 ## Pad: krzyżak/drążek nawigacja, A wybór, Y do Relikwiarza, LB/RB zakładki.
 
 signal start_rajdu(kraina: String, ziarno: String)
+signal zamknij  # powrót do Przystani (B / Esc / przycisk)
 
 const Ui = preload("res://skrypty/ui.gd")
 
@@ -28,7 +29,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ziarno = _losowe_ziarno()
 	var tlo := ColorRect.new()
-	tlo.color = Color("0b090d")
+	tlo.color = Color(0.043, 0.035, 0.05, 0.9)  # półprzezroczyste: za menu widać Przystań
 	add_child(tlo)
 	tlo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var marg := MarginContainer.new()
@@ -62,6 +63,11 @@ func _ready() -> void:
 		Dzwiek.ui()
 		przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()])
 	gora.add_child(przycisk_grafiki)
+	var wroc := Button.new()
+	wroc.text = "⟵ Przystań"
+	wroc.tooltip_text = "Wróć do Przystani (B / Esc)"
+	wroc.pressed.connect(func(): zamknij.emit())
+	gora.add_child(wroc)
 	var reset := Button.new()
 	reset.text = "Reset"
 	reset.pressed.connect(func(): dialog_reset.popup_centered())
@@ -106,6 +112,10 @@ func _zakladka(nazwa: String, zawartosc: Control) -> Control:
 
 func _unhandled_input(e: InputEvent) -> void:
 	if not is_visible_in_tree():
+		return
+	if e.is_action_pressed("ui_cancel") and not dialog_reset.visible:
+		zamknij.emit()
+		get_viewport().set_input_as_handled()
 		return
 	if e.is_action_pressed("zakladka_lewo"):
 		zakladki.current_tab = (zakladki.current_tab + zakladki.get_tab_count() - 1) % zakladki.get_tab_count()
