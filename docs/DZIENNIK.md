@@ -17,6 +17,13 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 14:50 — konto (Claude, sesja Warownia), rola: agent główny
+- Gałąź: `gra-3d`.
+- Uwagi autora po zagraniu (DO ZROBIENIA, następna runda gamedev):
+  1. **Animacje postaci za szybkie** („jak u epileptyka”) — ciosy/przewrót/parowanie przewijane w czasie logiki (0,18–0,42 s) wyglądają jak przyspieszone; do rozwiązania np. dłuższe okna animacji niezależne od logiki, wolniejszy chód/postój, płynne przejścia między stanami pętli.
+  2. **Obrót myszką „jak śmigło”** — model obraca się natychmiast za kursorem; potrzebne ograniczenie prędkości obrotu (wygładzenie) i martwa strefa przy kursorze blisko postaci.
+- Pytanie autora: czy da się użyć kodu z repo OpenDiablo2 — odpowiedź w czacie, decyzja do dziennika po odpowiedzi autora.
+
 ## 2026-11-25 14:45 — konto (Claude, sesja Warownia), rola: gamedev
 - Gałąź i commit: `gra-3d`.
 - Zgłoszenie autora: w grze 3D nie widać ataków, przewrotu ani parowania.
