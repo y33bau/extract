@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 19:40 — konto autora / agent główny (grafik + gamedev), rola: gamedev
+- Gałąź: `mapy-runda-2` (main nietknięty).
+- Zlecenie autora (/goal): postacie „powyginane” jak bohater; mapy kilkukrotnie większe i bogatsze; dopieścić Warownię.
+- Postacie: przyczyna — przy przenoszeniu ruchu Mixamo (poza T) na szkielet Meshy (poza A) wyrównywany był tylko kierunek kości, nie skręt wokół osi → wykręcone dłonie/przedramiona/kolana (boss: dłonie skręcone o 99°). Poprawka w `potok.py` (`_skret`: odniesienie — linia knykci dla rąk, kierunek stopy dla nóg); wszyscy wrogowie i NPC wypieczeni od nowa. Bohater bez zmian (autor go chwali). `wypiekacz.py`: opcja `luz_ramion` dla NPC. Kufer (biały) — model bez UV: `narzedzia/gra_3d/napraw_kufer.py`.
+- Mapy: 42×42 → 96×96 (5,2× pola). Komnaty 7 rodzajów, korytarze z pętlami, start w rogu, 3–4 ekstrakcje daleko od startu, wystrój wg rodzaju komnaty, tytuł obszaru przy pierwszym wejściu. Wrogowie w komnatach (legowiska i skarbce strzeżone) + patrole w korytarzach; pościg po polu odległości (obchodzą mury). Mgła wojny i minimapa liczone przyrostowo (wydajność), minimapa pokazuje okno 56 pól wokół gracza.
+- LICZBY DO STROJENIA (zmiana balansu wynikająca z większej mapy — proszę o decyzję): wrogowie 9/12/14 → 34/44/50; czas rajdu 8 → 15 min; skrzyń ok. 40–80 na mapę; komnat 36/32/34.
+- Warownia: woda z falami, drugi brzeg z ruinami i pożarami, ziemia za palisadą, zakątki placu, cmentarzyk, NPC zmieniają pozy, podświetlenie rozmówcy, popiół.
+- Testy: 61/61 OK (nowe: duża mapa 96×96, ekstrakcje i skrzynie osiągalne, rodzaje komnat, ziarno, liczba wrogów, pościg, tytuł obszaru, podświetlenie rozmówcy).
+- NIE sprawdzone: płynność na komputerze autora przy 96×96 i 34–50 wrogach (u mnie render programowy), prawdziwy pad, dźwięk, czy 15 min to dobry czas.
+
 ## 2026-11-25 18:05 — konto autora / agent główny (gamedev + grafik), rola: gamedev
 - Gałąź i commit: `mapy-runda-2` (main nietknięty).
 - Zrobione: Przystań runda 2 domknięta — przewoźnik (Meshy obraz→3D→rig, 35 kr; wypiek animacji postoju jak inni NPC, tekstury 1K) stoi na pomoście, A/E otwiera Wyprawę; łódź z Meshy (894k→24k ścian, `narzedzia/gra_3d/odchudz_lodz.py`) przy pomoście z ciepłą latarnią. Podgląd `--podglad-przystan` ma 5. ujęcie (pomost). Wcześniej w tej rundzie: kontrakty Chojraka, budynki rosnące z poziomem.

@@ -146,6 +146,38 @@ func _winieta(kolor: Color) -> ColorRect:
 	return c
 
 
+## Tytuł obszaru: duży napis na środku, pojawia się i gaśnie (wejście do nowej komnaty).
+var tytul_obszaru: VBoxContainer
+var _tytul_tw: Tween
+
+
+func pokaz_obszar(nazwa: String, opis: String) -> void:
+	if tytul_obszaru == null:
+		tytul_obszaru = VBoxContainer.new()
+		tytul_obszaru.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var t := Ui.etykieta("", 30, Color("e6ba63"))
+		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var o := Ui.etykieta("", 14, Color("c8bba8"))
+		o.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tytul_obszaru.add_child(t)
+		tytul_obszaru.add_child(o)
+		add_child(tytul_obszaru)
+		tytul_obszaru.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		tytul_obszaru.position.y -= 170
+	(tytul_obszaru.get_child(0) as Label).text = nazwa.to_upper()
+	(tytul_obszaru.get_child(1) as Label).text = opis
+	tytul_obszaru.reset_size()
+	tytul_obszaru.position.x = (get_viewport().get_visible_rect().size.x - tytul_obszaru.size.x) * 0.5
+	if _tytul_tw:
+		_tytul_tw.kill()
+	tytul_obszaru.modulate.a = 0.0
+	tytul_obszaru.visible = true
+	_tytul_tw = create_tween()
+	_tytul_tw.tween_property(tytul_obszaru, "modulate:a", 1.0, 0.5)
+	_tytul_tw.tween_interval(2.2)
+	_tytul_tw.tween_property(tytul_obszaru, "modulate:a", 0.0, 0.9)
+
+
 func pokaz_toast(tekst: String, rodzaj := "info") -> void:
 	var kolory := {"info": Color("f0e6d8"), "warn": Color("fcd34d"), "danger": Color("fca5a5"), "success": Color("6ee7b7")}
 	var pc := Ui.panel()

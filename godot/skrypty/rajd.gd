@@ -5,6 +5,7 @@ signal koniec(przezyl: bool, powod: String, podsumowanie: Dictionary)
 signal otworz_okno(pojemnik)  # pojemnik może być null (sama sakwa)
 signal zmiana_ekwipunku
 signal toast(tekst: String, rodzaj: String)
+signal obszar(nazwa: String, opis: String)  # wejście do nowej komnaty (tytuł jak w Diablo)
 
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
@@ -14,7 +15,7 @@ const Efekty = preload("res://skrypty/efekty.gd")
 const Swiat3D = preload("res://skrypty/swiat3d.gd")
 const K = Mapgen.K
 const N := Mapgen.ROZMIAR
-const CZAS_RAJDU := 480.0
+const CZAS_RAJDU := 900.0  # duże mapy: 15 min (do strojenia; było 8 min)
 const CZAS_EKSTRAKCJI := 6.0
 const GRAFIKA_3D := true   # świat i postacie w 3D (Forward+); 2D zostaje dla nakładek
 const ZOOM_3D := 1.45      # bliższa kamera dla modeli 3D (tylko wygląd)
@@ -83,6 +84,51 @@ func start(id_krainy: String, ziarno_mapy: String) -> void:
 		add_child(swiat3d)
 		swiat3d.zbuduj(self)
 	_licz_widok()
+	_buduj_mape_komnat()
+
+
+## Nazwy obszarów (pierwsze wejście do komnaty danego rodzaju) — tylko klimat, bez reguł.
+const NAZWY_OBSZAROW := {
+	"krypta": ["Krypta", "Sarkofagi pamiętają imiona, których nikt nie wypowiada."],
+	"sala_filarow": ["Sala Filarów", "Za każdą kolumną może ktoś czekać."],
+	"dziedziniec": ["Zawalony Dziedziniec", "Niebo tu jest, ale nie pomaga."],
+	"kaplica": ["Kaplica Żaru", "Ogień w misach płonie bez paliwa. Krótka chwila spokoju."],
+	"legowisko": ["Legowisko", "Kości obgryzione do czysta. Gospodarze są w domu."],
+	"skarbiec": ["Skarbiec", "Złoto przyciąga strażników jak padlina wrony."],
+	"ekstrakcja": ["Krąg Powrotu", "Stąd można wrócić. Jeśli ktoś pozwoli."],
+}
+var komnata_pola := PackedInt32Array()
+var _komnata_gracza := -1
+var odwiedzone_komnaty := {}
+
+
+func _buduj_mape_komnat() -> void:
+	komnata_pola.resize(N * N)
+	komnata_pola.fill(-1)
+	for i in mapa.komnaty.size():
+		var rr: Rect2i = mapa.komnaty[i]["r"]
+		for y in range(rr.position.y + 1, rr.end.y - 1):
+			for x in range(rr.position.x + 1, rr.end.x - 1):
+				komnata_pola[y * N + x] = i
+	_komnata_gracza = komnata_pola[int(gracz.w.y) * N + int(gracz.w.x)]
+	odwiedzone_komnaty[_komnata_gracza] = true
+
+
+func _sprawdz_obszar() -> void:
+	var x := int(gracz.w.x)
+	var y := int(gracz.w.y)
+	if x < 0 or y < 0 or x >= N or y >= N or komnata_pola.size() != N * N:
+		return
+	var k := komnata_pola[y * N + x]
+	if k == _komnata_gracza:
+		return
+	_komnata_gracza = k
+	if k < 0 or odwiedzone_komnaty.has(k):
+		return
+	odwiedzone_komnaty[k] = true
+	var typ: String = mapa.komnaty[k]["typ"]
+	if NAZWY_OBSZAROW.has(typ):
+		obszar.emit(NAZWY_OBSZAROW[typ][0], NAZWY_OBSZAROW[typ][1])
 
 
 # ---------------------------------------------------------------- BUDOWA ŚWIATA
@@ -1123,6 +1169,7 @@ func _aktualizuj(dt: float) -> void:
 	wstrzas = maxf(0.0, wstrzas - dt * 24.0)
 	timer_widoku -= dt
 	if timer_widoku <= 0.0:
+		_sprawdz_obszar()
 		_licz_widok()
 		timer_widoku = 0.08
 	p.animuj(czas)

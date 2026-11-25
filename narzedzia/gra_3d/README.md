@@ -24,3 +24,10 @@ Stan na 2026-11-25, rola: gamedev
 - Wygląd krain: stała `WYGLAD` w `swiat3d.gd` (tekstury warstw, skale, kałuże, żar, kolory światła i mgły).
 - Shadery: `godot/zasoby/3d/shadery/` (teren, mur, mgla, czastka).
 - Podgląd bez grania: `godot --path godot --rendering-driver vulkan -- --pelna --podglad=catacombs,ZIARNO,/tmp/podglad` (5 zrzutów: start, kosze, ekstrakcja, wróg z zapowiedzią ciosu).
+
+## Postacie: skręt kości i narzędzia kontrolne (25.11.2026)
+- `potok.py` → `_skret`: przy przenoszeniu ruchu dopasowuje też skręt kości wokół osi (dłonie, przedramiona, kolana). Bez tego postacie Meshy w pozie A miały wykręcone ręce.
+- `zblizenia.gd`: zbliżenia wszystkich postaci w Godocie (`godot --path godot --rendering-driver vulkan -s ../narzedzia/gra_3d/zblizenia.gd -- --wyj=/tmp/zb`).
+- `plan_mapy.gd`: plan mapy z góry (`godot --headless --path godot -s ../narzedzia/gra_3d/plan_mapy.gd -- --kraina=crypt --ziarno=ABC --wyj=/tmp/plan.png`).
+- `napraw_kufer.py`: UV + drewno dla kufra z Meshy (model źródłowy bez UV).
+- Podgląd komnat: `--podglad=kraina,ziarno,katalog,komnaty` (po jednym ujęciu z każdego rodzaju komnaty).

@@ -70,16 +70,31 @@ func _podglad(arg: String) -> void:
 	if rajd.wrogowie.size() > 0:
 		var en = rajd.wrogowie[0]
 		miejsca.append(en.w + Vector2(1.2, 0.0))
+	# --podglad=kraina,ziarno,katalog,komnaty -> po jednym ujęciu z każdego rodzaju komnaty
+	if cz.size() > 3 and cz[3] == "komnaty":
+		miejsca = []
+		var byly := {}
+		for k in rajd.mapa.komnaty:
+			if byly.has(k["typ"]):
+				continue
+			byly[k["typ"]] = true
+			var rr: Rect2i = k["r"]
+			for dy in range(1, rr.size.y - 1):
+				var w := Vector2(rr.position.x + 1.5, rr.position.y + dy + 0.5)
+				if not Mapgen.blokuje_ruch(rajd.mapa.kafel(int(w.x), int(w.y))):
+					miejsca.append(w)
+					print("KOMNATA ", miejsca.size() - 1, " ", k["typ"])
+					break
 	for i in miejsca.size():
 		p.w = miejsca[i]
 		p.kat = 2.4
-		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0:
+		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0 and cz.size() <= 3:
 			var en = rajd.wrogowie[0]
 			en.uspiony = false
 			en.stan = "walka"
 			en.zamach = en.zamach_dl * 0.75
 		await _czekaj(0.6)
-		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0 and rajd.swiat3d:
+		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0 and rajd.swiat3d and cz.size() <= 3:
 			var en = rajd.wrogowie[0]
 			p.pochodnia_w_rece = false
 			en.kat = atan2(p.w.y - en.w.y, p.w.x - en.w.x)
@@ -150,6 +165,7 @@ func rozpocznij_rajd(kraina: String, ziarno: String) -> void:
 	rajd.otworz_okno.connect(okno.otworz)
 	rajd.zmiana_ekwipunku.connect(okno.odswiez)
 	rajd.toast.connect(hud.pokaz_toast)
+	rajd.obszar.connect(hud.pokaz_obszar)
 	rajd.koniec.connect(_koniec_rajdu)
 	hud.pokaz_toast.call_deferred("🔥 Pochodnia zajmuje rękę tarczy: nie parujesz. [F / ↓] rzuć ją przed walką.", "info")
 
@@ -326,8 +342,28 @@ func _test_duzej_mapy() -> void:
 	m2.generuj(rajd.kraina, rajd.ziarno, Profil.poziom("scavenger"))
 	_ok("to samo ziarno = ten sam duży loch", m2.siatka == m.siatka and m2.start == m.start and m2.skrzynie.size() == m.skrzynie.size())
 	_ok("wrogowie: liczba wg krainy, w komnatach", rajd.wrogowie.size() == int(rajd.kraina["enemyCount"]), "%d wrogów" % rajd.wrogowie.size())
-	# pościg: wróg bez linii wzroku obchodzi mury po polu odległości
+	# tytuł obszaru przy pierwszym wejściu do komnaty (np. Krypta, Skarbiec)
 	var g = rajd.gracz
+	var w0: Vector2 = g.w
+	var docel := -1
+	for i in m.komnaty.size():
+		if rajd.NAZWY_OBSZAROW.has(m.komnaty[i]["typ"]) and not rajd.odwiedzone_komnaty.has(i):
+			docel = i
+			break
+	if docel >= 0:
+		var rr: Rect2i = m.komnaty[docel]["r"]
+		for dy in range(1, rr.size.y - 1):
+			var w := Vector2(rr.position.x + 1.5, rr.position.y + dy + 0.5)
+			if not Mapgen.blokuje_ruch(m.kafel(int(w.x), int(w.y))):
+				g.w = w
+				break
+		rajd._sprawdz_obszar()
+		await _klatka()
+		var nazwa: String = rajd.NAZWY_OBSZAROW[m.komnaty[docel]["typ"]][0]
+		_ok("tytuł obszaru przy wejściu do komnaty", hud.tytul_obszaru != null and (hud.tytul_obszaru.get_child(0) as Label).text == nazwa.to_upper(), nazwa)
+		g.w = w0
+		rajd._sprawdz_obszar()
+	# pościg: wróg bez linii wzroku obchodzi mury po polu odległości
 	rajd._pole_od = Vector2i(-99, -99)
 	rajd._licz_pole()
 	var cel := Vector2(-1, -1)
@@ -565,6 +601,8 @@ func _test() -> void:
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Przystań: A przy przewoźniku otwiera Wyprawę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 0, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1c_przewoznik")
+	var om: ShaderMaterial = przystan._npc["przewoznik"]["obrys"]
+	_ok("Przystań: rozmówca podświetlony", float(om.get_shader_parameter("sila")) > 0.8, "%.2f" % float(om.get_shader_parameter("sila")))
 	await _pad(JOY_BUTTON_B)
 	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
 	przystan.uzyj("chlop")

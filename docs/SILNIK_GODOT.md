@@ -38,7 +38,7 @@ Sceny budujemy **w kodzie** (węzły tworzone w `_ready`), a nie w edytorze. Dzi
 | `gra.gd` | Korzeń: Warownia ⇄ rajd ⇄ ekran wyniku. **Test automatyczny** (`_test`) przy `--test`. |
 | `hub.gd` | Warownia: 5 zakładek (Wyprawa, Ekwipunek i Skrytka, Kupiec, Warownia, Umiejętności). Fokus pada, LB/RB zakładki. |
 | `rajd.gd` | **Wszystkie reguły rajdu**: świat, kolizje, widoczność, walka gracza, AI wrogów, strzały, łup, ekstrakcja, śmierć, rozliczenie z profilem. |
-| `mapgen.gd` | Generator lochu z ziarna. Trzy strumienie losowania: `rng_uklad`, `rng_lup`, `rng_wrogowie`. Typy kafli `K.*`. |
+| `mapgen.gd` | Generator lochu z ziarna (wersja 2: 96×96 pól, lita skała, komnaty wg rodzaju: komnata, krypta, sala filarów, dziedziniec, kaplica, legowisko, skarbiec; korytarze z pętlami; 3–4 ekstrakcje; wszystko osiągalne — BFS). Trzy strumienie losowania: `rng_uklad`, `rng_lup`, `rng_wrogowie`. Typy kafli `K.*`. Plan z góry: `narzedzia/gra_3d/plan_mapy.gd`. |
 | `bohater.gd` | Stan Hadræna (HP, stamina, timery walki, rynsztunek rajdu) + animacja z arkuszy, pochodnia, płomień. |
 | `wrog.gd` | Typy wrogów (`TYPY`), stan, animacja, nakładka bez cieniowania (paski HP/postury, błysk ataku, napisy). |
 | `hud.gd` | HUD rajdu: paski, mikstury, broń, minimapa, ekstrakcja, podpowiedzi, toasty, winiety. |

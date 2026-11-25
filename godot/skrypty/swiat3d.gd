@@ -380,7 +380,7 @@ func _mapa() -> void:
 							var c: Vector2 = nr[2] * 0.86
 							listy["naroznik"].append([i, Basis().scaled(Vector3(1.0, h, 1.0)), (WYS_MURU + 0.3) * 0.5 * h, Vector3(c.x, 0, c.y)])
 				K.FILAR:
-					if _hash(x, y) % 3 == 0:
+					if _hash(x, y) % 3 == 0 or _srodek_kaplicy(x, y):
 						_postaw(i, "posag", 2.1, _hash(x, y) % 4 * PI * 0.5)
 					else:
 						listy["filar"].append([i, Basis(Vector3.UP, float(_hash(x, y) % 628) / 100.0), (WYS_MURU + 0.4) * 0.5])
@@ -428,6 +428,16 @@ func _mapa() -> void:
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi)
 		_mm[k] = mmi
+
+
+func _srodek_kaplicy(x: int, y: int) -> bool:
+	for k in rajd.mapa.komnaty:
+		if k["typ"] == "kaplica":
+			var rr: Rect2i = k["r"]
+			var w := Rect2i(rr.position.x + 2, rr.position.y + 2, rr.size.x - 4, rr.size.y - 4)
+			if x == w.position.x + w.size.x / 2 and y == w.position.y + w.size.y / 2:
+				return true
+	return false
 
 
 func _wnetrze_skaly(x: int, y: int) -> bool:
@@ -639,6 +649,78 @@ func _wystroj() -> void:
 				l.position.y = 1.4 / n.scale.y
 				l.set_meta("migotanie", true)
 				n.add_child(l)
+
+
+## Wystrój wg rodzaju komnaty (tylko wygląd): krypty z nagrobkami, legowiska z kośćmi i krwią,
+## skarbce z kuframi i złotym światłem, sale filarów z kandelabrami, dziedzińce z gruzem i kolumnami.
+func _wystroj_komnat() -> void:
+	var mapa = rajd.mapa
+	var zajete := {}
+	for sk in mapa.skrzynie:
+		zajete[mapa.idx(sk["tx"], sk["ty"])] = true
+	for k in mapa.komnaty:
+		var typ: String = k["typ"]
+		var rr: Rect2i = k["r"]
+		for y in range(rr.position.y + 1, rr.end.y - 1):
+			for x in range(rr.position.x + 1, rr.end.x - 1):
+				var i: int = mapa.idx(x, y)
+				if mapa.kafel(x, y) != K.PODLOGA or zajete.has(i):
+					continue
+				var sciana := Vector2.ZERO
+				for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					if mapa.kafel(x + d.x, y + d.y) == K.MUR:
+						sciana = Vector2(d)
+				var h := _hash(x * 17 + 3, y * 23 + 5)
+				var obr := atan2(-sciana.x, -sciana.y) if sciana != Vector2.ZERO else float(h % 628) / 100.0
+				var n: Node3D = null
+				match typ:
+					"krypta":
+						if sciana != Vector2.ZERO and h % 3 == 0:
+							n = _postaw(i, "nagrobek" if h % 2 == 0 else "sarkofag", 0.95 if h % 2 == 0 else 0.8, obr)
+					"legowisko":
+						if h % 5 == 0:
+							n = _postaw(i, "kosci", 0.35, obr)
+						elif sciana != Vector2.ZERO and h % 7 == 0:
+							n = _postaw(i, "lancuchy", 1.5, obr)
+					"skarbiec":
+						if sciana != Vector2.ZERO and h % 3 == 0:
+							n = _postaw(i, "kufer" if h % 2 == 0 else "beczka", 0.7 if h % 2 == 0 else 0.95, obr)
+					"sala_filarow":
+						if sciana != Vector2.ZERO and h % 9 == 0:
+							n = _postaw(i, "kandelabr", 1.25, obr)
+							var l := _swiatlo(Color(1.0, 0.75, 0.45), 1.3, 3.2, false)
+							l.position.y = 1.4 / n.scale.y
+							l.set_meta("migotanie", true)
+							n.add_child(l)
+					"dziedziniec":
+						if h % 11 == 0:
+							n = _postaw(i, "glaz" if h % 2 == 0 else "kolumna_lezaca", 0.6, obr)
+				if n != null and sciana != Vector2.ZERO:
+					n.position += Vector3(sciana.x, 0, sciana.y) * 0.28
+		# złote światło skarbca i krwawe plamy legowiska
+		var c: Vector2 = k["srodek"]
+		var ic: int = mapa.idx(int(c.x), int(c.y))
+		if typ == "skarbiec":
+			var zl := Node3D.new()
+			zl.position = Vector3(c.x, 0.0, c.y)
+			var l2 := _swiatlo(Color(1.0, 0.8, 0.35), 1.8, 5.0, false)
+			l2.position.y = 1.6
+			zl.add_child(l2)
+			zl.visible = false
+			add_child(zl)
+			_dekor.append([zl, ic])
+		elif typ == "legowisko" and not lekki:
+			for j in 3:
+				var hh := _hash(int(c.x) * 7 + j, int(c.y) * 11 + j)
+				var dc := Decal.new()
+				dc.texture_albedo = _tex_ef("krew_kaluza_%d" % (hh % 4))
+				var rozm := 1.2 + float(hh % 50) / 40.0
+				dc.size = Vector3(rozm, 0.6, rozm)
+				dc.position = Vector3(c.x + float(hh % 5 - 2) * 0.9, 0.0, c.y + float((hh / 5) % 5 - 2) * 0.9)
+				dc.rotation.y = float(hh % 628) / 100.0
+				dc.visible = false
+				add_child(dc)
+				_dekor.append([dc, mapa.idx(int(dc.position.x), int(dc.position.z))])
 
 
 ## Pochodnie w uchwytach na murach (co kilka pól, deterministycznie): ciepłe plamy światła i cienie.
@@ -1053,6 +1135,7 @@ func _rekwizyty() -> void:
 		sk["wezel3d"] = n
 		_skrzynie.append(sk)
 	_wystroj()
+	_wystroj_komnat()
 	_pochodnie_scienne()
 	_atmosfera()
 	_pochodnia_ziemia = Node3D.new()

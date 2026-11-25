@@ -62,6 +62,7 @@ var cel := ""             # najbliższe miejsce interakcji
 var _anim := ""
 var _szum: Texture2D
 var _pyl: GPUParticles3D
+var _popiol: GPUParticles3D
 var _budynki: Node3D
 var _przeszkody_bud: Array = []
 var poziomy := {}         # budynek -> poziom pokazany na scenie (do testów)
@@ -74,6 +75,9 @@ func _ready() -> void:
 	_teren()
 	_pomost()
 	_oboz()
+	_zakatki()
+	_drugi_brzeg()
+	_za_palisada()
 	_npc_wszyscy()
 	_bohater()
 	_atmosfera()
@@ -202,14 +206,9 @@ func _teren() -> void:
 	var wm := PlaneMesh.new()
 	wm.size = Vector2(90, 90)
 	woda.mesh = wm
-	var wmat := StandardMaterial3D.new()
-	wmat.albedo_color = Color(0.02, 0.03, 0.045)
-	wmat.roughness = 0.12
-	wmat.metallic = 0.25
-	wmat.normal_enabled = true
-	wmat.normal_texture = _tsw("kat_plyty", "normal")
-	wmat.normal_scale = 0.12
-	wmat.uv1_scale = Vector3(14, 14, 14)
+	var wmat := ShaderMaterial.new()
+	wmat.shader = preload("res://zasoby/3d/shadery/woda.gdshader")
+	wmat.set_shader_parameter("szum", _szum)
 	woda.material_override = wmat
 	woda.position = Vector3(ROZMIAR * 0.5, -0.42, ROZMIAR * 0.5)
 	add_child(woda)
@@ -370,6 +369,134 @@ func _oboz() -> void:
 		_latarnia(w + Vector2(0.15, 0.15), 2.3)
 
 
+## Zakątki placu (tylko wygląd + przeszkody): beczki przy wodzie, opał, cmentarzyk tych, co nie wrócili,
+## kandelabr i kości przy ołtarzu, ławka przy studni, zbroja na stojaku u Chojraka.
+func _zakatki() -> void:
+	for d in [[R + "beczka.glb", 0.95, Vector2(8.0, 9.4), 0.2, 0.4], [R + "beczka.glb", 0.95, Vector2(8.8, 10.3), 1.1, 0.4],
+			[R + "kufer.glb", 0.7, Vector2(9.4, 8.9), 0.7, 0.45], [P + "firewood.glb", 0.5, Vector2(29.8, 15.6), 1.2, 0.6],
+			[R + "beczka.glb", 0.95, Vector2(30.6, 17.1), 0.0, 0.4], [R + "glaz.glb", 0.7, Vector2(7.2, 29.6), 0.5, 0.6],
+			[R + "glaz.glb", 0.55, Vector2(30.9, 30.7), 2.0, 0.5], [R + "kosci.glb", 0.35, Vector2(16.9, 29.7), 0.8, 0.0],
+			[P + "bench_b.glb", 0.55, Vector2(13.4, 17.6), 0.2, 0.5], [R + "zbroja.glb", 1.6, Vector2(15.9, 9.7), -0.7, 0.4]]:
+		_rek(d[0], d[1], d[2], d[3], d[4])
+	# cmentarzyk: groby tych, którzy nie wrócili, z runiczną latarnią
+	for i in 4:
+		_rek(R + "nagrobek.glb", 0.8 + (i % 2) * 0.12, Vector2(22.4 + i * 1.15, 30.0 + (i % 2) * 0.35), 0.1 * (i - 2), 0.35)
+	_rek(P + "rune_lantern.glb", 1.3, Vector2(21.2, 29.2), 0.0, 0.3)
+	var lr := _swiatlo(Color(0.55, 0.75, 1.0), 1.2, 4.0, false)
+	lr.position = Vector3(21.2, 1.1, 29.2)
+	lr.set_meta("migotanie", true)
+	add_child(lr)
+	# kandelabr przy ołtarzu
+	_rek(R + "kandelabr.glb", 1.25, Vector2(16.6, 27.9), 0.3, 0.3)
+	_latarnia(Vector2(16.6, 27.9), 1.3)
+
+
+## Drugi brzeg za czarną wodą: sylwetki spalonej warowni (mury z blankami, wieże) i dogasające pożary.
+## Poza zasięgiem ruchu; daje głębię i punkt orientacyjny przy pomoście.
+func _drugi_brzeg() -> void:
+	var m := ShaderMaterial.new()
+	m.shader = SHADER_MURU
+	m.set_shader_parameter("m_alb", _tsw("pod_mur", "alb"))
+	m.set_shader_parameter("m_nrm", _tsw("pod_mur", "normal"))
+	m.set_shader_parameter("m_rh", _tsw("pod_mur", "rh"))
+	m.set_shader_parameter("d_alb", _tsw("kat_mech", "alb"))
+	m.set_shader_parameter("szum", _szum)
+	m.set_shader_parameter("skala", 0.35)
+	m.set_shader_parameter("wys_akcentu", 0.4)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7331
+	var odcinki := [[Vector2(-9.0, -6.5), Vector2(36.0, -6.5)], [Vector2(-6.5, -9.0), Vector2(-6.5, 36.0)]]
+	for od in odcinki:
+		var a: Vector2 = od[0]
+		var b: Vector2 = od[1]
+		var dl := a.distance_to(b)
+		var kier := (b - a).normalized()
+		var t := 0.0
+		while t < dl:
+			var seg := rng.randf_range(3.0, 6.0)
+			var w := a + kier * (t + seg * 0.5)
+			var wys := rng.randf_range(2.5, 5.5)
+			if rng.randf() < 0.22:
+				wys = rng.randf_range(0.8, 1.6)  # wyłom
+			var blok := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(seg if kier.x != 0.0 else 1.6, wys, seg if kier.y != 0.0 else 1.6)
+			blok.mesh = bm
+			blok.material_override = m
+			blok.position = Vector3(w.x, wys * 0.5 - 0.4, w.y)
+			add_child(blok)
+			# blanki
+			if wys > 2.0:
+				var n := int(seg / 0.9)
+				for i in n:
+					if rng.randf() < 0.3:
+						continue
+					var bl := MeshInstance3D.new()
+					var bb := BoxMesh.new()
+					bb.size = Vector3(0.5, 0.55, 0.5)
+					bl.mesh = bb
+					bl.material_override = m
+					var q := a + kier * (t + 0.45 + i * 0.9)
+					bl.position = Vector3(q.x, wys - 0.4 + 0.27, q.y)
+					add_child(bl)
+			t += seg
+	# wieże
+	for wz in [Vector2(-6.5, -6.5), Vector2(5.0, -6.5), Vector2(20.0, -6.5), Vector2(-6.5, 12.0), Vector2(-6.5, 27.0)]:
+		var wie := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		var h := rng.randf_range(6.0, 9.0)
+		cm.top_radius = 1.7
+		cm.bottom_radius = 2.1
+		cm.height = h
+		wie.mesh = cm
+		wie.material_override = m
+		wie.position = Vector3(wz.x, h * 0.5 - 0.4, wz.y)
+		add_child(wie)
+		# dogasający pożar na szczycie albo w oknie
+		if rng.randf() < 0.7:
+			var og := _ogien(1.2, 1.6)
+			og.position = Vector3(wz.x, h - 0.2, wz.y)
+			add_child(og)
+			var l := _swiatlo(Color(1.0, 0.45, 0.15), 3.0, 9.0, false)
+			l.position = Vector3(wz.x + 1.5, h - 0.5, wz.y + 1.5)
+			l.set_meta("migotanie", true)
+			add_child(l)
+
+
+## Za palisadą: ziemia ciągnie się dalej (zamiast czarnej pustki), głazy i zwalone kolumny we mgle.
+func _za_palisada() -> void:
+	var t := ShaderMaterial.new()
+	t.shader = SHADER_TERENU
+	for war in [["a", "pod_ziemia", 0.25], ["b", "pod_trawa", 0.25], ["c", "pod_bruk", 0.3]]:
+		t.set_shader_parameter(war[0] + "_alb", _tsw(war[1], "alb"))
+		t.set_shader_parameter(war[0] + "_nrm", _tsw(war[1], "normal"))
+		t.set_shader_parameter(war[0] + "_rh", _tsw(war[1], "rh"))
+		t.set_shader_parameter(war[0] + "_skala", war[2])
+	t.set_shader_parameter("szum", _szum)
+	t.set_shader_parameter("maska_mapy", ImageTexture.create_from_image(Image.create(4, 4, false, Image.FORMAT_RGB8)))
+	t.set_shader_parameter("b_ilosc", 0.6)
+	t.set_shader_parameter("c_ilosc", 0.1)
+	t.set_shader_parameter("kaluze", 0.2)
+	t.set_shader_parameter("ton", Color(0.8, 0.8, 0.86))
+	for pas in [[Vector3(ROZMIAR + 9.0, -0.01, (ROZMIAR + LAD_OD) * 0.5 + 9.0), Vector2(18.0, ROZMIAR - LAD_OD + 18.0)],
+			[Vector3((ROZMIAR + LAD_OD) * 0.5, -0.01, ROZMIAR + 9.0), Vector2(ROZMIAR - LAD_OD, 18.0)]]:
+		var z := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = pas[1]
+		z.mesh = pm
+		z.material_override = t
+		z.position = pas[0]
+		add_child(z)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	for i in 14:
+		var w := Vector2(rng.randf_range(ROZMIAR + 1.2, ROZMIAR + 8.0), rng.randf_range(LAD_OD, ROZMIAR + 8.0))
+		if i % 2 == 0:
+			w = Vector2(w.y, w.x)
+		var nazwa: String = ["glaz", "kolumna_lezaca", "glaz", "nagrobek"][i % 4]
+		_rek(R + nazwa + ".glb", rng.randf_range(0.5, 1.0), w, rng.randf() * TAU, 0.0)
+
+
 ## Budynki obozu rosną z poziomem z Warowni (Profil.budynek): 0 = puste miejsce, 1–3 = coraz więcej i jaśniej.
 ## Wywoływane przy starcie i po zamknięciu menu (np. po rozbudowie).
 func odswiez_budynki() -> void:
@@ -473,14 +600,14 @@ func _npc_wszyscy() -> void:
 			ap.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 		ap.play(d[3])
 		ap.seek(randf() * ap.current_animation_length, true)
-		_obrys(n, Color(0.9, 0.85, 0.7), 0.55)
-		_npc[d[0]] = {"wezel": n, "ap": ap}
+		var om := _obrys(n, Color(0.9, 0.85, 0.7), 0.55)
+		_npc[d[0]] = {"wezel": n, "ap": ap, "obrys": om, "zmiana": 6.0 + randf() * 8.0}
 		_przeszkody.append([d[2], 0.45])
 	# gawędziarz patrzy w ogień
 	(_npc["chlop"]["wezel"] as Node3D).rotation.y = atan2(19.0 - 20.4, 19.0 - 17.4)
 
 
-func _obrys(n: Node, kolor: Color, sila: float) -> void:
+func _obrys(n: Node, kolor: Color, sila: float) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = SHADER_OBRYSU
 	m.set_shader_parameter("kolor", kolor)
@@ -488,6 +615,7 @@ func _obrys(n: Node, kolor: Color, sila: float) -> void:
 	for mi in n.find_children("*", "MeshInstance3D", true, false):
 		(mi as MeshInstance3D).material_overlay = m
 		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	return m
 
 
 func _bohater() -> void:
@@ -561,6 +689,41 @@ func _atmosfera() -> void:
 	_pyl.draw_pass_1 = q
 	_pyl.position = Vector3(19.0, 0.6, 19.0)  # iskry nad ogniskiem
 	add_child(_pyl)
+	# popiół opadający z nieba wokół bohatera (szary, powolny, kołysze się)
+	_popiol = GPUParticles3D.new()
+	_popiol.amount = 40 if lekki else 140
+	_popiol.lifetime = 9.0
+	_popiol.preprocess = 9.0
+	_popiol.local_coords = false
+	_popiol.visibility_aabb = AABB(Vector3(-14, -2, -14), Vector3(28, 12, 28))
+	var pp2 := ParticleProcessMaterial.new()
+	pp2.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pp2.emission_box_extents = Vector3(10.0, 0.5, 10.0)
+	pp2.direction = Vector3(0.2, -1.0, 0.1)
+	pp2.spread = 20.0
+	pp2.initial_velocity_min = 0.25
+	pp2.initial_velocity_max = 0.5
+	pp2.gravity = Vector3(0.0, -0.05, 0.0)
+	pp2.turbulence_enabled = true
+	pp2.turbulence_noise_strength = 0.6
+	var gr2 := Gradient.new()
+	gr2.set_color(0, Color(0.7, 0.68, 0.66, 0.0))
+	gr2.add_point(0.2, Color(0.7, 0.68, 0.66, 0.8))
+	gr2.set_color(gr2.get_point_count() - 1, Color(0.5, 0.48, 0.46, 0.0))
+	var gt2 := GradientTexture1D.new()
+	gt2.gradient = gr2
+	pp2.color_ramp = gt2
+	_popiol.process_material = pp2
+	var q2 := QuadMesh.new()
+	q2.size = Vector2(0.04, 0.04)
+	var m2 := ShaderMaterial.new()
+	m2.shader = preload("res://zasoby/3d/shadery/czastka.gdshader")
+	m2.set_shader_parameter("sila", 0.5)
+	m2.set_shader_parameter("zasieg_tla", 8.0)
+	q2.material = m2
+	_popiol.draw_pass_1 = q2
+	_popiol.position = Vector3(poz.x, 6.0, poz.y)
+	add_child(_popiol)
 
 
 func _label(rozmiar: int, kolor: Color) -> Label3D:
@@ -587,7 +750,10 @@ func _process(dt: float) -> void:
 	else:
 		_etykieta.visible = false
 	_ustaw_kamere()
+	if _popiol:
+		_popiol.position = Vector3(poz.x, 6.0, poz.y)
 	_npc_patrza(dt)
+	_npc_zyja(dt)
 	if _dymek_czas > 0.0:
 		_dymek_czas -= dt
 		if _dymek_czas <= 0.0:
@@ -674,6 +840,28 @@ func uzyj(miejsce: String) -> void:
 		_dymek_czas = 6.0
 		return
 	otworz.emit(int(m[1]))
+
+
+## Życie NPC: co kilka-kilkanaście sekund inna poza spoczynku (płynne przejście); rozmówca w zasięgu podświetlony.
+func _npc_zyja(dt: float) -> void:
+	for k in _npc:
+		var d: Dictionary = _npc[k]
+		var om: ShaderMaterial = d.get("obrys")
+		if om:
+			var cel_sila := 1.15 if k == cel else 0.55
+			var teraz: float = om.get_shader_parameter("sila")
+			om.set_shader_parameter("sila", lerpf(teraz, cel_sila, minf(1.0, dt * 6.0)))
+		d["zmiana"] = float(d["zmiana"]) - dt
+		if float(d["zmiana"]) > 0.0:
+			continue
+		d["zmiana"] = 7.0 + randf() * 9.0
+		var ap: AnimationPlayer = d["ap"]
+		var pozy: Array = []
+		for a in ["postoj", "postoj2", "rozglad"]:
+			if ap.has_animation(a) and a != ap.current_animation:
+				pozy.append(a)
+		if not pozy.is_empty():
+			ap.play(pozy[randi() % pozy.size()], 0.8)
 
 
 func _npc_patrza(dt: float) -> void:

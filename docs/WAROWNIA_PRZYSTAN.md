@@ -63,3 +63,11 @@ Wyprawę daje przewoźnik na pomoście; Chojrak daje kontrakty (i też otwiera W
 
 ## 7. Czego nie robimy
 - Walki i wrogów w Przystani; zadań fabularnych (v1); nowych walut i cen bez zgody autora.
+
+## Runda 3 (25.11.2026): dopieszczenie
+- Woda: shader `zasoby/3d/shadery/woda.gdshader` (dwie warstwy fal, połysk księżyca, odbicia ognisk przez SSR).
+- Drugi brzeg: sylwetki spalonej warowni (mury z blankami, wieże, dogasające pożary) za wodą — `_drugi_brzeg()`.
+- Za palisadą ziemia z głazami i kolumnami zamiast pustki — `_za_palisada()`.
+- Zakątki placu: beczki i kufer przy wodzie, opał, cmentarzyk „tych, co nie wrócili” z runiczną latarnią, kandelabr i kości przy ołtarzu, ławka przy studni, zbroja u Chojraka — `_zakatki()`.
+- NPC żyją: co 7–16 s inna poza spoczynku; rozmówca w zasięgu mocniej podświetlony (test).
+- Popiół opada z nieba wokół bohatera.
