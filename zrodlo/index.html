@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAROWNIA POPIOŁÓW — Soulsborne Extraction RPG (grafika NightBrand)</title>
+    <link rel="stylesheet" href="tailwind.css"> <!--BUILD:TAILWIND-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #0a090b;
+            --bg-stone: #141215;
+            --bg-panel: #1a171c;
+            --border-iron: #352f38;
+            --gold-tarnished: #c79c4c;
+            --ember: #e06324;
+            --crimson: #a3262e;
+            --rune-cyan: #34d399;
+            --text-ash: #dcd6ce;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-void);
+            color: var(--text-ash);
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .font-fantasy {
+            font-family: 'Cinzel', 'Trajan Pro', 'Times New Roman', serif;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #100e12; }
+        ::-webkit-scrollbar-thumb { background: #3b333d; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #594c5c; }
+
+        .dark-panel {
+            background: linear-gradient(180deg, rgba(26, 23, 28, 0.96) 0%, rgba(16, 14, 18, 0.96) 100%);
+            border: 1px solid #352f38;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 224, 180, 0.06);
+        }
+
+        .iron-btn {
+            background: linear-gradient(180deg, #2b262e 0%, #1b181d 100%);
+            border: 1px solid #473e4b;
+            color: #e6dfd5;
+            transition: all 0.12s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .iron-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #38313c 0%, #242026 100%);
+            border-color: #c79c4c;
+            transform: translateY(-1px);
+        }
+        .iron-btn:active:not(:disabled) { transform: translateY(1px); }
+        .iron-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+
+        .ember-btn {
+            background: linear-gradient(180deg, #8f3a1b 0%, #5c220e 100%);
+            border: 1px solid #d4713b;
+            color: #fff3e6;
+            box-shadow: 0 4px 16px rgba(224, 99, 36, 0.35), inset 0 1px 0 rgba(255, 220, 180, 0.22);
+            transition: all 0.12s ease;
+        }
+        .ember-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #a84520 0%, #702a12 100%);
+            border-color: #f09559;
+            transform: translateY(-1px);
+        }
+        .ember-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .crimson-btn {
+            background: linear-gradient(180deg, #781f26 0%, #4d1217 100%);
+            border: 1px solid #a8323b;
+            color: #ffe8ea;
+        }
+        .crimson-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #912730 0%, #61181e 100%);
+        }
+
+        .slot-cell {
+            background: #110f13;
+            border: 1px solid #2e2932;
+            transition: border-color 0.12s, background-color 0.12s;
+            position: relative;
+        }
+        .slot-cell:hover {
+            border-color: #c79c4c;
+            background: #1b171f;
+        }
+        .slot-reliquary {
+            border-color: #8f6c28;
+            background: rgba(199, 156, 76, 0.08);
+        }
+        .slot-reliquary:hover {
+            border-color: #e6ba63;
+            background: rgba(199, 156, 76, 0.16);
+        }
+
+        .rarity-common { border-left: 3px solid #78736d; }
+        .rarity-uncommon { border-left: 3px solid #4ca676; }
+        .rarity-rare { border-left: 3px solid #4d88c7; }
+        .rarity-epic { border-left: 3px solid #c79c4c; }
+        .rarity-legendary { border-left: 3px solid #d43f49; }
+
+        .pixel-icon {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .vignette-dark {
+            background: radial-gradient(circle at center, rgba(0,0,0,0) 44%, rgba(6,4,8,0.82) 100%);
+            pointer-events: none;
+        }
+
+        @keyframes rune-pulse {
+            0%, 100% { border-color: #34d399; box-shadow: 0 0 18px rgba(52, 211, 153, 0.35); }
+            50% { border-color: #6ee7b7; box-shadow: 0 0 32px rgba(52, 211, 153, 0.72); }
+        }
+        .extract-glow { animation: rune-pulse 1.1s infinite; }
+
+        @keyframes ember-burn {
+            0%, 100% { box-shadow: inset 0 0 0 0 rgba(190, 40, 20, 0); }
+            50% { box-shadow: inset 0 0 42px 8px rgba(190, 45, 25, 0.36); }
+        }
+        .burn-vignette { animation: ember-burn 1.3s infinite; }
+    </style>
+</head>
+<body class="bg-[#0a090b] text-[#dcd6ce]">
+
+<!-- ==================== TOASTS & TOOLTIP ==================== -->
+<div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none w-full max-w-md px-4"></div>
+
+<div id="item-tooltip" class="fixed z-[95] pointer-events-none hidden dark-panel rounded-md p-3 w-64 text-xs shadow-2xl">
+    <div id="tt-name" class="font-fantasy font-bold text-sm text-[#e6ba63] mb-0.5"></div>
+    <div id="tt-type" class="text-[10px] uppercase tracking-wider text-stone-400 mb-2"></div>
+    <div id="tt-desc" class="text-stone-300 mb-2 leading-relaxed"></div>
+    <div id="tt-stats" class="space-y-1 text-[11px] border-t border-stone-700/80 pt-2"></div>
+</div>
+
+<!-- ==================== CONFIRM RESET MODAL ==================== -->
+<div id="reset-modal" class="hidden fixed inset-0 z-[110] bg-black/80 flex items-center justify-center p-4">
+    <div class="dark-panel rounded-lg max-w-sm w-full p-5 text-center space-y-4">
+        <h3 class="font-fantasy text-lg text-red-400 font-bold">Zniszczyć Kronikę Warowni?</h3>
+        <p class="text-xs text-stone-300">Wszystkie przedmioty, ulepszenia Warowni, złoto i poziomy umiejętności zostaną bezpowrotnie usunięte.</p>
+        <div class="flex gap-2 justify-center">
+            <button id="btn-cancel-reset" class="iron-btn rounded px-4 py-2 text-xs font-bold">Anuluj</button>
+            <button id="btn-confirm-reset" class="crimson-btn rounded px-4 py-2 text-xs font-bold">Tak, zresetuj</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== STRONGHOLD (WAROWNIA) HUB SCREEN ==================== -->
+<div id="hub-screen" class="w-full h-full flex flex-col overflow-hidden bg-[#0b090d]">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#131016] border-b border-[#322b36] shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded bg-[#231918] border border-[#c79c4c]/70 flex items-center justify-center shadow-inner">
+                <svg class="w-6 h-6 text-[#e07a38]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 2L14.5 9L21 12L14.5 15L12 22L9.5 15L3 12L9.5 9L12 2Z" fill="rgba(224,99,36,0.22)"/>
+                    <circle cx="12" cy="12" r="2.2" fill="#f5c26b"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-fantasy text-lg sm:text-xl font-extrabold tracking-widest text-[#ede4d8] leading-none">
+                    WAROWNIA <span class="text-[#e07a38]">POPIOŁÓW</span>
+                </h1>
+                <p class="text-[10px] text-stone-400 tracking-widest uppercase mt-0.5">DARK FANTASY SOULSBORNE EXTRACTION RPG</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <!-- Resources Bar -->
+            <div class="flex flex-wrap items-center gap-2.5 bg-[#0d0b0f] border border-[#322b36] rounded px-3 py-1.5 text-xs">
+                <span title="Złoto">🪙 <b id="hdr-gold" class="text-[#e6ba63]">0</b></span>
+                <span class="text-stone-700">|</span>
+                <span title="Sztaby Żelaza">⚒️ <b id="hdr-iron" class="text-stone-300">0</b></span>
+                <span title="Esencja Popiołu">🔥 <b id="hdr-ash" class="text-orange-400">0</b></span>
+                <span title="Starożytne Relikty">🏺 <b id="hdr-relics" class="text-emerald-400">0</b></span>
+                <span class="hidden md:inline text-stone-700">|</span>
+                <span class="hidden md:inline text-stone-400">Wyprawy: <b id="hdr-raids" class="text-stone-200">0</b> (<b id="hdr-survived" class="text-emerald-400">0</b> przeż.)</span>
+            </div>
+
+            <button id="btn-mute-hub" class="iron-btn rounded px-2.5 py-1.5 text-xs" title="Wycisz/Włącz dźwięk">🔊</button>
+            <button id="btn-reset-hub" class="crimson-btn rounded px-2.5 py-1.5 text-xs" title="Resetuj zapis">Reset</button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex items-center gap-2 px-4 py-2 bg-[#100d12] border-b border-[#29232d] shrink-0 overflow-x-auto">
+        <button data-tab="expedition" class="tab-btn ember-btn rounded px-4 py-2 text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap">⚔️ Wyprawa</button>
+        <button data-tab="inventory" class="tab-btn iron-btn rounded px-4 py-2 text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap">🎒 Ekwipunek i Skrytka</button>
+        <button data-tab="merchant" class="tab-btn iron-btn rounded px-4 py-2 text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap">⚖️ Kupiec</button>
+        <button data-tab="stronghold" class="tab-btn iron-btn rounded px-4 py-2 text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap">🏰 Warownia</button>
+        <button data-tab="skills" class="tab-btn iron-btn rounded px-4 py-2 text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap">📜 Umiejętności</button>
+    </nav>
+
+    <!-- Main Hub Content -->
+    <main class="flex-1 overflow-y-auto p-4">
+        <!-- TAB 1: WYPRAWA -->
+        <section id="tab-expedition" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 space-y-4">
+                <div class="dark-panel rounded-lg p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h2 class="font-fantasy text-sm font-bold text-[#e6ba63] tracking-wider uppercase">Wybierz Krainę Wyprawy</h2>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-stone-400">ZIARNO MAPY:</label>
+                            <input id="seed-input" type="text" maxlength="12" class="bg-[#0b090d] border border-[#3c3442] rounded px-2 py-1 text-xs text-[#e6ba63] w-28 font-mono uppercase focus:outline-none focus:border-[#e07a38]">
+                            <button id="btn-random-seed" class="iron-btn rounded px-2.5 py-1 text-xs">🎲 Losuj</button>
+                        </div>
+                    </div>
+                    <div id="zone-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- Controls & Soulsborne Combat Guide -->
+                <div class="dark-panel rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <h3 class="font-fantasy font-bold text-[#e07a38] uppercase tracking-wider mb-2">Sztuka Walki i Ekstrakcji</h3>
+                        <ul class="space-y-1.5 text-stone-300 leading-snug">
+                            <li>• <b class="text-[#e6ba63]">Parowanie (PPM w błysk):</b> Wciśnij PPM gdy broń wroga błyśnie złotem, aby go ogłuszyć i wykonać śmiertelną <b>Ripostę Krytyczną</b> (LPM).</li>
+                            <li>• <b class="text-red-400">Czerwony błysk:</b> Ciężki cios Kata Ruin — nie da się go sparować, a blok pali podwójnie staminę. <b>Unikaj Spacją!</b></li>
+                            <li>• <b class="text-sky-300">Blok i Unik:</b> Przytrzymaj PPM aby blokować tarczą lub naciśnij <b>Spację</b>, by wykonać przewrót z nietykalnością.</li>
+                            <li>• <b class="text-emerald-400">Krąg Ekstrakcji:</b> Wejdź w zielony krąg runiczny i wytrwaj 6 sek., by bezpiecznie wrócić do Warowni ze zdobytym łupem.</li>
+                            <li>• <b class="text-red-400">Klątwa Śmierci:</b> Polegnięcie oznacza utratę ekwipunku i sakwy — ocaleją tylko przedmioty w <b>Relikwiarzu</b>!</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-fantasy font-bold text-[#e6ba63] uppercase tracking-wider mb-2">Sterowanie</h3>
+                        <div class="grid grid-cols-2 gap-1.5 text-stone-300">
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">WASD</kbd> Ruch</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">SPACJA</kbd> Unik (i-frames)</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">LPM</kbd> Combo / Riposta</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">PPM</kbd> Parowanie / Blok</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">Q</kbd> Strzał z Łuku</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">E</kbd> Przeszukaj skrzynię</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">1 / 2 / 3</kbd> Mikstury</div>
+                            <div><kbd class="bg-[#0b090d] border border-stone-700 px-1.5 py-0.5 rounded text-[#e6ba63]">TAB / I</kbd> Sakwa i Łup</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Ready Panel -->
+            <div class="dark-panel rounded-lg p-4 flex flex-col justify-between">
+                <div>
+                    <h2 class="font-fantasy text-sm font-bold text-[#e6ba63] tracking-wider uppercase mb-3">Gotowość Rycerza</h2>
+                    <div id="pre-raid-summary" class="space-y-2 text-xs mb-4"></div>
+                    <div id="pre-raid-warnings" class="space-y-1.5 mb-4"></div>
+                </div>
+                <div class="space-y-2">
+                    <button id="btn-start-raid" class="w-full ember-btn rounded-lg py-3.5 font-fantasy font-bold text-sm sm:text-base tracking-widest">
+                        ⚔️ ROZPOCZNIJ WYPRAWĘ
+                    </button>
+                    <p class="text-[10px] text-center text-stone-400">Czas wyprawy: 08:00 min • 2 Kręgi Ekstrakcji • Pochodnia aktywna</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EKWIPUNEK I SKRYTKA -->
+        <section id="tab-inventory" class="hidden max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-5 dark-panel rounded-lg p-4 space-y-3.5">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-fantasy text-sm font-bold text-[#e6ba63]">RYNSZTUNEK NA WYPRAWĘ</h2>
+                    <span class="text-[10px] text-stone-400">Kliknij aby przenieść</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <div class="text-[10px] uppercase text-stone-400 mb-1">Broń Biała</div>
+                        <div id="eq-weapon" class="slot-cell rounded p-2 h-18 cursor-pointer flex flex-col justify-between"></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase text-stone-400 mb-1">Tarcza</div>
+                        <div id="eq-shield" class="slot-cell rounded p-2 h-18 cursor-pointer flex flex-col justify-between"></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase text-stone-400 mb-1">Łuk (klawisz Q)</div>
+                        <div id="eq-bow" class="slot-cell rounded p-2 h-18 cursor-pointer flex flex-col justify-between"></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase text-stone-400 mb-1">Pancerz</div>
+                        <div id="eq-armor" class="slot-cell rounded p-2 h-18 cursor-pointer flex flex-col justify-between"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] uppercase tracking-wider text-[#e6ba63] font-bold">🔒 Relikwiarz (<span id="rel-count">0</span>/<span id="rel-max">2</span> — chroniony po śmierci)</span>
+                    </div>
+                    <div id="eq-reliquary" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] uppercase tracking-wider text-stone-400">🎒 Sakwa Wyprawowa (<span id="bp-count">0</span>/12)</span>
+                        <span class="text-[10px] text-stone-500">Shift+Klik -> Relikwiarz</span>
+                    </div>
+                    <div id="eq-backpack" class="grid grid-cols-4 gap-2"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 dark-panel rounded-lg p-4 flex flex-col">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <h2 class="font-fantasy text-sm font-bold text-[#e6ba63]">SKRYTKA WAROWNI (<span id="stash-count">0</span>/<span id="stash-max">24</span>)</h2>
+                        <p class="text-[11px] text-stone-400">Kliknij przedmiot, aby założyć lub spakować do sakwy. Rozbuduj Skarbiec, aby zwiększyć miejsce.</p>
+                    </div>
+                    <button id="btn-sort-stash" class="iron-btn rounded px-3 py-1.5 text-xs">Sortuj Skrytkę</button>
+                </div>
+                <div id="stash-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
+            </div>
+        </section>
+
+        <!-- TAB 3: KUPIEC -->
+        <section id="tab-merchant" class="hidden max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-7 dark-panel rounded-lg p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
+                    <div>
+                        <h2 class="font-fantasy text-sm font-bold text-[#e6ba63]">WĘDROWNY KUPIEC "KOWAL POPIOŁU"</h2>
+                        <p class="text-[11px] text-stone-400">Lepszy oręż i pancerze odblokowujesz poprzez rozbudowę Kuźni w Warowni.</p>
+                    </div>
+                    <button id="btn-starter-kit" class="hidden ember-btn rounded px-3 py-1.5 text-xs font-bold animate-pulse">
+                        🆘 Zestaw Wygnańca (0 zł)
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                    <button data-cat="all" class="merch-cat-btn ember-btn rounded px-2.5 py-1 text-xs">Wszystko</button>
+                    <button data-cat="weapon" class="merch-cat-btn iron-btn rounded px-2.5 py-1 text-xs">Broń Biała</button>
+                    <button data-cat="shield" class="merch-cat-btn iron-btn rounded px-2.5 py-1 text-xs">Tarcze</button>
+                    <button data-cat="bow" class="merch-cat-btn iron-btn rounded px-2.5 py-1 text-xs">Łuki i Strzały</button>
+                    <button data-cat="armor" class="merch-cat-btn iron-btn rounded px-2.5 py-1 text-xs">Pancerze</button>
+                    <button data-cat="elixir" class="merch-cat-btn iron-btn rounded px-2.5 py-1 text-xs">Mikstury</button>
+                </div>
+
+                <div id="merchant-stock" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[55vh] overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="lg:col-span-5 dark-panel rounded-lg p-4 flex flex-col">
+                <div class="flex items-center justify-between gap-2 border-b border-stone-800 pb-3 mb-3">
+                    <div>
+                        <h2 class="font-fantasy text-sm font-bold text-[#e07a38]">SPRZEDAŻ ŁUPU</h2>
+                        <p class="text-[11px] text-stone-400">Surowce rzemieślnicze lepiej zachować na Warownię!</p>
+                    </div>
+                    <button id="btn-sell-valuables" class="ember-btn rounded px-3 py-1.5 text-xs font-bold">Sprzedaj Kosztowności</button>
+                </div>
+                <div id="merchant-sell-list" class="space-y-1.5 max-h-[58vh] overflow-y-auto pr-1 flex-1"></div>
+            </div>
+        </section>
+
+        <!-- TAB 4: WAROWNIA (UPGRADES) -->
+        <section id="tab-stronghold" class="hidden max-w-5xl mx-auto space-y-4">
+            <div class="dark-panel rounded-lg p-4">
+                <h2 class="font-fantasy text-base font-bold text-[#e6ba63] mb-1">ROZBUDOWA WAROWNI POPIOŁÓW</h2>
+                <p class="text-xs text-stone-400">Inwestuj zdobyte Złoto, Żelazo, Esencję Popiołu oraz Starożytne Relikty w trwałe ulepszenia swojej twierdzy.</p>
+            </div>
+            <div id="stronghold-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- TAB 5: UMIEJĘTNOŚCI (SKILLS) -->
+        <section id="tab-skills" class="hidden max-w-5xl mx-auto space-y-4">
+            <div class="dark-panel rounded-lg p-4">
+                <h2 class="font-fantasy text-base font-bold text-[#e6ba63] mb-1">BIEGŁOŚCI RYCERZA</h2>
+                <p class="text-xs text-stone-400">Umiejętności rozwijają się automatycznie podczas walki wręcz, parowania ciosów, uników, strzelania z łuku oraz przeszukiwania ruin.</p>
+            </div>
+            <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </section>
+    </main>
+</div>
+
+<!-- ==================== RAID GAME SCREEN ==================== -->
+<div id="raid-screen" class="hidden fixed inset-0 w-full h-full bg-[#070609] overflow-hidden">
+    <canvas id="gameCanvas" class="w-full h-full"></canvas>
+
+    <!-- Atmospheric overlays -->
+    <div class="fixed inset-0 pointer-events-none z-[8] vignette-dark"></div>
+    <div id="hit-overlay" class="fixed inset-0 pointer-events-none z-[9] transition-opacity duration-75" style="opacity:0; box-shadow: inset 0 0 100px 26px rgba(175, 22, 28, 0.78);"></div>
+    <div id="parry-flash-overlay" class="fixed inset-0 pointer-events-none z-[9] transition-opacity duration-100" style="opacity:0; box-shadow: inset 0 0 90px 18px rgba(235, 190, 75, 0.65);"></div>
+    <div id="burn-overlay" class="hidden fixed inset-0 pointer-events-none z-10 burn-vignette"></div>
+
+    <!-- HUD -->
+    <div id="raid-hud" class="fixed inset-0 pointer-events-none z-20 p-3 sm:p-4 flex flex-col justify-between">
+        <!-- Top Row -->
+        <div class="flex items-start justify-between gap-2">
+            <div class="dark-panel rounded-md px-3 py-2 text-xs space-y-1 pointer-events-auto">
+                <div class="flex items-center gap-2">
+                    <span id="hud-zone" class="font-fantasy font-bold text-xs text-[#e6ba63]">ZRUJNOWANE KATAKUMBY</span>
+                    <span class="text-stone-600">|</span>
+                    <span class="text-stone-400 text-[10px]">ZIARNO: <b id="hud-seed" class="text-orange-300"></b></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span>CZAS: <b id="hud-timer" class="text-emerald-400 text-sm">08:00</b></span>
+                    <span>POKONANI: <b id="hud-kills" class="text-red-400">0</b></span>
+                    <span>PAROWANIA: <b id="hud-parries" class="text-[#e6ba63]">0</b></span>
+                </div>
+            </div>
+
+            <!-- Center Banners -->
+            <div class="flex flex-col items-center gap-2">
+                <div id="hud-extract-banner" class="hidden dark-panel extract-glow rounded-md px-5 py-2 text-center bg-[#0c1d18]/95">
+                    <div class="font-fantasy font-bold text-xs text-emerald-300 tracking-widest">RYTUAŁ EKSTRAKCJI</div>
+                    <div id="hud-extract-timer" class="font-bold text-xl text-white">6.0 s</div>
+                    <div class="w-44 h-1.5 bg-stone-900 rounded overflow-hidden mt-1">
+                        <div id="hud-extract-bar" class="h-full bg-emerald-400 transition-all duration-75" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="hud-interact-prompt" class="hidden bg-black/85 border border-[#c79c4c] rounded px-3 py-1 text-xs text-[#f0cf85] font-semibold shadow-lg">
+                    [E] Przeszukaj
+                </div>
+            </div>
+
+            <!-- Minimap & Quick Buttons -->
+            <div class="flex flex-col items-end gap-2 pointer-events-auto">
+                <div class="dark-panel rounded-md p-1.5">
+                    <canvas id="minimapCanvas" width="132" height="132" class="rounded bg-[#08070a]"></canvas>
+                    <div id="hud-extract-dirs" class="mt-1 text-[10px] text-emerald-400 space-y-0.5 max-w-[132px]"></div>
+                </div>
+                <div class="flex gap-1.5">
+                    <button id="btn-raid-inv" class="iron-btn rounded px-2.5 py-1 text-[11px]">[TAB] Sakwa</button>
+                    <button id="btn-mute-raid" class="iron-btn rounded px-2 py-1 text-[11px]">🔊</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="flex items-end justify-between gap-2">
+            <!-- Vitals & Elixirs -->
+            <div class="dark-panel rounded-md p-2.5 w-64 sm:w-72 space-y-2 pointer-events-auto">
+                <div>
+                    <div class="flex justify-between text-[11px] mb-0.5">
+                        <span class="font-bold text-red-400 flex items-center gap-1.5">
+                            ❤ ŻYWOTNOŚĆ
+                            <span id="hud-burn-badge" class="hidden bg-orange-700 text-white text-[9px] px-1.5 rounded animate-pulse">POPARZENIE!</span>
+                        </span>
+                        <span id="hud-hp-text" class="font-bold">100 / 100</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-[#1a0d0f] rounded overflow-hidden border border-[#421e24]">
+                        <div id="hud-hp-bar" class="h-full bg-gradient-to-r from-[#8f1d24] to-[#cc333b] transition-all duration-100" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-[10px] mb-0.5">
+                        <span class="text-emerald-300 font-semibold">⚡ WYTRZYMAŁOŚĆ</span>
+                        <span id="hud-stam-text" class="text-emerald-200">100 / 100</span>
+                    </div>
+                    <div class="w-full h-2 bg-[#0e1a13] rounded overflow-hidden border border-[#224230]">
+                        <div id="hud-stam-bar" class="h-full bg-gradient-to-r from-[#2c7a4b] to-[#4cc47c] transition-all duration-75" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-[10px] mb-0.5">
+                        <span class="text-sky-300">🛡 PANCERZ <span id="hud-armor-cls" class="text-stone-400"></span></span>
+                        <span id="hud-armor-text" class="text-sky-200">0 / 0</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-[#10161e] rounded overflow-hidden border border-[#243242]">
+                        <div id="hud-armor-bar" class="h-full bg-sky-400 transition-all duration-100" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 pt-1 border-t border-stone-800">
+                    <button id="btn-elix-1" class="iron-btn rounded px-1.5 py-1 text-[10px] flex items-center justify-between">
+                        <span><b class="text-[#e6ba63]">[1]</b> Żar</span>
+                        <span id="hud-elix-1" class="font-bold text-red-300">0</span>
+                    </button>
+                    <button id="btn-elix-2" class="iron-btn rounded px-1.5 py-1 text-[10px] flex items-center justify-between">
+                        <span><b class="text-[#e6ba63]">[2]</b> Tonik</span>
+                        <span id="hud-elix-2" class="font-bold text-emerald-300">0</span>
+                    </button>
+                    <button id="btn-elix-3" class="iron-btn rounded px-1.5 py-1 text-[10px] flex items-center justify-between">
+                        <span><b class="text-[#e6ba63]">[3]</b> Maść</span>
+                        <span id="hud-elix-3" class="font-bold text-orange-300">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Active Gear & Combat Hints -->
+            <div class="dark-panel rounded-md p-2.5 w-60 sm:w-68 pointer-events-auto space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span id="hud-weapon-name" class="font-fantasy font-bold text-xs text-[#e6ba63] truncate">Zardzewiały Miecz</span>
+                    <span id="hud-stance-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-stone-800 text-stone-300">GOTOWY</span>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-stone-300">
+                    <span>🛡 <span id="hud-shield-name">Brak</span></span>
+                    <span>🏹 <span id="hud-arrows" class="font-bold text-[#e6ba63]">0</span> strzał [Q]</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-stone-400 border-t border-stone-800 pt-1">
+                    <span>Sakwa: <b id="hud-bp-slots" class="text-stone-200">0/12</b></span>
+                    <span>[PPM] Paruj/Blok • [Spacja] Unik</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Raid Inventory & Loot Modal -->
+    <div id="raid-modal" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-6">
+        <div class="dark-panel rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-[#120f15] border-b border-stone-800">
+                <div class="flex items-center gap-3">
+                    <span class="font-fantasy font-bold text-sm text-[#e6ba63]">SAKWA I ŁUPY</span>
+                    <span class="text-[11px] text-stone-400 hidden sm:inline">Kliknij aby zabrać • Shift+Klik -> Relikwiarz • PPM wyrzuć</span>
+                </div>
+                <button id="btn-close-raid-modal" class="iron-btn rounded px-3 py-1 text-xs font-bold">[ESC / TAB] Zamknij</button>
+            </div>
+
+            <div class="p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-7 space-y-3">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-[#0e0c11] border border-stone-800 rounded p-2">
+                            <div class="text-[10px] text-stone-400">BROŃ / TARCZA</div>
+                            <div id="rm-gear-1" class="font-bold text-[#e6ba63] mt-0.5 truncate">-</div>
+                        </div>
+                        <div class="bg-[#0e0c11] border border-stone-800 rounded p-2">
+                            <div class="text-[10px] text-stone-400">ŁUK / PANCERZ</div>
+                            <div id="rm-gear-2" class="font-bold text-sky-300 mt-0.5 truncate">-</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-[#e6ba63] font-bold mb-1">🔒 Relikwiarz (Chronione po śmierci)</div>
+                        <div id="rm-reliquary-grid" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-wider text-stone-400 mb-1">
+                            <span>🎒 Sakwa (<span id="rm-bp-count">0</span>/12)</span>
+                            <span>Kliknij miksturę aby użyć</span>
+                        </div>
+                        <div id="rm-bp-grid" class="grid grid-cols-4 gap-2"></div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-5 bg-[#0f0d12] border border-stone-800 rounded-lg p-3 flex flex-col">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 id="rm-loot-title" class="font-fantasy font-bold text-xs text-[#e07a38]">BRAK POJEMNIKA</h3>
+                        <button id="btn-loot-all" class="hidden ember-btn rounded px-2 py-0.5 text-[10px] font-bold">Zabierz wszystko</button>
+                    </div>
+                    <div id="rm-search-status" class="hidden mb-2">
+                        <div class="text-[10px] text-[#e6ba63] mb-1">🔍 Przeszukiwanie...</div>
+                        <div class="w-full h-1.5 bg-stone-900 rounded overflow-hidden">
+                            <div id="rm-search-bar" class="h-full bg-[#e07a38] transition-all duration-75" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div id="rm-loot-grid" class="grid grid-cols-2 gap-2 flex-1 content-start"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raid Result Modal -->
+    <div id="result-modal" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+        <div class="dark-panel rounded-lg max-w-md w-full p-6 text-center space-y-4">
+            <div id="res-badge" class="font-fantasy font-extrabold text-xl sm:text-2xl tracking-wider">EKSTRAKCJA UDANA</div>
+            <p id="res-subtitle" class="text-xs text-stone-300"></p>
+            <div id="res-stats" class="bg-[#0e0c11] border border-stone-800 rounded p-3 text-xs space-y-1.5 text-left"></div>
+            <button id="btn-return-hub" class="w-full ember-btn rounded-lg py-3 font-fantasy font-bold text-sm tracking-wider">
+                POWRÓT DO WAROWNI
+            </button>
+        </div>
+    </div>
+</div>
+
+<!--BUILD:SKRYPTY-->
+<script src="js/01_dane.js"></script>
+<script src="js/02_dzwiek.js"></script>
+<script src="js/03_profil.js"></script>
+<script src="js/04_grafika.js"></script>
+<script src="js/05_mapgen.js"></script>
+<script src="js/06_hub.js"></script>
+<script src="js/07_rajd.js"></script>
+<script src="js/08_walka.js"></script>
+<script src="js/09_ekwipunek_rajdu.js"></script>
+<script src="js/10_petla.js"></script>
+<script src="js/11_render.js"></script>
+<script src="js/12_wejscie.js"></script>
+<!--/BUILD:SKRYPTY-->
+</body>
+</html>
