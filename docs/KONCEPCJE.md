@@ -82,3 +82,20 @@ Uwagi agenta:
 1. ZROBIONE 25.11 — runda 1 walki: postura, pochodnia vs tarcza, zrzut plecaka (gałąź `runda-1-walka`).
 2. Równolegle pilot grafiki: Spalona Osada (zestaw kafli, jedna gęstość pikseli, nowy generator z POI).
 3. Dalej rundy 2–5 z tabeli w punkcie 1, potem Warownia-makieta i kolejne biotopy.
+
+## 8. Inspiracje z Diablo II (25.11.2026, na później — decyzja autora: „zapisz na później”)
+Tylko pomysły (mechanik nie chroni prawo autorskie). Kodu OpenDiablo2 NIE używamy: GPL-3.0 (wymusiłby otwarcie naszej gry i blokuje Xbox), Go, repo zarchiwizowane, oparte na plikach Diablo II.
+
+| Pomysł | Ocena agenta | Uczucie | Kiedy |
+|---|---|---|---|
+| Nieidentyfikowane przedmioty — wartość poznajesz w Warowni | Najlepszy: wzmacnia decyzję „wracam czy głębiej” i „otwieranie paczek” po ekstrakcji | strach + dopamina | pierwszy z tej listy |
+| Losowe afiksy przedmiotów (przedrostki/przyrostki) + rzadkości | Fundament dopaminy; broń dalej jest klasą, afiksy ją podkręcają | dopamina | razem z identyfikacją |
+| Elitarni wrogowie z cechami (Szybki, Ognisty, Klątwa…) z aurą i lepszym łupem | Decyzja walczyć/omijać w mroku | strach | po afiksach |
+| Biegłości broni = drzewka umiejętności (jak masterie Barbarzyńcy) | Idealne dla „broń jest klasą” | adrenalina + postęp | po v1-walce |
+| Kapliczki w lochu (czasowe błogosławieństwa, czasem z ceną) | Tanie, decyzja ryzyka w rajdzie | dopamina/strach | dowolnie |
+| Stałe „kotwice” w losowym lochu (kaplica, krypta bossa, zawalony most) | Pasuje do generatora z ziarna i do pięknych map | — | razem z mapami |
+| Runy/gniazda, kostka łączenia (rzemiosło), hazard u kupca, odporności | Później, po v1 | dopamina | po v1 |
+| Hordy wrogów, zadania fabularne | NIE: walka to rytm Soulsborne (mało groźnych wrogów), v1 bez fabuły | — | nie |
+
+## 9. Priorytet autora (25.11.2026)
+- **„Najbardziej zależy mi na pięknych, mrocznych mapach.”** Walka „ogarniemy na luzie” (w kolejce: za szybkie animacje, obrót myszką — dziennik 14:50).
