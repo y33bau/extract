@@ -29,6 +29,8 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
   - Testy: 35/35 (nowe: obrót bez skoku, płynny doskok, bieg/tył/bok).
 - Narzędzia: `narzedzia/gra_3d/ruch_sekwencja.gd` (zrzuty ciosów klatka po klatce), cfg_hadraen.json + 16 nowych klipów.
 - NIE sprawdzone: wrażenie z grania na żywo i na prawdziwym padzie; kierunki kroków w bok oceniono z danych klipów, nie okiem; kilka klipów ciosów ma szeroki obrót tułowia (dwuręczny cios 2, topór cios 2, pięści) — do oceny autora; wrogowie nadal bez płynnych przejść; balans nie ruszany.
+- **Ocena autora (15:55): „Po stronie bohatera jest super.”** Ruch i walka Hadræna przyjęte.
+- **Następne (uwaga autora): wrogowie mają lepiej zapowiadać ciosy pod parowanie** (czytelny zamach, rozbłysk, dźwięk; bez zmiany czasów bez zgody).
 - Do rozważenia (wymaga zgody autora, bo dotyka balansu): wydłużenie okna ciosu i czasu uniku, żeby ruch i obrażenia pasowały do wolniejszych, płynniejszych animacji.
 
 ## 2026-11-25 15:10 — agent główny (konto autora)
