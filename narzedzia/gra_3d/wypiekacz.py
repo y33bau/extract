@@ -72,7 +72,7 @@ def rozluznij(arm, swiat, f):
 
 
 P.czysc()
-model = glob.glob(cfg['katalog'] + '/*.fbx')[0]
+model = cfg.get('model') or (glob.glob(cfg['katalog'] + '/*.fbx') + glob.glob(cfg['katalog'] + '/*.glb'))[0]
 obj = P.importuj(model)
 cel = P.szkielet(obj)
 if cel.animation_data:

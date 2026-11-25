@@ -29,7 +29,7 @@ func _scena() -> Node3D:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.4, 0.38, 0.5)
 	e.ambient_light_energy = 0.6
-	e.tonemap_mode = Environment.TONE_MAPPER_AGX
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	e.glow_enabled = true
 	e.ssao_enabled = true
 	we.environment = e
