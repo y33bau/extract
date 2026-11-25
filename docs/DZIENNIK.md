@@ -17,6 +17,18 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 23:58 — konto autora (1), rola: agent główny — PRZEKAZANIE na inne konto
+- Gałąź `mapy-runda-2`, ostatni commit kodu `188b324`, wszystko wypchnięte. main nietknięty (merge tylko na „publikuj”/„wrzucaj”).
+- Stan: cel autora („pracuj dopóki postacie nie będą żyły”) NIEZAMKNIĘTY — autor nie ocenił jeszcze nowej wersji. Wszystkie postacie (6 wrogów, NPC, bohater) są z Meshy w pozie T, z ożywionymi kolorami; testy 61/61.
+- Gra dostarczona: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Zywe_Postacie.zip` (382 MB, limit transferu 400 MB) + `TEST_POSTACIE.bat`.
+- Uwaga na nowym koncie: surowe pliki źródłowe z Meshy (GLB przed wypiekiem) leżały poza repo, w kontenerze starego konta (`/home/claude/postacieT/{archer,scout,knight,boss,brute,warden}`); `cfg_*.json` w `narzedzia/gra_3d/` wskazują tam. W repo są gotowe wypieki (`godot/zasoby/3d/postacie/`), więc gra działa; przebudowa wypieku wymaga ponownego pobrania modeli z Meshy (zalogowanie robi autor sam). Modele w Meshy są na koncie autora, nie agenta.
+- Meshy: zużyte ok. 465 z dozwolonych 1000 kredytów. Pobieranie: GLB, Mixamo skeleton; format w oknie wraca do fbx, trzeba przestawić.
+- Dostarczanie pliku do folderu autora: SendUserFile, potem device_commit_files z fileUuid (stagedPath daje HTTP 400).
+- Bezpieczeństwo: komputer autora był zainfekowany (fałszywy CAPTCHA, opendiablo2.com); posprzątane, ale nie rób nic na jego komputerze ponad prośbę.
+- Decyzje autora: Meshy do 1000 kr dozwolone; kolory mają być nasycone i mocne jak na podglądzie Meshy.
+- NIE sprawdzone: wygląd na monitorze autora, wydajność z wieloma wrogami, prawdziwy pad, dźwięk.
+- Następny krok: poczekać na ocenę autora; przy uwadze o konkretnej postaci poprawić ten model; na „publikuj” zmergować `mapy-runda-2` do main.
+
 ## 2026-11-25 23:40 — agent główny, rola: grafik
 - Gałąź `mapy-runda-2`. Dokończone: rycerz (nowy model z opisu przez agenta Meshy, 9+30 kr) i boss-utopiec (ponowne użycie monitu w pozie T, 35 kr) — remesh 30K, rig humanoid, wypiek, ożywienie kolorów. Wszyscy wrogowie i NPC są teraz z Meshy w pozie T.
 - Usunięte osierocone tekstury starych wypieków rycerza i bossa.
