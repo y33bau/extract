@@ -168,6 +168,76 @@ func _ustaw_wroga_przed(en, odl := 1.0) -> void:
 	en.stan = "walka"
 
 
+func _przycisk(b: JoyButton, wcisniety: bool) -> void:
+	var z := InputEventJoypadButton.new()
+	z.device = 0
+	z.button_index = b
+	z.pressed = wcisniety
+	Input.parse_input_event(z)
+
+
+func _test_wygladu(p, en) -> void:
+	var B = load("res://skrypty/bohater.gd")
+	var wyg: Dictionary = Dane.wyglad
+	var kom: int = int(wyg.get("komorka", 224))
+	# wszystkie arkusze istnieją i mają wymiar: klatki x 8 kierunków
+	var braki := []
+	for z in wyg.get("klatki", {}).keys():
+		for a in wyg["klatki"][z].keys():
+			var n: int = int(wyg["klatki"][z][a])
+			var sc := "res://zasoby/hadraen/%s_%s.png" % [z, a]
+			var t: Texture2D = load(sc) if ResourceLoader.exists(sc) else null
+			if t == null or t.get_width() != n * kom or t.get_height() != 8 * kom:
+				braki.append("%s_%s" % [z, a])
+	_ok("arkusze Hadræna kompletne (%d zestawów)" % wyg.get("klatki", {}).size(), braki.is_empty() and wyg.get("klatki", {}).size() >= 6, ", ".join(braki))
+	# broń jest klasą: zestaw zależy od broni i tarczy
+	var przypadki := [
+		[{"weapon": {"id": "ash_greatsword"}, "shield": null}, "dwureczny"],
+		[{"weapon": {"id": "executioner_axe"}, "shield": null}, "topor"],
+		[{"weapon": {"id": "warden_glaive"}, "shield": null}, "glewia"],
+		[{"weapon": {"id": "rusty_sword"}, "shield": null}, "miecz"],
+		[{"weapon": {"id": "rusty_sword"}, "shield": {"id": "wood_buckler"}}, "miecz_tarcza"],
+		[{"weapon": null, "shield": null}, "piesci"],
+	]
+	var zle := []
+	for pr in przypadki:
+		var z: String = B.zestaw_dla(pr[0])
+		if z != pr[1]:
+			zle.append("%s→%s" % [pr[1], z])
+	_ok("broń w ręce wybiera zestaw animacji", zle.is_empty(), ", ".join(zle))
+	_ok("Hadræn ma arkusze swojej broni", p.zestaw == B.zestaw_dla(p.rynsztunek) and p._arkusze.size() >= 9, p.zestaw)
+	# 8 kierunków bez odbijania
+	var kier := []
+	for i in 8:
+		kier.append(B.kierunek(i * PI / 4.0))
+	_ok("8 kierunków postaci", kier == [0, 1, 2, 3, 4, 5, 6, 7] and B.kierunek(-PI / 4.0) == 7)
+	await _zrzut("4_hadraen_postoj")
+	en.uspiony = true
+	# parowanie: LB wciśnięty -> animacja parowania, potem blok
+	_przycisk(JOY_BUTTON_LEFT_SHOULDER, true)
+	await _czekaj_az(func(): return p.blok, 1.0)
+	await _klatka()
+	var anim_par: String = p.biezaca_anim
+	await _zrzut("5_hadraen_parowanie")
+	await _czekaj_az(func(): return p.blok_czas > 0.4, 2.0)
+	await _klatka()
+	var anim_blok: String = p.biezaca_anim
+	_przycisk(JOY_BUTTON_LEFT_SHOULDER, false)
+	_ok("LB: animacja parowania, potem bloku", anim_par == "parowanie" and anim_blok == "blok", anim_par + " → " + anim_blok)
+	await _czekaj(0.7)
+	# przewrót: B -> animacja przewrotu z nietykalnością
+	p.stamina = p.stamina_max
+	p.unik_cd = 0.0
+	await _pad(JOY_BUTTON_B, 0.05)
+	await _czekaj_az(func(): return p.unik_czas > 0.0 or p.biezaca_anim == "przewrot", 1.0)
+	await _klatka()
+	var anim_unik: String = p.biezaca_anim
+	await _zrzut("6_hadraen_przewrot")
+	_ok("B: przewrót", anim_unik == "przewrot", anim_unik)
+	await _czekaj(0.5)
+	en.uspiony = false
+
+
 func _suma_pd(u: String) -> float:
 	var lv := Profil.poziom(u)
 	var suma := float(Profil.d["skills"][u]["xp"])
@@ -207,6 +277,8 @@ func _test() -> void:
 	_os(JOY_AXIS_LEFT_X, 0.0)
 	await _klatka()
 	_ok("ruch lewym drążkiem", p.w.distance_to(start) > 0.5, "%.2f pola" % p.w.distance_to(start))
+	await _zrzut("3a_hadraen_z_pochodnia")
+	_ok("płomień pochodni przy lewej dłoni", p.pochodnia.position.distance_to(p._dlon + Vector2(0, -26)) < 0.5 and p._dlon.y < -20.0, str(p._dlon))
 
 	# pochodnia w ręce: brak parowania
 	var en = rajd.wrogowie[0]
@@ -216,7 +288,11 @@ func _test() -> void:
 	await _pad(JOY_BUTTON_LEFT_SHOULDER, 0.05)
 	_ok("pochodnia w ręce blokuje parowanie", p.okno_parowania == 0.0)
 	await _pad(JOY_BUTTON_DPAD_DOWN)
+	await _czekaj_az(func(): return not p.pochodnia_w_rece, 1.0)
 	_ok("krzyżak ↓ rzuca pochodnię", not p.pochodnia_w_rece and rajd.pochodnia_na_ziemi != null)
+
+	# Hadræn z modelu 3D: zestaw arkuszy wg broni, 8 kierunków, przewrót, parowanie
+	await _test_wygladu(p, en)
 
 	# parowanie złotego błysku
 	if en.rodzaj == "archer" or en.ciezki:
@@ -242,17 +318,22 @@ func _test() -> void:
 
 	# postura
 	var pekla := false
+	var ciosy := {}
 	for i in 12:
 		_ustaw_wroga_przed(en, 0.9)
 		en.atak_timer = 99.0
 		en.zamach = 0.0
 		p.stamina = p.stamina_max
 		await _pad(JOY_BUTTON_X, 0.04)
+		ciosy[p.biezaca_anim] = true
+		if p.biezaca_anim == "atak3":
+			await _zrzut("7_hadraen_ciezki_cios")
 		await _czekaj(0.4)
 		if en.ogluszenie > 0.0:
 			pekla = true
 			break
 	_ok("ciosy łamią posturę", pekla)
+	_ok("combo ma własne animacje ciosów", ciosy.has("atak1") and ciosy.has("atak2"), ", ".join(ciosy.keys()))
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true
 

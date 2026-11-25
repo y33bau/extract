@@ -1,11 +1,11 @@
 extends Node2D
 ## Hadræn: stan i wygląd. Logikę walki prowadzi rajd.gd (jedno miejsce reguł).
+## Wygląd: arkusze z modelu 3D (dane/wyglad_bohatera.json, zasoby/hadraen/<zestaw>_<anim>.png).
+## Arkusz: wiersze = 8 kierunków (wiersz d = kąt świata d*45°), kolumny = klatki.
+## Zestaw arkuszy zależy od broni w ręce (broń jest klasą) i od tarczy.
 
 const Iso = preload("res://skrypty/iso.gd")
-const TEX_CHOD := preload("res://zasoby/knight_d.webp")
-const TEX_ATAK := preload("res://zasoby/knight_dc.webp")
-const TEX_BLOK := preload("res://zasoby/knight_def.webp")
-const TEX_SMIERC := preload("res://zasoby/knight_death.webp")
+const UNIK_DLUGOSC := 0.3
 
 var w := Vector2.ZERO
 var promien := 0.28
@@ -30,6 +30,7 @@ var combo_reset := 0.0
 var zamach_anim := 0.0
 var zamach_anim_max := 0.3
 var blok := false
+var blok_czas := 0.0
 var okno_parowania := 0.0
 var parowanie_cd := 0.0
 var unik_czas := 0.0
@@ -42,23 +43,30 @@ var martwy := false
 var smierc_anim := 0.0
 var rynsztunek: Dictionary = {}  # kopia profilu na czas rajdu
 
+# wygląd
+var zestaw := ""
+var biezaca_anim := ""
+var biezacy_kierunek := 0
+var _arkusze: Dictionary = {}  # anim -> Texture2D
+var _klucz_zestawu := ""
+
 var sprite: Sprite2D
 var plomien: Node2D
 var pochodnia: PointLight2D
 var poswiata: PointLight2D
 var aura: Node2D
+var _dlon := Vector2(-12, -48)  # lewa dłoń w układzie postaci (piksele ekranu)
 
 
 func _ready() -> void:
 	sprite = Sprite2D.new()
-	sprite.texture = TEX_CHOD
-	sprite.hframes = 4
-	sprite.vframes = 6
-	sprite.scale = Vector2(0.82, 0.82)
-	sprite.offset = Vector2(0, -55)
+	var skala: float = Dane.wyglad.get("skala", 0.95)
+	var kom: float = Dane.wyglad.get("komorka", 224)
+	var stopy: float = Dane.wyglad.get("stopy_y", 176)
+	sprite.scale = Vector2(skala, skala)
+	sprite.offset = Vector2(0, kom * 0.5 - stopy)
 	add_child(sprite)
 	pochodnia = Swiatla.nowe(Color(1.0, 0.78, 0.52), 1.5, 270.0)
-	pochodnia.position = Vector2(-12, -48)
 	add_child(pochodnia)
 	poswiata = Swiatla.nowe(Color(0.6, 0.55, 0.75), 0.5, 105.0)
 	poswiata.position = Vector2(0, -20)
@@ -70,16 +78,55 @@ func _ready() -> void:
 	aura.draw.connect(_rysuj_aure)
 	aura.z_index = -1
 	add_child(aura)
+	odswiez_zestaw()
+
+
+## Zestaw arkuszy dla wyposażenia: broń decyduje o stylu (klasie), tarcza o wariancie.
+static func zestaw_dla(rynsz: Dictionary) -> String:
+	var wyg: Dictionary = Dane.wyglad
+	var bron_wyg: Dictionary = wyg.get("bron_zestaw", {})
+	var z: String = wyg.get("bez_broni", "piesci")
+	if rynsz.get("weapon"):
+		var id: String = rynsz["weapon"]["id"]
+		z = bron_wyg.get(id, wyg.get("domyslny", "dwureczny"))
+	if rynsz.get("shield"):
+		var z_tarcza: Dictionary = wyg.get("z_tarcza", {})
+		z = z_tarcza.get(z, z)
+	return z
+
+
+func odswiez_zestaw() -> void:
+	var klucz := str(rynsztunek.get("weapon")) + "|" + str(rynsztunek.get("shield"))
+	if klucz == _klucz_zestawu and zestaw != "":
+		return
+	_klucz_zestawu = klucz
+	zestaw = zestaw_dla(rynsztunek)
+	_arkusze.clear()
+	var klatki: Dictionary = Dane.wyglad.get("klatki", {}).get(zestaw, {})
+	for anim in klatki.keys():
+		var sc := "res://zasoby/hadraen/%s_%s.png" % [zestaw, anim]
+		if ResourceLoader.exists(sc):
+			_arkusze[anim] = load(sc)
+
+
+func liczba_klatek(anim: String) -> int:
+	return int(Dane.wyglad.get("klatki", {}).get(zestaw, {}).get(anim, 1))
+
+
+## Kierunek arkusza (0..7) z kąta świata.
+static func kierunek(k: float) -> int:
+	return posmod(roundi(k / (PI / 4.0)), 8)
 
 
 func _rysuj_plomien() -> void:
 	if not pochodnia_w_rece or martwy:
 		return
 	var t := Time.get_ticks_msec() / 1000.0
-	var reka := 13.0 if sprite.flip_h else -13.0
-	plomien.draw_line(Vector2(reka, -30), Vector2(reka * 1.2, -50), Color("3a2618"), 3.0)
+	var reka := _dlon
+	var szczyt := reka + Vector2(0, -20)
+	plomien.draw_line(reka + Vector2(0, 4), szczyt, Color("3a2618"), 3.0)
 	var h := 9.0 + sin(t * 17.0) * 2.0 + cos(t * 29.0)
-	var c := Vector2(reka * 1.2, -58)
+	var c := szczyt + Vector2(0, -7)
 	plomien.draw_set_transform(c, 0, Vector2(1.0, h / 6.0))
 	plomien.draw_circle(Vector2.ZERO, 6.0, Color(0.88, 0.33, 0.1, 0.9))
 	plomien.draw_circle(Vector2(0, 1), 3.3, Color(1.0, 0.82, 0.4, 0.95))
@@ -93,52 +140,68 @@ func _rysuj_aure() -> void:
 		aura.draw_set_transform(Vector2.ZERO)
 
 
+## Wybór animacji i klatki ze stanu walki. Zwraca [anim, kąt, klatka].
+func _wybierz(czas: float) -> Array:
+	if martwy:
+		var n := liczba_klatek("smierc")
+		return ["smierc", kat, mini(n - 1, int(smierc_anim * 7.0))]
+	if unik_czas > 0.0:
+		var t := clampf(1.0 - unik_czas / UNIK_DLUGOSC, 0.0, 0.999)
+		var ku := atan2(unik_kier.y, unik_kier.x) if unik_kier != Vector2.ZERO else kat
+		return ["przewrot", ku, int(t * liczba_klatek("przewrot"))]
+	if zamach_anim > 0.0:
+		var nazwa := "atak%d" % (combo + 1)
+		var t2 := clampf(1.0 - zamach_anim / zamach_anim_max, 0.0, 0.999)
+		return [nazwa, atak_kat, int(t2 * liczba_klatek(nazwa))]
+	if blok:
+		if okno_parowania > 0.0 and blok_czas < 0.35:
+			var np := liczba_klatek("parowanie")
+			return ["parowanie", kat, mini(np - 1, int(blok_czas / 0.35 * np))]
+		return ["blok", kat, int(czas * 5.0) % liczba_klatek("blok")]
+	if w_ruchu:
+		return ["chod", kat, int(krok_anim) % liczba_klatek("chod")]
+	return ["postoj", kat, int(czas * 6.0) % liczba_klatek("postoj")]
+
+
 func animuj(czas: float) -> void:
 	position = Iso.ekran(w)
-	var klatka := 0
-	var odbij := false
-	if martwy:
-		var f := mini(7, int(smierc_anim * 6.0))
-		sprite.texture = TEX_SMIERC
-		sprite.vframes = 2
-		klatka = f
-		odbij = Iso.kierunek_arkusza(kat)["sdx"] < 0.0
-	elif zamach_anim > 0.0:
-		var k := Iso.kierunek_arkusza(atak_kat)
-		var t := 1.0 - zamach_anim / zamach_anim_max
-		var ciezki := combo == 2
-		var rzad := 0
-		if k["rzad"] == 0:
-			rzad = 4 if ciezki else 3
-		elif k["rzad"] == 2:
-			rzad = 2 if ciezki else (1 if combo == 1 else 0)
-		else:
-			rzad = 5
-			odbij = k["sdx"] < 0.0
-		sprite.texture = TEX_ATAK
-		sprite.vframes = 6
-		klatka = rzad * 4 + mini(3, int(t * 4.0))
-	elif blok:
-		var k2 := Iso.kierunek_arkusza(kat)
-		sprite.texture = TEX_BLOK
-		sprite.vframes = 6
-		klatka = int(k2["rzad"]) * 4 + (1 if okno_parowania > 0.0 else 0)
-		odbij = k2["rzad"] == 1 and k2["sdx"] < 0.0
-	else:
-		var k3 := Iso.kierunek_arkusza(kat)
-		sprite.texture = TEX_CHOD
-		sprite.vframes = 6
-		odbij = k3["rzad"] == 1 and k3["sdx"] < 0.0
-		if w_ruchu:
-			klatka = (3 + int(k3["rzad"])) * 4 + int(krok_anim) % 4
-		else:
-			klatka = int(k3["rzad"]) * 4 + int(czas * 4.0) % 4
-	sprite.frame = klatka
-	sprite.flip_h = odbij
-	sprite.modulate = Color(1.7, 1.7, 1.8, 0.55) if unik_czas > 0.0 else Color.WHITE
+	odswiez_zestaw()
+	blok_czas = blok_czas + get_process_delta_time() if blok else 0.0
+	var wyb := _wybierz(czas)
+	var anim: String = wyb[0]
+	if not _arkusze.has(anim):
+		anim = "postoj"
+	var tex: Texture2D = _arkusze.get(anim)
+	var d := kierunek(wyb[1])
+	var n := liczba_klatek(anim)
+	var f := clampi(int(wyb[2]), 0, n - 1)
+	biezaca_anim = anim
+	biezacy_kierunek = d
+	if tex:
+		sprite.texture = tex
+		sprite.hframes = n
+		sprite.vframes = 8
+		sprite.frame = d * n + f
+	sprite.flip_h = false
+	sprite.modulate = Color(1.25, 1.22, 1.3, 0.92) if unik_czas > 0.0 else Color.WHITE
+	_ustaw_dlon(anim, d, f)
 	pochodnia.visible = pochodnia_w_rece and not martwy
 	poswiata.visible = not pochodnia_w_rece
-	pochodnia.position.x = 13.0 * 1.2 if odbij else -13.0 * 1.2
+	pochodnia.position = _dlon + Vector2(0, -26)
 	pochodnia.energy = 1.45 + sin(czas * 14.0) * 0.08 + cos(czas * 23.0) * 0.05
 	plomien.queue_redraw()
 	aura.queue_redraw()
+
+
+## Lewa dłoń z danych renderu (piksele klatki) -> układ postaci.
+func _ustaw_dlon(anim: String, d: int, f: int) -> void:
+	var dl: Dictionary = Dane.wyglad.get("dlon", {}).get(zestaw, {}).get(anim, {})
+	var lista: Array = dl.get(str(d), [])
+	if f >= lista.size():
+		return
+	var pkt: Array = lista[f]
+	var kom: float = Dane.wyglad.get("komorka", 224)
+	var stopy: float = Dane.wyglad.get("stopy_y", 176)
+	var px: float = pkt[0]
+	var py: float = pkt[1]
+	_dlon = Vector2(px - kom * 0.5, py - stopy) * sprite.scale.x

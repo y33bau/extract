@@ -5,6 +5,7 @@ var przedmioty: Dictionary = {}
 var krainy: Array = []
 var warownia: Dictionary = {}
 var umiejetnosci: Dictionary = {}
+var wyglad: Dictionary = {}  # wygląd Hadræna: arkusze, klatki, zestawy broni
 var _ikony: Dictionary = {}
 
 const NAZWY_TYPOW := {
@@ -22,6 +23,7 @@ func _ready() -> void:
 	krainy = _json("res://dane/krainy.json")
 	warownia = _json("res://dane/warownia.json")
 	umiejetnosci = _json("res://dane/umiejetnosci.json")
+	wyglad = _json("res://dane/wyglad_bohatera.json")
 
 
 func _json(sciezka: String) -> Variant:

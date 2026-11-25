@@ -488,7 +488,7 @@ func unik(kierunek_ruchu: Vector2) -> void:
 		return
 	p.stamina -= koszt
 	p.unik_kier = kierunek_ruchu if kierunek_ruchu != Vector2.ZERO else Vector2(cos(p.kat), sin(p.kat))
-	p.unik_czas = 0.3
+	p.unik_czas = p.UNIK_DLUGOSC
 	p.unik_cd = 0.62
 	p.blok = false
 	Dzwiek.unik()

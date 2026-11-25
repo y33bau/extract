@@ -17,6 +17,21 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 12:50 — konto (Claude, sesja Warownia), rola: gamedev + grafik (jedna runda, cel autora „/goal”: etap 1 i 2 + wdrożenie + exe)
+- Gałąź i commit: `hadraen-3d` (od `zasady-projektu`).
+- Decyzje autora: Hadræn bez peleryny, „ma być przechujem”; pracujemy w przeglądarce wbudowanej na koncie Meshy autora; kredyty Meshy do wykorzystania; w paczkach Mixamo autora są animacje; obowiązkowo przewrót, parowanie, zapowiedzi (zapisane w FUNDAMENT).
+- Zrobione:
+  - **Meshy (konto autora, 53 kredyty: 1905 → 1852):** obraz Hadræna bez broni (Nano Banana Pro, z referencji `PILOT_3D\hadraen_ref_przod.png`): czarna zbroja płytowa, krótki postrzępiony czerwony szal, **żarzące się Piętno na lewej rękawicy**, poza A → model 3D z teksturą → remesh 30k → rig humanoidalny 1,85 m → FBX (szkielet Mixamo).
+  - **Blender 5.0.1 (bpy) w środowisku agenta:** przeniesienie animacji z paczek Mixamo (poza T) na szkielet Meshy (poza A) z wyrównaniem kości; broń jako bryły przypięte do dłoni; kamera izometryczna 2:1; 8 kierunków; obróbka pixel-art (zmniejszenie x2, twarda alfa, paleta 48 kolorów, kontur 1 px, kolory dopasowane do sprite'ów wrogów). Potok w `narzedzia/hadraen_3d/` (README).
+  - **6 zestawów (broń jest klasą):** `dwureczny` (Czarny Miecz Popiołów, paczka Great Sword), `glewia`, `topor` (paczka Axe), `miecz`, `miecz_tarcza` (paczka Sword and Shield), `piesci` (bez broni). Każdy: postój 6, chód 8, cios 1/2/3 (3 = ciężki), blok 4, **parowanie 4**, **przewrót 7** (Longbow „dive forward”), śmierć 8 klatek. 54 arkusze, klatka 224 px, `godot/zasoby/hadraen/`.
+  - `bohater.gd` przepisany: zestaw arkuszy wg broni i tarczy (`dane/wyglad_bohatera.json`: przypisanie broni, klatki, skala 0,869, pozycje lewej dłoni), 8 kierunków bez odbijania, własne animacje przewrotu i parowania (pierwsze 0,35 s bloku z oknem), płomień pochodni w lewej dłoni (pozycja z renderu). `rajd.gd`: tylko stała długości uniku przeniesiona do `bohater.UNIK_DLUGOSC` (wartość bez zmian, 0,3 s). Balansu nie ruszano.
+  - Test niestabilny „krzyżak ↓ rzuca pochodnię” przerobiony na czekanie na warunek (ZASADY D6).
+- Testy (godot): `testy.py godot` **OK 29/29** (nowe: arkusze kompletne, broń → zestaw, arkusze swojej broni, 8 kierunków, LB parowanie→blok, B przewrót, combo atak1/atak2/atak3, płomień przy dłoni). Kontrola Linux z `--test`: OK 29/29. Zrzuty obejrzane (postój, z pochodnią, parowanie, przewrót, ciężki cios).
+- Dostarczono: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Popiolow_Hadraen3D.zip` oraz rozpakowane `Warownia_Popiolow_Hadraen3D\Warownia_Popiolow.exe` + `TEST_HADRAEN_3D.bat`.
+- NIE sprawdzone: uruchomienie exe na Windows autora, prawdziwy pad, dźwięk, wydajność (54 tekstury po ~0,3 MB), wygląd zestawów topór/glewia/miecz/pięści w grze (tylko arkusze; test gra mieczem z tarczą), „wyczucie” nowych animacji — ocenia autor.
+- Znane ograniczenia (do decyzji): bronie to proste bryły (nie modele z Meshy); łuk bez animacji strzału (strzała leci jak dawniej); stare `knight_*.webp` zostały w repo, nieużywane; przy 2H broni + pochodnia płomień jest w lewej dłoni na rękojeści (kompromis).
+- Następny krok: autor gra (najlepiej z padem) i ocenia wygląd i rytm. Potem: modele broni z Meshy zamiast brył + dostrojenie czasów animacji ciosów, albo pilot grafiki Spalonej Osady.
+
 ## 2026-11-25 11:50 — konto (Claude, sesja Warownia), rola: agent główny
 - Gałąź i commit: `zasady-projektu` (od `godot-transfer`).
 - Zrobione: przeniesiono do repo zaakceptowane przez autora dokumenty z folderu `NIGHTBRAND\WAROWNIA_POPIOLOW\ZASADY_DO_AKCEPTACJI`: nowe `docs/ZASADY.md`, `PROCES.md`, `ROLE.md`, `SILNIK_GODOT.md`, `GRAFIKA.md`, `NARZEDZIA.md`; zaktualizowane `START_TUTAJ.md`, `INSTRUKCJE_PROJEKTU.md`; `CLAUDE.md` zastąpiony skrótem (pełne prawo: `docs/ZASADY.md`). Kodu gry nie ruszano.

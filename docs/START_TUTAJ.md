@@ -28,9 +28,10 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -8 --all` i dziennikiem)
 - **Silnik: Godot 4.7.2** (decyzja autora 25.11.2026; opinia po zagraniu: „lepiej niż w przeglądarce”). Gra w `godot/`.
 - Przeniesiony cały prototyp: Warownia (5 zakładek: wyprawa, ekwipunek i skrytka, kupiec, rozbudowa, umiejętności), generator lochów z ziarna (3 strumienie losowania), rajd (combo, parowanie, riposta, blok, unik, łuk, postura, pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss), światło 2D, mgła wojny, minimapa, okno łupów, ekstrakcja, śmierć (Relikwiarz, połowa doświadczenia), dźwięk (syntezator), pad wszędzie.
-- Test pełnej pętli na symulowanym padzie: 21/21.
+- **Hadræn z modelu 3D** (gałąź `hadraen-3d`): broń widoczna w dłoni, 8 kierunków, 6 zestawów animacji wg broni (w tym przewrót i parowanie). Potok: `narzedzia/hadraen_3d/`. Dane: `godot/dane/wyglad_bohatera.json`.
+- Test pełnej pętli na symulowanym padzie: 29/29.
 - Prototyp JS (`zrodlo/`) = archiwum.
-- Gałęzie nieopublikowane (`main` ich nie zawiera), każda zawiera poprzednią: `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` → `godot-transfer` → `zasady-projektu`. **Pracę zaczynaj od najnowszej**, chyba że dziennik mówi inaczej.
+- Gałęzie nieopublikowane (`main` ich nie zawiera), każda zawiera poprzednią: `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` → `godot-transfer` → `zasady-projektu` → `hadraen-3d`. **Pracę zaczynaj od najnowszej**, chyba że dziennik mówi inaczej.
 - Otwarte tematy (z `FUNDAMENT.md`): ekonomia, lista broni v1, struktura mapy rajdu, liczby odblokowań biotopów i kary za śmierć; pilot grafiki Spalonej Osady.
 
 ## 4. Gdzie co jest
