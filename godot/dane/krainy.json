@@ -1,0 +1,59 @@
+[
+ {
+  "id": "catacombs",
+  "name": "Zrujnowane Katakumby",
+  "subtitle": "Mroczne korytarze i stare krypty",
+  "diff": "POCZĄTKUJĄCA",
+  "diffColor": "text-emerald-400",
+  "lootStars": "★★☆",
+  "enemyCount": 9,
+  "hasBoss": false,
+  "palette": {
+   "floor1": "#2e2b30",
+   "floor2": "#373339",
+   "moss": "#2c362c",
+   "wallTop": "#524b54",
+   "wallL": "#3d3740",
+   "wallR": "#29242b"
+  },
+  "desc": "Zniszczone katakumby pełne zwiadowców i pierwszych skrzyń. Idealne do nauki parowania."
+ },
+ {
+  "id": "outskirts",
+  "name": "Kamienne Podgrodzie",
+  "subtitle": "Zawalony dziedziniec i mury strażnicze",
+  "diff": "ŚREDNIA",
+  "diffColor": "text-[#e6ba63]",
+  "lootStars": "★★★",
+  "enemyCount": 12,
+  "hasBoss": false,
+  "palette": {
+   "floor1": "#33302c",
+   "floor2": "#3d3934",
+   "moss": "#363d2d",
+   "wallTop": "#5c554c",
+   "wallL": "#453f38",
+   "wallR": "#2e2a25"
+  },
+  "desc": "Ruiny podgrodzia: Upadli Gwardziści, Kusznicy Cienia, Zakonni Rycerze i pierwsi Katowie Ruin."
+ },
+ {
+  "id": "crypt",
+  "name": "Krypta Popielnego Króla",
+  "subtitle": "Sanktuarium żaru i legowisko Bossa",
+  "diff": "TRUDNA (BOSS)",
+  "diffColor": "text-red-400",
+  "lootStars": "★★★★",
+  "enemyCount": 14,
+  "hasBoss": true,
+  "palette": {
+   "floor1": "#2b2426",
+   "floor2": "#362c2f",
+   "moss": "#3d2824",
+   "wallTop": "#544346",
+   "wallL": "#3d2f32",
+   "wallR": "#261d1f"
+  },
+  "desc": "Najgłębsze kręgi ruin. Strzeżone przez potężnego Popielnego Strażnika. Najcenniejsze relikty."
+ }
+]

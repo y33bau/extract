@@ -18,17 +18,27 @@ Pełny opis: `docs/FUNDAMENT.md` (to jest kompas: każda funkcja ma mu służyć
 - Tekst instrukcji do ustawień projektu Claude: `docs/INSTRUKCJE_PROJEKTU.md`.
 
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -5` i dziennikiem)
-- Działający prototyp w JavaScript (canvas 2D): hub Warowni (skrytka, kupiec, 4 budynki, 5 umiejętności), rajd z ziarnem, walka (combo, parowanie, riposta, blok, unik, łuk, postura), pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss, ekstrakcja, śmierć z Relikwiarzem.
-- Gałęzie nieopublikowane (`main` ich nie zawiera): `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` (każda zawiera poprzednią).
-- **Otwarta decyzja: silnik.** Godot 4.7.2 sprawdzony: działa u agenta, testy automatyczne z symulowanym padem przechodzą, eksport .exe działa (pilot w `godot/`, gałąź `godot-pilot`). Czeka na decyzję autora po zagraniu. Do decyzji NIE dodajemy nowych mechanik. Instrukcja instalacji Godota dla agenta: dziennik, wpis z 25.11 10:40.
+- **Silnik: Godot 4.7.2** (decyzja autora 25.11.2026). Gra jest w `godot/`. Przeniesiono cały prototyp JS: Warownia (5 zakładek, kupiec, rozbudowa, umiejętności, skrytka, Relikwiarz), generator lochów z ziarna, rajd (walka combo, parowanie, riposta, blok, unik, łuk, postura, pochodnia vs tarcza, zrzut sakwy, 6 typów wrogów + boss, łucznicy, ciężkie ciosy z czerwonym błyskiem), światło 2D z silnika, mgła wojny, minimapa, okno łupów, ekstrakcja, śmierć, dźwięk (syntezator).
+- Zgodnie z fundamentem: po śmierci zaliczana jest połowa doświadczenia z rajdu (w JS było 100%).
+- Sterowanie: klawiatura+mysz i pad w każdym miejscu (menu też).
+- Prototyp JS (`zrodlo/`) to archiwum.
+- Gałęzie nieopublikowane (`main` ich nie zawiera): `start-projektu` → `runda-1-walka` → `fundament-i-dziennik` → `godot-pilot` → `godot-transfer` (każda zawiera poprzednią).
 
-## 4. Jak budować i testować (wersja JS)
+## 4. Środowisko agenta: jak budować i testować
 ```
-python3 narzedzia/zbuduj.py          # składa dist/WAROWNIA_POPIOLOW.html
-python3 narzedzia/testy.py szybki    # po drobnej zmianie
-python3 narzedzia/testy.py pelny     # po dużej zmianie (pełna pętla gry)
+# jednorazowo: Godot 4.7.2 (Linux) jako `godot` w PATH
+curl -L -o g.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+unzip g.zip && mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+# jednorazowo: szablony eksportu (1,3 GB, ok. 1 min); potrzebne tylko do .exe
+curl -L -o t.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
+mkdir -p ~/.local/share/godot/export_templates/4.7.2.stable
+unzip -j t.tpz templates/version.txt templates/windows_release_x86_64.exe templates/linux_release.x86_64 -d ~/.local/share/godot/export_templates/4.7.2.stable/
+pip install gdtoolkit            # linter (opcjonalnie)
+
+python3 narzedzia/testy.py godot  # test pełnej pętli na symulowanym padzie (wymaga xvfb-run i Mesa)
+godot --headless --path godot --export-release "Windows" ../dist/godot/Warownia_Popiolow.exe
 ```
-Wymaga: Python 3, `pip install playwright` + `python -m playwright install chromium`.
+Gra po uruchomieniu bez `--test` to normalna gra. W edytorze Godota otwórz folder `godot/`.
 
 ## 5. Jak rozmawiać z autorem
 Po polsku, krótko, wynik najpierw, jedna polecana opcja. Jest początkujący w IT, ale bardzo logiczny: tłumacz decyzje, nie żargon. Nie każ mu używać gita. Zawsze pisz, czego NIE sprawdziłeś. Szczegóły w `CLAUDE.md`, sekcja „Autor”.

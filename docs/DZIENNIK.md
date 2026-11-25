@@ -17,6 +17,23 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 11:15 — konto 1 (Claude, sesja Warownia), rola: gamedev
+- Gałąź i commit: `godot-transfer` (od `godot-pilot`).
+- Decyzja autora: „działa pięknie, możemy robić pełen transfer” → **silnik = Godot 4.7.2**. Wersja JS = archiwum.
+- Zrobione: pełne przeniesienie prototypu do `godot/`:
+  - dane, ikony i kafle wyeksportowane maszynowo z JS (`narzedzia/eksport_z_js.py`) do `godot/dane/*.json` i `godot/zasoby/`;
+  - autoloady: Sterowanie (klawiatura+mysz+pad, styl Soulsborne), Dane, Profil (zapis user://), Swiatla, Dzwiek (port syntezatora JS, bez plików audio);
+  - generator z ziarna z trzema strumieniami losowania (układ / łupy / wrogowie), łupy z wrogów też z ziarna;
+  - rajd: kafle, y-sort, mgła wojny, przezroczyste mury, światło 2D z silnika (pochodnia, kosze, kręgi, pochodnia na ziemi), walka 1:1 z JS (combo, parowanie, riposta, blok, unik, łuk, postura, ciężkie ciosy, poparzenie), **bufor wejścia** ciosu i uniku (nowość: naciśnięcie w trakcie zamrożenia po trafieniu nie przepada), HUD, minimapa, okno łupów, ekstrakcja, śmierć z animacją;
+  - Warownia: 5 zakładek, pad (A/B, krzyżak, LB/RB zakładki, Y → Relikwiarz);
+  - **fundament wdrożony**: po śmierci zaliczana połowa doświadczenia z rajdu (doświadczenie zbierane w rajdzie, rozliczane na końcu).
+- Błąd wykryty testem: Godot 4.7 domyślnie nie przypisuje pada do `ui_accept`/`ui_cancel`. Naprawione w `Sterowanie`.
+- Testy: `testy.py godot` OK 21/21 (symulowany pad, pełna pętla); kontrolny eksport Linux z `--test` OK 21/21 (dane weszły do paczki). gdlint: uwagi stylu, nie blokuje.
+- Dostarczono: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Popiolow_Godot.zip` (exe 111 MB, zip 40 MB).
+- NIE sprawdzone: uruchomienie .exe na Windows autora, prawdziwy pad, dźwięk na PC autora, wydajność, itch.io (Godot → eksport Web to osobny temat).
+- Narzędzia z listy autora: biorę gdtoolkit (linter) i GUT 9.6.1 (testy jednostkowe, jeszcze niewpięty); MCP do edytora i Ziva — nie teraz (agent ma własnego Godota); PixelLab/Retro Diffusion — decyzja autora przy pilocie grafiki (płatne).
+- Następny krok: autor gra w wersję Godot (najlepiej z padem) i zgłasza różnice względem JS. Potem: pilot grafiki Spalonej Osady albo kolejna mechanika z fundamentu (decyzja autora).
+
 ## 2026-11-25 10:40 — konto 1 (Claude, sesja Warownia), rola: gamedev
 - Gałąź i commit: `godot-pilot` (od `fundament-i-dziennik`).
 - Zrobione:

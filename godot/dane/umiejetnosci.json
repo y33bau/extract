@@ -1,0 +1,32 @@
+{
+ "melee": {
+  "id": "melee",
+  "name": "Fechtunek",
+  "icon": "⚔️",
+  "bonusDesc": "+6% obrażeń bronią białą / poz."
+ },
+ "parry": {
+  "id": "parry",
+  "name": "Mistrzostwo Parowania",
+  "icon": "✨",
+  "bonusDesc": "+15% obrażeń Riposty i szersze okno parowania / poz."
+ },
+ "endurance": {
+  "id": "endurance",
+  "name": "Wytrzymałość",
+  "icon": "⚡",
+  "bonusDesc": "+8% regeneracji staminy i tańsze uniki / poz."
+ },
+ "archery": {
+  "id": "archery",
+  "name": "Łucznictwo",
+  "icon": "🏹",
+  "bonusDesc": "+8% obrażeń łuku i szybsze strzały / poz."
+ },
+ "scavenger": {
+  "id": "scavenger",
+  "name": "Poszukiwacz Reliktów",
+  "icon": "🗝️",
+  "bonusDesc": "+15% szybsze przeszukiwanie i lepsze łupy / poz."
+ }
+}

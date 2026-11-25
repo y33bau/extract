@@ -4,7 +4,7 @@
 Użycie:
   python3 narzedzia/testy.py szybki   # drobne zmiany: budowa, brak błędów, rajd startuje
   python3 narzedzia/testy.py pelny    # duże zmiany: + pełna pętla gry i testy mechanik
-  python3 narzedzia/testy.py godot    # pilot w Godocie (wymaga godot 4.7.x, xvfb-run, mesa)
+  python3 narzedzia/testy.py godot    # gra w Godocie (wymaga godot 4.7.x, xvfb-run, mesa)
 
 Wymaga: pip install playwright && python -m playwright install chromium
 Test buduje grę, robi kopię z haczykiem testowym (window.__R / __P) w katalogu tymczasowym
@@ -154,17 +154,26 @@ async def main(tryb):
 
 
 def test_godot():
-    """Uruchamia scenę pilota w trybie testu (symulowany pad) i zapisuje zrzut ekranu."""
+    """Gra w trybie testu: pełna pętla na symulowanym padzie, zrzuty ekranu do katalogu tymczasowego."""
     g = ROOT / 'godot'
+    # Linter GDScriptu (gdtoolkit): na razie tylko ostrzega, nie blokuje
+    try:
+        lint = subprocess.run(['gdlint', *sorted(str(p) for p in (g / 'skrypty').glob('*.gd'))], capture_output=True, text=True)
+        uwagi = [l for l in (lint.stdout + lint.stderr).splitlines() if ': Error:' in l]
+        print(f'  gdlint: {len(uwagi)} uwag (styl; nie blokuje)')
+    except FileNotFoundError:
+        print('  gdlint: brak (pip install gdtoolkit)')
     subprocess.run(['godot', '--headless', '--path', str(g), '--import'], capture_output=True, timeout=300)
-    zrzut = pathlib.Path(tempfile.mkdtemp()) / 'godot_pilot.png'
+    tmp = pathlib.Path(tempfile.mkdtemp())
     r = subprocess.run(['xvfb-run', '-a', '-s', '-screen 0 1280x720x24', 'godot', '--path', str(g),
-                        '--rendering-driver', 'opengl3', '--', '--test', f'--zrzut={zrzut}'],
+                        '--rendering-driver', 'opengl3', '--', '--test', f'--zrzuty={tmp / "zrzuty"}',
+                        f'--zapis={tmp / "zapis_testowy.json"}'],
                        capture_output=True, text=True, timeout=300)
     for linia in r.stdout.splitlines():
-        if linia.startswith(('  OK', '  BŁĄD', '  zrzut', 'WYNIK', '--')):
+        if linia.startswith(('  OK', '  BŁĄD', 'WYNIK', '--')):
             print(linia)
-    bledy = [l for l in r.stderr.splitlines() if 'SCRIPT ERROR' in l or 'Parse Error' in l]
+    print(f'  zrzuty ekranu: {tmp / "zrzuty"}')
+    bledy = [l for l in (r.stderr + r.stdout).splitlines() if 'SCRIPT ERROR' in l or 'Parse Error' in l or 'ERROR: res://' in l]
     for b in bledy:
         print('  BŁĄD ' + b)
     return 0 if r.returncode == 0 and not bledy else 1

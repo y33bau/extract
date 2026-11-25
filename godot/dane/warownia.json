@@ -1,0 +1,110 @@
+{
+ "forge": {
+  "id": "forge",
+  "name": "Kuźnia",
+  "icon": "⚒️",
+  "maxLv": 3,
+  "desc": "Zwiększa obrażenia broni białej (+12% na poziom) i odblokowuje wyższe klasy oręża u Kupca.",
+  "costs": [
+   {
+    "gold": 450,
+    "iron": 2,
+    "ash": 0,
+    "relic": 0
+   },
+   {
+    "gold": 1100,
+    "iron": 4,
+    "ash": 2,
+    "relic": 0
+   },
+   {
+    "gold": 2200,
+    "iron": 6,
+    "ash": 4,
+    "relic": 2
+   }
+  ]
+ },
+ "alchemist": {
+  "id": "alchemist",
+  "name": "Alchemik",
+  "icon": "⚗️",
+  "maxLv": 3,
+  "desc": "Zwiększa moc leczenia Flaszek Żaru (+22% na poziom) i daje darmowe uzupełnienie 1 flaszki po każdej wyprawie.",
+  "costs": [
+   {
+    "gold": 400,
+    "iron": 1,
+    "ash": 2,
+    "relic": 0
+   },
+   {
+    "gold": 950,
+    "iron": 2,
+    "ash": 4,
+    "relic": 1
+   },
+   {
+    "gold": 1900,
+    "iron": 3,
+    "ash": 6,
+    "relic": 2
+   }
+  ]
+ },
+ "altar": {
+  "id": "altar",
+  "name": "Ołtarz Żaru",
+  "icon": "🔥",
+  "maxLv": 3,
+  "desc": "Zwiększa maks. Żywotność (+18), Wytrzymałość (+15) oraz wydłuża okno Parowania (+0.04s na poziom).",
+  "costs": [
+   {
+    "gold": 500,
+    "iron": 1,
+    "ash": 2,
+    "relic": 0
+   },
+   {
+    "gold": 1200,
+    "iron": 2,
+    "ash": 4,
+    "relic": 1
+   },
+   {
+    "gold": 2400,
+    "iron": 4,
+    "ash": 6,
+    "relic": 2
+   }
+  ]
+ },
+ "vault": {
+  "id": "vault",
+  "name": "Skarbiec",
+  "icon": "🏰",
+  "maxLv": 3,
+  "desc": "Rozszerza Skrytkę Warowni (+8 miejsc na poziom) i dodaje +1 chronione miejsce w Relikwiarzu.",
+  "costs": [
+   {
+    "gold": 550,
+    "iron": 3,
+    "ash": 0,
+    "relic": 0
+   },
+   {
+    "gold": 1300,
+    "iron": 5,
+    "ash": 2,
+    "relic": 1
+   },
+   {
+    "gold": 2600,
+    "iron": 7,
+    "ash": 3,
+    "relic": 2
+   }
+  ]
+ }
+}

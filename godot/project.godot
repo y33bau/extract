@@ -1,18 +1,23 @@
-; Warownia Popiołów: pilot w Godocie (sprawdzenie silnika)
+; Warownia Popiołów (Godot 4.7)
 config_version=5
 
 [application]
-config/name="Warownia Popiolow (pilot)"
-run/main_scene="res://scena_pilot.tscn"
+config/name="Warownia Popiolow"
+run/main_scene="res://gra.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 Sterowanie="*res://skrypty/sterowanie.gd"
+Dane="*res://skrypty/dane.gd"
+Profil="*res://skrypty/profil.gd"
+Swiatla="*res://skrypty/swiatla.gd"
+Dzwiek="*res://skrypty/dzwiek.gd"
 
 [display]
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [rendering]
 renderer/rendering_method="gl_compatibility"
