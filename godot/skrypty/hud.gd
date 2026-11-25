@@ -53,7 +53,7 @@ func _ready() -> void:
 	var p2 := Ui.panel()
 	var v2 := VBoxContainer.new()
 	minimapa = Control.new()
-	minimapa.custom_minimum_size = Vector2(168, 168)
+	minimapa.custom_minimum_size = Vector2(196, 196)
 	minimapa.draw.connect(_rysuj_minimape)
 	v2.add_child(minimapa)
 	kierunki = Ui.etykieta("", 12, Color("34d399"))
@@ -220,26 +220,65 @@ func _process(_dt: float) -> void:
 	minimapa.queue_redraw()
 
 
+## Minimapa: obraz N×N aktualizowany tylko w polach, które zmieniły stan mgły; widać okno wokół gracza.
+const OKNO_MINIMAPY := 56.0  # ile pól mapy mieści się w kwadracie minimapy
+var _mm_obraz: Image
+var _mm_tex: ImageTexture
+var _mm_mapa = null
+var _mm_numer := -1
+
+
+func _kolor_pola(r, i: int) -> Color:
+	var v: int = r.widok[i]
+	if v == 0:
+		return Color("08070a")
+	var t: int = r.mapa.siatka[i]
+	if t == Mapgen.K.MUR or t == Mapgen.K.FILAR:
+		return Color("594e5c") if v == 2 else Color("2c262e")
+	if t == Mapgen.K.KOSZ:
+		return Color("b45309") if v == 2 else Color("5a2d0c")
+	return Color("29242c") if v == 2 else Color("161318")
+
+
+func _odswiez_obraz_minimapy(r) -> void:
+	var n: int = Mapgen.ROZMIAR
+	if _mm_mapa != r.mapa or _mm_obraz == null:
+		_mm_mapa = r.mapa
+		_mm_obraz = Image.create(n, n, false, Image.FORMAT_RGBA8)
+		for i in n * n:
+			_mm_obraz.set_pixel(i % n, i / n, _kolor_pola(r, i))
+		_mm_tex = ImageTexture.create_from_image(_mm_obraz)
+		_mm_numer = r.numer_widoku
+		return
+	if _mm_numer == r.numer_widoku:
+		return
+	_mm_numer = r.numer_widoku
+	for i in r.zmienione_widoku:
+		_mm_obraz.set_pixel(i % n, i / n, _kolor_pola(r, i))
+	_mm_tex.update(_mm_obraz)
+
+
 func _rysuj_minimape() -> void:
 	var r = rajd
 	if r == null:
 		return
-	var n: int = Mapgen.ROZMIAR
-	var s := 168.0 / n
-	minimapa.draw_rect(Rect2(0, 0, 168, 168), Color("08070a"))
-	for y in n:
-		for x in n:
-			var v: int = r.widok[y * n + x]
-			if v == 0:
-				continue
-			var t: int = r.mapa.siatka[y * n + x]
-			var k := Color("29242c") if v == 2 else Color("161318")
-			if t == Mapgen.K.MUR or t == Mapgen.K.FILAR:
-				k = Color("594e5c") if v == 2 else Color("2c262e")
-			minimapa.draw_rect(Rect2(x * s, y * s, ceilf(s), ceilf(s)), k)
+	_odswiez_obraz_minimapy(r)
+	var n: float = Mapgen.ROZMIAR
+	var bok := minimapa.size.x
+	var okno := minf(OKNO_MINIMAPY, n)
+	var s := bok / okno
+	# lewy górny róg okna (w polach), przyklejony do brzegów mapy
+	var o := Vector2(clampf(r.gracz.w.x - okno * 0.5, 0.0, n - okno), clampf(r.gracz.w.y - okno * 0.5, 0.0, n - okno))
+	minimapa.draw_rect(Rect2(0, 0, bok, bok), Color("08070a"))
+	minimapa.draw_texture_rect_region(_mm_tex, Rect2(0, 0, bok, bok), Rect2(o, Vector2(okno, okno)))
 	for e in r.mapa.ekstrakcje:
-		minimapa.draw_rect(Rect2(e["w"].x * s - 2.5, e["w"].y * s - 2.5, 5, 5), Color("34d399"))
+		var pe: Vector2 = ((e["w"] as Vector2) - o) * s
+		pe = pe.clamp(Vector2(3, 3), Vector2(bok - 3, bok - 3))
+		minimapa.draw_rect(Rect2(pe.x - 2.5, pe.y - 2.5, 5, 5), Color("34d399"))
 	for en in r.wrogowie:
 		if r.widoczne(en.w) == 2:
-			minimapa.draw_rect(Rect2(en.w.x * s - 1.5, en.w.y * s - 1.5, 4 if en.boss else 3, 4 if en.boss else 3), Color("f97316") if en.boss else Color("ef4444"))
-	minimapa.draw_rect(Rect2(r.gracz.w.x * s - 2, r.gracz.w.y * s - 2, 4, 4), Color("e6ba63"))
+			var pw: Vector2 = (en.w - o) * s
+			minimapa.draw_rect(Rect2(pw.x - 1.5, pw.y - 1.5, 4 if en.boss else 3, 4 if en.boss else 3), Color("f97316") if en.boss else Color("ef4444"))
+	var pg: Vector2 = (r.gracz.w - o) * s
+	minimapa.draw_rect(Rect2(pg.x - 2, pg.y - 2, 4, 4), Color("e6ba63"))
+	minimapa.draw_rect(Rect2(0, 0, bok, bok), Color("6b5a3e"), false, 1.0)

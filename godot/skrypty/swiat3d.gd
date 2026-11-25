@@ -361,6 +361,9 @@ func _mapa() -> void:
 				listy[podl].append([i, Basis(), 0.0])
 			match t:
 				K.MUR:
+					# lita skała bez żadnego odsłoniętego sąsiada (także po skosie) — niewidoczna, bez bryły
+					if _wnetrze_skaly(x, y):
+						continue
 					# ruiny: nierówna wysokość murów (wyższe na obwodzie), moduł wg odsłoniętych boków
 					var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
 					var h := (1.25 if brzeg else 1.0) + float(_hash(x, y) % 9 - 4) * 0.045
@@ -425,6 +428,15 @@ func _mapa() -> void:
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi)
 		_mm[k] = mmi
+
+
+func _wnetrze_skaly(x: int, y: int) -> bool:
+	var mapa = rajd.mapa
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if mapa.kafel(x + dx, y + dy) != K.MUR:
+				return false
+	return true
 
 
 ## Bity odsłoniętych boków muru: 1 = +x, 2 = +z (y mapy), 4 = -x, 8 = -z.
@@ -692,6 +704,7 @@ func _pochodnie_scienne() -> void:
 var _pyl: GPUParticles3D
 var _pochodnie_murow: Array = []  # [węzeł, pole przed murem, pole muru]
 var _mury_ciete := {}
+var _ciete_ost := PackedInt32Array()
 func _atmosfera() -> void:
 	if not lekki:
 		for warstwa in [[0.12, 1.0, 0.06], [0.45, 0.6, 0.035]]:
@@ -854,7 +867,17 @@ func _gruz() -> Mesh:
 func odswiez_widok() -> void:
 	var widok: PackedByteArray = rajd.widok
 	var g: Vector2 = rajd.gracz.w
-	for i in _indeks.keys():
+	# tylko pola, które mogły się zmienić: zmiany mgły + okolica gracza (przekrój murów) + dawny przekrój
+	var kandydaci: PackedInt32Array = rajd.zmienione_widoku + _ciete_ost
+	var gx := int(g.x)
+	var gy := int(g.y)
+	for yy in range(maxi(0, gy - 10), mini(N, gy + 11)):
+		for xx in range(maxi(0, gx - 10), mini(N, gx + 11)):
+			kandydaci.append(yy * N + xx)
+	var ciete_teraz := PackedInt32Array()
+	for i in kandydaci:
+		if not _indeks.has(i):
+			continue
 		var v: int = widok[i]
 		var przezr := false
 		var tx: int = i % N
@@ -865,6 +888,8 @@ func odswiez_widok() -> void:
 		if dx + dy > 0.6 and absf(dx) < 9.5 and absf(dy) < 9.5 and absf(dx - dy) < 11.0:
 			przezr = true
 		_mury_ciete[i] = przezr
+		if przezr:
+			ciete_teraz.append(i)
 		var klucz := v + (100 if przezr else 0)
 		if _stan_widoku[i] == klucz:
 			continue
@@ -889,6 +914,7 @@ func odswiez_widok() -> void:
 			else:
 				mm.set_instance_color(wpis[1], Color(jasn, jasn, jasn, 1.0))
 			mm.set_instance_transform(wpis[1], Transform3D(b, Vector3(p.x, y, p.z)))
+	_ciete_ost = ciete_teraz
 	for sk in _skrzynie:
 		var v2: int = widok[rajd.mapa.idx(sk["tx"], sk["ty"])]
 		sk["wezel3d"].visible = v2 > 0

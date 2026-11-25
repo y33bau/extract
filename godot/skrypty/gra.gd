@@ -1,6 +1,7 @@
 extends Node
 ## Korzeń gry: Warownia ⇄ rajd ⇄ ekran wyniku. Tryb testu: godot --path godot -- --test [--zrzuty=/katalog] [--zapis=/plik.json]
 
+const Mapgen = preload("res://skrypty/mapgen.gd")
 const Ui = preload("res://skrypty/ui.gd")
 const Hub = preload("res://skrypty/hub.gd")
 const Rajd = preload("res://skrypty/rajd.gd")
@@ -302,6 +303,68 @@ func _anim3d() -> String:
 
 
 ## Oprawa mapy: materiały krainy z tekstur NightBrand, maska murów, pochodnie nie wiszą w powietrzu.
+## Duże mapy (wersja 2 generatora): rozmiar, osiągalność, rodzaje komnat, ziarno, wrogowie, pościg po korytarzach.
+func _test_duzej_mapy() -> void:
+	var m = rajd.mapa
+	_ok("duża mapa: 96×96 pól", Mapgen.ROZMIAR == 96 and m.siatka.size() == 96 * 96)
+	var d: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
+	var eks_ok: bool = m.ekstrakcje.size() >= 3
+	for e in m.ekstrakcje:
+		if d[m.idx(int(e["w"].x), int(e["w"].y))] < 0:
+			eks_ok = false
+	_ok("duża mapa: 3+ kręgi ekstrakcji osiągalne od startu", eks_ok, "%d kręgów" % m.ekstrakcje.size())
+	var sk_ok := true
+	for sk in m.skrzynie:
+		if d[m.idx(sk["tx"], sk["ty"])] < 0:
+			sk_ok = false
+	_ok("duża mapa: każda skrzynia osiągalna", sk_ok and m.skrzynie.size() >= 30, "%d skrzyń" % m.skrzynie.size())
+	var rodzaje := {}
+	for k in m.komnaty:
+		rodzaje[k["typ"]] = true
+	_ok("duża mapa: różne rodzaje komnat", rodzaje.size() >= 6 and m.komnaty.size() >= 25, "%d komnat: %s" % [m.komnaty.size(), ", ".join(rodzaje.keys())])
+	var m2 = Mapgen.new()
+	m2.generuj(rajd.kraina, rajd.ziarno, Profil.poziom("scavenger"))
+	_ok("to samo ziarno = ten sam duży loch", m2.siatka == m.siatka and m2.start == m.start and m2.skrzynie.size() == m.skrzynie.size())
+	_ok("wrogowie: liczba wg krainy, w komnatach", rajd.wrogowie.size() == int(rajd.kraina["enemyCount"]), "%d wrogów" % rajd.wrogowie.size())
+	# pościg: wróg bez linii wzroku obchodzi mury po polu odległości
+	var g = rajd.gracz
+	rajd._pole_od = Vector2i(-99, -99)
+	rajd._licz_pole()
+	var cel := Vector2(-1, -1)
+	for y in range(int(g.w.y) - 14, int(g.w.y) + 15):
+		for x in range(int(g.w.x) - 14, int(g.w.x) + 15):
+			if x < 1 or y < 1 or x >= Mapgen.ROZMIAR - 1 or y >= Mapgen.ROZMIAR - 1:
+				continue
+			var dd: int = rajd._pole[y * Mapgen.ROZMIAR + x]
+			var w := Vector2(x + 0.5, y + 0.5)
+			if dd >= 8 and dd <= 24 and not rajd.linia_wzroku(w, g.w) and dd > w.distance_to(g.w) + 3.0:
+				cel = w
+				break
+		if cel.x >= 0:
+			break
+	if cel.x < 0:
+		_ok("pościg: wróg obchodzi mur korytarzem", true, "brak takiego miejsca przy starcie — pominięty")
+		return
+	var en = rajd.wrogowie[1]
+	var stara: Vector2 = en.w
+	for inny in rajd.wrogowie:
+		inny.uspiony = true
+	en.w = cel
+	en.hp = 9999.0
+	en.stan = "walka"
+	en.uspiony = false
+	var d0: int = rajd._pole[int(cel.y) * Mapgen.ROZMIAR + int(cel.x)]
+	await _czekaj_az(func():
+		var i: int = int(en.w.y) * Mapgen.ROZMIAR + int(en.w.x)
+		return rajd._pole[i] >= 0 and rajd._pole[i] <= d0 - 4, 8.0)
+	var d1: int = rajd._pole[int(en.w.y) * Mapgen.ROZMIAR + int(en.w.x)]
+	_ok("pościg: wróg obchodzi mur korytarzem", d1 >= 0 and d1 <= d0 - 4, "z %d do %d kroków" % [d0, d1])
+	en.uspiony = true
+	en.stan = "patrol"
+	en.w = stara
+	g.hp = g.hp_max
+
+
 func _test_mapy() -> void:
 	var s3 = rajd.swiat3d
 	if s3 == null:
@@ -529,6 +592,7 @@ func _test() -> void:
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)
 	_test_mapy()
+	await _test_duzej_mapy()
 	var p = rajd.gracz
 	for en in rajd.wrogowie:
 		en.w = Vector2(2.5, 2.5) if rajd.mapa.kafel(2, 2) != 2 else en.w

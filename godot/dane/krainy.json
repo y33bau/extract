@@ -6,7 +6,7 @@
   "diff": "POCZĄTKUJĄCA",
   "diffColor": "text-emerald-400",
   "lootStars": "★★☆",
-  "enemyCount": 9,
+  "enemyCount": 34,
   "hasBoss": false,
   "palette": {
    "floor1": "#2e2b30",
@@ -25,7 +25,7 @@
   "diff": "ŚREDNIA",
   "diffColor": "text-[#e6ba63]",
   "lootStars": "★★★",
-  "enemyCount": 12,
+  "enemyCount": 44,
   "hasBoss": false,
   "palette": {
    "floor1": "#33302c",
@@ -44,7 +44,7 @@
   "diff": "TRUDNA (BOSS)",
   "diffColor": "text-red-400",
   "lootStars": "★★★★",
-  "enemyCount": 14,
+  "enemyCount": 50,
   "hasBoss": true,
   "palette": {
    "floor1": "#2b2426",

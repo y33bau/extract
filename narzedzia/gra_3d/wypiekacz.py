@@ -37,6 +37,40 @@ def podlacz_pbr(katalog):
         print('PBR', m.name, [i.name for i in bs.inputs if i.is_linked])
 
 
+def potomkowie(arm, nazwa):
+    wynik = [nazwa]
+    for b in arm.data.bones[nazwa].children_recursive:
+        wynik.append(b.name)
+    return wynik
+
+
+def _obroc_lancuch(arm, swiat, korzen, staw, q):
+    from mathutils import Matrix
+    R = Matrix.Translation(staw) @ q.to_matrix().to_4x4() @ Matrix.Translation(-staw)
+    for b in potomkowie(arm, korzen):
+        if b in swiat:
+            swiat[b] = R @ swiat[b]
+
+
+def rozluznij(arm, swiat, f):
+    """NPC: spokojna postawa zamiast bojowej. Ramię (bark->łokieć) dociągnięte w dół o ułamek f,
+    przedramię wyprostowane o ułamek f (zgięcie łokcia mniejsze). Obracany cały łańcuch z potomkami."""
+    from mathutils import Vector, Quaternion
+    dol = Vector((0.0, 0.0, -1.0))
+    for strona in ('Left', 'Right'):
+        ra, pr, dl = ('mixamorig:' + strona + x for x in ('Arm', 'ForeArm', 'Hand'))
+        if ra not in swiat or pr not in swiat or dl not in swiat:
+            continue
+        bark = swiat[ra].translation.copy()
+        k1 = (swiat[pr].translation - bark).normalized()
+        _obroc_lancuch(arm, swiat, ra, bark, Quaternion().slerp(k1.rotation_difference(dol), f))
+        lokiec = swiat[pr].translation.copy()
+        k1 = (lokiec - swiat[ra].translation).normalized()
+        k2 = (swiat[dl].translation - lokiec).normalized()
+        _obroc_lancuch(arm, swiat, pr, lokiec, Quaternion().slerp(k2.rotation_difference(k1), f * 0.8))
+    return swiat
+
+
 P.czysc()
 model = glob.glob(cfg['katalog'] + '/*.fbx')[0]
 obj = P.importuj(model)
@@ -69,6 +103,9 @@ for nazwa, (klip, t0, t1) in cfg['akcje'].items():
     n = max(2, int(round(a1 - a0)) + 1)
     klatki = [a0 + (a1 - a0) * i / (n - 1) for i in range(n)]
     pozy = P.przenies(cel, zr, klatki)
+    luz = cfg.get('luz_ramion', {}).get(nazwa, 0.0)
+    if luz > 0.0:
+        pozy = [rozluznij(cel, pz, luz) for pz in pozy]
     akc = bpy.data.actions.new(nazwa)
     akc.use_fake_user = True
     cel.animation_data.action = akc

@@ -29,7 +29,43 @@ def szkielet(obiekty):
 
 
 # ---------- przeniesienie animacji ----------
-def przenies(cel, zrodlo, klatki, w_miejscu=True):
+def _odniesienie(n, arm, mw):
+    """Wektor poprzeczny kości w spoczynku (świat), niezależny od konwencji „roll”:
+    ręce i palce -> linia knykci (wskazujący -> mały), uda i łydki -> kierunek stopy, stopy -> biodro L -> P."""
+    k = arm.data.bones
+    pre = 'mixamorig:'
+    for strona in ('Left', 'Right'):
+        if n.startswith(pre + strona + 'Arm') or n.startswith(pre + strona + 'ForeArm') or n.startswith(pre + strona + 'Hand'):
+            a, b = pre + strona + 'HandIndex1', pre + strona + 'HandPinky1'
+            if a in k and b in k:
+                return mw @ k[a].head_local - mw @ k[b].head_local
+        if n in (pre + strona + 'UpLeg', pre + strona + 'Leg'):
+            a, b = pre + strona + 'ToeBase', pre + strona + 'Foot'
+            if a in k and b in k:
+                return mw @ k[a].head_local - mw @ k[b].head_local
+        if n in (pre + strona + 'Foot', pre + strona + 'ToeBase'):
+            a, b = pre + 'LeftUpLeg', pre + 'RightUpLeg'
+            if a in k and b in k:
+                return mw @ k[a].head_local - mw @ k[b].head_local
+    return None
+
+
+def _skret(n, cel, zrodlo, mwc, mws, ds, wyr):
+    """Obrót wokół osi kości (ds), który po wyrównaniu kierunku dopasowuje też skręt (dłonie, kolana)."""
+    vc, vs = _odniesienie(n, cel, mwc), _odniesienie(n, zrodlo, mws)
+    if vc is None or vs is None:
+        return Quaternion()
+    vc = wyr @ vc
+    vc = vc - ds * vc.dot(ds)
+    vs = vs - ds * vs.dot(ds)
+    if vc.length < 1e-4 or vs.length < 1e-4:
+        return Quaternion()
+    vc.normalize(); vs.normalize()
+    kat = math.atan2(ds.dot(vc.cross(vs)), vc.dot(vs))
+    return Quaternion(ds, kat)
+
+
+def przenies(cel, zrodlo, klatki, w_miejscu=True, korekta_skretu=True):
     """Kopiuje ruch ze szkieletu zrodlo (T) na cel (A). Zwraca listę klatek celu."""
     sc = bpy.context.scene
     mwc, mws = cel.matrix_world, zrodlo.matrix_world
@@ -43,6 +79,8 @@ def przenies(cel, zrodlo, klatki, w_miejscu=True):
         dc = (mwc @ bc.tail_local - mwc @ bc.head_local).normalized()
         ds = (mws @ bs.tail_local - mws @ bs.head_local).normalized()
         wyr[n] = dc.rotation_difference(ds)
+        if korekta_skretu:
+            wyr[n] = _skret(n, cel, zrodlo, mwc, mws, ds, wyr[n]) @ wyr[n]
     biodra = 'mixamorig:Hips'
     h_c = (mwc @ cel.data.bones[biodra].head_local).z
     h_s = (mws @ zrodlo.data.bones[biodra].head_local).z

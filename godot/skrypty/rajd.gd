@@ -107,7 +107,7 @@ func _buduj_swiat() -> void:
 				K.FILAR: nazwa = "pillar"; off = Vector2(-16, -28)
 				K.KOSZ: nazwa = "brazier"; off = Vector2(-16, -20)
 				K.GRUZ: nazwa = "rubble"; off = Vector2(-16, -16)
-			if nazwa != "":
+			if nazwa != "" and not GRAFIKA_3D:
 				var s := _sprite_kafla(nazwa, off, Vector2(x + 0.5, y + 0.5))
 				s.visible = false
 				swiat.add_child(s)
@@ -117,7 +117,7 @@ func _buduj_swiat() -> void:
 		s.visible = false
 		swiat.add_child(s)
 		sk["wezel"] = s
-	for k in mapa.kosze:
+	for k in ([] if GRAFIKA_3D else mapa.kosze):
 		var l := Swiatla.nowe(Color(1.0, 0.63, 0.27), 1.2, 195.0)
 		l.position = Iso.ekran(k) + Vector2(0, -16)
 		add_child(l)
@@ -183,29 +183,82 @@ func _postaw_wrogow() -> void:
 		"outskirts": [["scout", 0.25], ["warden", 0.25], ["archer", 0.2], ["knight", 0.2], ["brute", 0.1]],
 		"crypt": [["scout", 0.15], ["warden", 0.2], ["archer", 0.15], ["knight", 0.25], ["brute", 0.25]],
 	}[kraina["id"]]
-	for i in int(kraina["enemyCount"]):
-		var p := Vector2.ZERO
-		for proba in 60:
-			p = Vector2(3 + r.randi_range(0, N - 7) + 0.5, 3 + r.randi_range(0, N - 7) + 0.5)
-			if p.distance_to(gracz.w) > 9.0 and not Mapgen.blokuje_ruch(mapa.kafel(int(p.x), int(p.y))):
+	var ciezcy: Array = {"catacombs": ["warden", "warden", "archer"], "outskirts": ["knight", "brute", "warden"],
+		"crypt": ["knight", "brute", "brute"]}[kraina["id"]]
+	var limit := int(kraina["enemyCount"])
+	# Komnaty dają miejsca: legowiska i skarbce strzeżone, zwykłe komnaty po 0-2, korytarze — patrole.
+	var plan: Array = []  # [pozycja, rodzaj lub ""]
+	for k in mapa.komnaty:
+		var typ: String = k["typ"]
+		if typ == "start":
+			continue
+		var ile := 0
+		var straz := false
+		match typ:
+			"legowisko":
+				ile = 3 + r.randi_range(0, 1)
+				straz = true
+			"skarbiec":
+				ile = 2
+				straz = true
+			"sala_filarow", "dziedziniec":
+				ile = 2 + r.randi_range(0, 1)
+			"ekstrakcja":
+				ile = r.randi_range(0, 1)
+			_:
+				ile = r.randi_range(1, 2)
+		var rr: Rect2i = k["r"]
+		for n in ile:
+			for proba in 20:
+				var p := Vector2(r.randi_range(rr.position.x + 1, rr.end.x - 2) + 0.5, r.randi_range(rr.position.y + 1, rr.end.y - 2) + 0.5)
+				if Mapgen.blokuje_ruch(mapa.kafel(int(p.x), int(p.y))) or p.distance_to(gracz.w) < 12.0:
+					continue
+				plan.append([p, ciezcy[r.randi_range(0, ciezcy.size() - 1)] if straz and n < 2 else ""])
 				break
-		var q := r.randf()
-		var acc := 0.0
-		var rodzaj := "scout"
-		for wpis in tabela:
-			acc += wpis[1]
-			if q < acc:
-				rodzaj = wpis[0]
-				break
-		_dodaj_wroga(rodzaj, p, r.randf() * TAU)
+	# patrole w korytarzach (ok. 1/5 limitu)
+	for n in limit / 5:
+		if mapa.korytarze.is_empty():
+			break
+		var c: Vector2i = mapa.korytarze[r.randi_range(0, mapa.korytarze.size() - 1)]
+		var p2 := Vector2(c.x + 0.5, c.y + 0.5)
+		if p2.distance_to(gracz.w) > 14.0 and not Mapgen.blokuje_ruch(mapa.kafel(c.x, c.y)):
+			plan.append([p2, ""])
+	# straż zawsze, reszta w kolejności losowej do limitu krainy
+	var straz_plan: Array = plan.filter(func(e): return e[1] != "")
+	var reszta: Array = plan.filter(func(e): return e[1] == "")
+	for i in range(reszta.size() - 1, 0, -1):
+		var j := r.randi_range(0, i)
+		var t = reszta[i]
+		reszta[i] = reszta[j]
+		reszta[j] = t
+	var wszystkie: Array = straz_plan + reszta
+	for e in wszystkie.slice(0, maxi(limit, straz_plan.size())):
+		var rodzaj: String = e[1]
+		if rodzaj == "":
+			var q := r.randf()
+			var acc := 0.0
+			rodzaj = "scout"
+			for wpis in tabela:
+				acc += wpis[1]
+				if q < acc:
+					rodzaj = wpis[0]
+					break
+		_dodaj_wroga(rodzaj, e[0], r.randf() * TAU)
 	if kraina["hasBoss"]:
+		# boss w najdalszym legowisku albo sali od startu
 		var b := Vector2(N / 2 + 0.5, N / 2 + 0.5)
-		for t in 50:
-			var tx := 14 + r.randi_range(0, N - 25)
-			var ty := 14 + r.randi_range(0, N - 25)
-			if not Mapgen.blokuje_ruch(mapa.kafel(tx, ty)):
-				b = Vector2(tx + 0.5, ty + 0.5)
-				break
+		var najd := -1.0
+		for k in mapa.komnaty:
+			if not (k["typ"] in ["legowisko", "sala_filarow", "dziedziniec"]):
+				continue
+			var c2: Vector2 = k["srodek"]
+			var t2 := mapa.kafel(int(c2.x), int(c2.y))
+			if Mapgen.blokuje_ruch(t2):
+				continue
+			var dd := c2.distance_to(gracz.w)
+			if dd > najd:
+				najd = dd
+				b = Vector2(int(c2.x) + 0.5, int(c2.y) + 0.5)
 		_dodaj_wroga("boss", b, 0.0)
 
 
@@ -272,6 +325,77 @@ func przesun(cialo, d: Vector2) -> void:
 	cialo.w = w
 
 
+## Pole pościgu: odległość w krokach od pola gracza (BFS, do ZASIEG_POSCIGU), -1 = poza zasięgiem.
+## Wróg bez linii wzroku idzie do sąsiedniego pola o mniejszej odległości — obchodzi mury i filary.
+const ZASIEG_POSCIGU := 30
+var _pole := PackedInt32Array()
+var _pole_od := Vector2i(-99, -99)
+
+
+func _licz_pole() -> void:
+	var g := Vector2i(int(floor(gracz.w.x)), int(floor(gracz.w.y)))
+	if g == _pole_od:
+		return
+	_pole_od = g
+	if _pole.size() != N * N:
+		_pole.resize(N * N)
+	_pole.fill(-1)
+	if g.x < 0 or g.y < 0 or g.x >= N or g.y >= N:
+		return
+	var kolejka := PackedInt32Array([g.y * N + g.x])
+	_pole[g.y * N + g.x] = 0
+	var glowa := 0
+	while glowa < kolejka.size():
+		var i := kolejka[glowa]
+		glowa += 1
+		var d := _pole[i]
+		if d >= ZASIEG_POSCIGU:
+			continue
+		var x := i % N
+		var y := i / N
+		for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var nx: int = x + s.x
+			var ny: int = y + s.y
+			if nx < 0 or ny < 0 or nx >= N or ny >= N:
+				continue
+			var j := ny * N + nx
+			if _pole[j] >= 0 or Mapgen.blokuje_ruch(mapa.siatka[j]):
+				continue
+			_pole[j] = d + 1
+			kolejka.append(j)
+
+
+## Kierunek do gracza wzdłuż pola pościgu (Vector2.ZERO = brak drogi w zasięgu).
+func kierunek_poscigu(w: Vector2) -> Vector2:
+	if _pole.size() != N * N:
+		return Vector2.ZERO
+	var x := int(floor(w.x))
+	var y := int(floor(w.y))
+	if x < 0 or y < 0 or x >= N or y >= N:
+		return Vector2.ZERO
+	var d0 := _pole[y * N + x]
+	if d0 <= 0:
+		return Vector2.ZERO
+	var best := Vector2i(-1, -1)
+	var bd := d0
+	for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
+		var nx: int = x + s.x
+		var ny: int = y + s.y
+		if nx < 0 or ny < 0 or nx >= N or ny >= N:
+			continue
+		var dn := _pole[ny * N + nx]
+		if dn < 0 or dn >= bd:
+			continue
+		# skos tylko gdy oba boki wolne (bez ścinania narożników)
+		if s.x != 0 and s.y != 0 and (Mapgen.blokuje_ruch(mapa.kafel(x + s.x, y)) or Mapgen.blokuje_ruch(mapa.kafel(x, y + s.y))):
+			continue
+		bd = dn
+		best = Vector2i(nx, ny)
+	if best.x < 0:
+		return Vector2.ZERO
+	return (Vector2(best.x + 0.5, best.y + 0.5) - w).normalized()
+
+
 func linia_wzroku(a: Vector2, b: Vector2) -> bool:
 	var kroki := int(ceil(a.distance_to(b) * 3.5))
 	for i in range(1, kroki):
@@ -293,10 +417,16 @@ func przy_swietle(p: Vector2) -> bool:
 	return false
 
 
+## Pola, których stan widoku zmienił się w ostatnim przeliczeniu (dla świata 3D i minimapy) + licznik przeliczeń.
+var zmienione_widoku := PackedInt32Array()
+var numer_widoku := 0
+var _widoczne_ost := PackedInt32Array()
+
+
 func _licz_widok() -> void:
-	for i in widok.size():
-		if widok[i] == 2:
-			widok[i] = 1
+	for i in _widoczne_ost:
+		widok[i] = 1
+	var nowe := PackedInt32Array()
 	var wzrok := 1.0 if (gracz.pochodnia_w_rece or przy_swietle(gracz.w)) else 0.5
 	for r in 128:
 		var a := r / 128.0 * TAU
@@ -310,10 +440,16 @@ func _licz_widok() -> void:
 			var ty := int(floor(gracz.w.y + s * d))
 			if tx < 0 or ty < 0 or tx >= N or ty >= N:
 				break
-			widok[ty * N + tx] = 2
-			if Mapgen.blokuje_wzrok(mapa.siatka[ty * N + tx]):
+			var ii := ty * N + tx
+			if widok[ii] != 2:
+				widok[ii] = 2
+				nowe.append(ii)
+			if Mapgen.blokuje_wzrok(mapa.siatka[ii]):
 				break
 			d += 0.38
+	zmienione_widoku = _widoczne_ost + nowe
+	_widoczne_ost = nowe
+	numer_widoku += 1
 	# widoczność obiektów i przezroczystość murów zasłaniających gracza
 	for i in sprite_kafli:
 		var s: Sprite2D = sprite_kafli[i]
@@ -1004,6 +1140,7 @@ func _aktualizuj(dt: float) -> void:
 
 func _wrogowie(dt: float) -> void:
 	var p := gracz
+	_licz_pole()
 	for en in wrogowie.duplicate():
 		if en.uspiony:
 			continue
@@ -1043,8 +1180,12 @@ func _wrogowie(dt: float) -> void:
 			continue
 		en.atak_timer = maxf(0.0, en.atak_timer - dt)
 		if en.stan == "walka":
-			en.kat = atan2(d.y, d.x)
-			var kier2 := Vector2(cos(en.kat), sin(en.kat))
+			var kier2 := d.normalized() if dist > 0.001 else Vector2(cos(en.kat), sin(en.kat))
+			if not widzi and dist > 1.6:
+				var kp := kierunek_poscigu(en.w)
+				if kp != Vector2.ZERO:
+					kier2 = kp
+			en.kat = atan2(kier2.y, kier2.x)
 			if en.rodzaj == "archer":
 				if dist > 7.5:
 					przesun(en, kier2 * en.spd * dt)
