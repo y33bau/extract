@@ -594,7 +594,9 @@ func _graj(ap: AnimationPlayer, nazwa: String, t: float, predkosc := 1.0) -> voi
 	if not ap.has_animation(nazwa):
 		return
 	if ap.current_animation != nazwa:
-		ap.play(nazwa, 0.08)
+		# Animacje sterowane stanem walki (t >= 0) bez przejścia: przy speed_scale 0 przejście
+		# nigdy by się nie skończyło i na ekranie zostałaby poprzednia animacja.
+		ap.play(nazwa, 0.08 if t < 0.0 else 0.0)
 	if t >= 0.0:
 		ap.speed_scale = 0.0
 		ap.seek(clampf(t, 0.0, 0.999) * ap.current_animation_length, true)

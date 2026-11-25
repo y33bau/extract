@@ -17,6 +17,17 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 14:45 — konto (Claude, sesja Warownia), rola: gamedev
+- Gałąź i commit: `gra-3d`.
+- Zgłoszenie autora: w grze 3D nie widać ataków, przewrotu ani parowania.
+- Przyczyna: `swiat3d._graj` włączał animację z przejściem 0,08 s, a animacje sterowane stanem walki odtwarzamy z `speed_scale = 0` (przewijanie `seek`) — przejście nigdy się nie kończyło i model pokazywał poprzednią animację (postój/chód). Dotyczyło też zamachów i ciosów wrogów. Testy sprawdzały tylko nazwę animacji, więc błąd przeszedł.
+- Naprawa: animacje sterowane stanem bez przejścia. Testy mierzą teraz **prawdziwą pozę** modelu: parowanie przesuwa dłoń (0,34 m), przewrót obniża biodra (0,65 m). Test ekstrakcji: wrogowie uśpieni na czas ekstrakcji (wypychali gracza z kręgu przy wolnym renderze).
+- Testy (godot): OK 32/32; kontrola Linux z `--test`: OK 32/32. Zrzuty Forward+ obejrzane: postój / parowanie / przewrót / cios różnią się pozą.
+- Dostarczono: nowe `WAROWNIA_POPIOLOW\Warownia_Popiolow_3D\Warownia_Popiolow.exe` (zip obok jest starszy — bez tej poprawki).
+- NIE sprawdzone: wygląd animacji na PC autora i na padzie.
+- Decyzje autora: cel „modele AAA w grze” uznany za zrealizowany na tym etapie (przed zgłoszeniem błędu animacji).
+- Następny krok: autor sprawdza ataki/przewrót/parowanie w grze.
+
 ## 2026-11-25 14:00 — konto (Claude, sesja Warownia), rola: gamedev + grafik (cel autora „/goal”: modele w jakości AAA w grze)
 - Gałąź i commit: `gra-3d` (od `hadraen-3d`).
 - Decyzje autora (wpisane do FUNDAMENT i ZASADY C1): sprite'y z renderu 3D „słabo wyglądają”; **gra w prawdziwym 3D, jakość AAA, bez oglądania się na sprzęt**; PC teraz, Xbox później, mobile kiedyś; użyć modeli, które autor ma w folderach (`3D modele warownia`, `modele_meshy`, `meshy`).

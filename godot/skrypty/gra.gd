@@ -176,6 +176,19 @@ func _przycisk(b: JoyButton, wcisniety: bool) -> void:
 	Input.parse_input_event(z)
 
 
+## Wysokość bioder modelu 3D Hadræna (prawdziwa poza na ekranie, nie tylko nazwa animacji).
+func _biodra3d() -> float:
+	if rajd == null or rajd.swiat3d == null:
+		return 0.0
+	var sk: Skeleton3D = rajd.swiat3d.bohater.find_child("Skeleton3D", true, false)
+	return (sk.global_transform * sk.get_bone_global_pose(sk.find_bone("mixamorig_Hips"))).origin.y
+
+
+func _dlon3d() -> Vector3:
+	var sk: Skeleton3D = rajd.swiat3d.bohater.find_child("Skeleton3D", true, false)
+	return (sk.global_transform * sk.get_bone_global_pose(sk.find_bone("mixamorig_RightHand"))).origin - rajd.swiat3d.bohater.global_position
+
+
 func _anim3d() -> String:
 	if rajd == null or rajd.swiat3d == null:
 		return ""
@@ -219,19 +232,25 @@ func _test_wygladu(p, en) -> void:
 	_ok("8 kierunków postaci", kier == [0, 1, 2, 3, 4, 5, 6, 7] and B.kierunek(-PI / 4.0) == 7)
 	await _zrzut("4_hadraen_postoj")
 	en.uspiony = true
+	await _czekaj(0.3)
+	var biodra_postoj := _biodra3d()
+	var dlon_postoj := _dlon3d()
 	# parowanie: LB wciśnięty -> animacja parowania, potem blok
 	_przycisk(JOY_BUTTON_LEFT_SHOULDER, true)
 	await _czekaj_az(func(): return p.blok, 1.0)
 	await _klatka()
 	var anim_par: String = p.biezaca_anim
 	var anim_par3d := _anim3d()
+	await _klatka()
+	var dlon_par := _dlon3d()
 	await _zrzut("5_hadraen_parowanie")
 	await _czekaj_az(func(): return p.blok_czas > 0.4, 2.0)
 	await _klatka()
 	var anim_blok: String = p.biezaca_anim
 	_przycisk(JOY_BUTTON_LEFT_SHOULDER, false)
 	_ok("LB: animacja parowania, potem bloku", anim_par == "parowanie" and anim_blok == "blok", anim_par + " → " + anim_blok)
-	_ok("3D: model Hadræna paruje w grze", anim_par3d.ends_with("_parowanie"), anim_par3d)
+	_ok("3D: model Hadræna paruje w grze (widoczna poza)", anim_par3d.ends_with("_parowanie") and dlon_par.distance_to(dlon_postoj) > 0.08,
+		"%s, dłoń przesunięta o %.2f m" % [anim_par3d, dlon_par.distance_to(dlon_postoj)])
 	await _czekaj(0.7)
 	# przewrót: B -> animacja przewrotu z nietykalnością
 	p.stamina = p.stamina_max
@@ -241,9 +260,14 @@ func _test_wygladu(p, en) -> void:
 	await _klatka()
 	var anim_unik: String = p.biezaca_anim
 	var anim_unik3d := _anim3d()
+	var biodra_min := biodra_postoj
+	for i in 6:
+		await _klatka()
+		biodra_min = minf(biodra_min, _biodra3d())
 	await _zrzut("6_hadraen_przewrot")
 	_ok("B: przewrót", anim_unik == "przewrot", anim_unik)
-	_ok("3D: model Hadræna robi przewrót w grze", anim_unik3d.ends_with("_przewrot"), anim_unik3d)
+	_ok("3D: model Hadræna robi przewrót w grze (widoczna poza)", anim_unik3d.ends_with("_przewrot") and biodra_postoj - biodra_min > 0.15,
+		"%s, biodra niżej o %.2f m" % [anim_unik3d, biodra_postoj - biodra_min])
 	await _czekaj(0.5)
 	en.uspiony = false
 
@@ -390,6 +414,8 @@ func _test() -> void:
 	# ekstrakcja
 	p.hp = 9999.0
 	p.hp_max = 9999.0
+	for w in rajd.wrogowie:  # test ekstrakcji, nie walki: wróg nie może wypchnąć gracza z kręgu
+		w.uspiony = true
 	p.w = rajd.mapa.ekstrakcje[0]["w"]
 	await _czekaj_az(func(): return wynik != null, 180.0)  # 6 s czasu gry; w software ~1 FPS
 	_ok("ekstrakcja kończy rajd", wynik != null and ostatni_wynik.get("przezyl", false))
