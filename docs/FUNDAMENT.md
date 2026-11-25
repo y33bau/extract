@@ -32,6 +32,17 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 - Jedna postać: Hadræn. Cały postęp idzie w jednego bohatera.
 - **Broń jest klasą:** topór gra jak Kat, dwie szable jak Zabójczyni, miecz i tarcza jak Rycerz. Broń zmieniasz przed każdym rajdem.
 
+## Walka (decyzja autora 25.11.2026)
+
+- Walka ma być **płynna, wciągać rytmem i wyzwaniem, nagradzać wyczucie**.
+- Obowiązkowo: **przewrót** (unik z chwilą nietykalności), **parowanie** (wąskie okno, nagroda: ogłuszenie i riposta), **zapowiedzi ataków** (czytelny zamach przed ciosem wroga — gracz ma szansę zareagować).
+- Każda broń ma własny rytm (szybkość, zasięg, postura), ale te trzy zasady obowiązują przy każdej broni.
+
+## Bohater i broń (decyzja autora 25.11.2026)
+
+- Hadræn to jedna postać, która **dostaje do ręki** wyekwipowaną broń (broń widoczna na postaci, styl walki wynika z broni). Nie ma osobnych postaci-klas.
+- Czerwona peleryna odpada (trudna w animacji); znak rozpoznawczy do ustalenia — propozycja: żarzące się Piętno + czerwony akcent na zbroi.
+
 ## Postęp i powód powrotu
 
 - Rozbudowa Warowni i rozwój postaci (typowa progresja roguelike).

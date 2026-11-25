@@ -23,7 +23,7 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 - Skille `warownia-start`, `warownia-gamedev`, `warownia-grafik` zapisane na tym koncie przez autora (na pozostałych kontach trzeba je dodać).
 - Testy (godot): test bazowy przed pracą: 1. przebieg 20/21 (BŁĄD „krzyżak ↓ rzuca pochodnię”), 2. i 3. przebieg 21/21 → **test niestabilny** (zależny od czasu), do przerobienia na czekanie na warunek (ZASADY D6). Zmiany tej rundy dotyczą tylko dokumentów.
 - NIE sprawdzone: czy skille wczytują się automatycznie w nowej sesji; gra bez zmian (nic nowego do sprawdzenia na padzie/PC).
-- Decyzje autora: dokumenty z `ZASADY_DO_AKCEPTACJI` przyjęte do repo („tak”).
+- Decyzje autora: dokumenty z `ZASADY_DO_AKCEPTACJI` przyjęte do repo („tak”). Burza mózgów 11:50–11:58 (zapisane w `FUNDAMENT.md`): jeden Hadræn z wymienną bronią w ręce; peleryna odpada; walka płynna, rytm i wyzwanie, nagroda za wyczucie; **obowiązkowo przewrót, parowanie, zapowiedzi ataków**. Kierunek do sprawdzenia: pilot „Hadræn 3D (Meshy) → render pikselowy (Blender) + animacje Mixamo z paczek autora (wielki miecz 51, miecz i tarcza 49, topór 47, łuk 39 FBX)”; autor zgadza się na kompromis wierności i stylu, ma kredyty Meshy.
 - Następny krok: runda gamedev — uszczelnić niestabilny test pochodni; potem decyzja autora: pilot grafiki Spalonej Osady (polecany) albo kolejna mechanika z fundamentu.
 
 ## 2026-11-25 11:15 — konto 1 (Claude, sesja Warownia), rola: gamedev
