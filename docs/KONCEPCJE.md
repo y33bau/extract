@@ -25,7 +25,7 @@ Zbiór pomysłów autora z 25.11.2026 (cztery pakiety) z uwagami agenta. Decyzje
 | Przeklęte Relikty | Biorę | Runda 5 |
 | Kontrakty NPC | Na koniec (potrzebują gotowej treści) | Runda 5 |
 | Tępienie ostrza + osełka | Zmienić: tylko przy wrogach w pancerzach, inaczej nudny obowiązek | Później |
-| Ubezpieczenie (Pakt Przewoźnika) | Odradzam: osłabia stawkę, Relikwiarz pełni tę rolę | DO DECYZJI |
+| Ubezpieczenie (Pakt Przewoźnika) | ODRZUCONE (decyzja 25.11) | — |
 
 ## 2. Architektura
 - ZROBIONE 25.11: podział na 12 plików w `zrodlo/js/` + skrypt sklejający `narzedzia/zbuduj.py` (moduły ES nie działają z file://, więc zwykłe skrypty).
@@ -75,9 +75,8 @@ Uwagi agenta:
 - 25.11: Warownia to osobny projekt, repo `y33bau/extract`.
 - 25.11: wspólne lore z NightBrand, ale nowe wątki fabularne.
 
-Otwarte:
-- 5 biotopów z pakietu 4? (rekomendacja: tak)
-- Rezygnacja z ubezpieczenia? (rekomendacja: tak)
+- 25.11: przyjęte 5 biotopów z pakietu 4 (Spalona Osada, Dolne Miasto, Solne Nabrzeże, Czarnobór, Cytadela Wierzycieli).
+- 25.11: rezygnujemy z ubezpieczenia (Pakt Przewoźnika).
 
 ## 7. Kolejność prac
 1. Runda 1 walki: postura, pochodnia vs tarcza, zrzut plecaka.
