@@ -597,12 +597,14 @@ func _test() -> void:
 	przystan.poz = Vector2(10.6, 3.0)
 	await _czekaj_az(func(): return przystan.cel == "przewoznik", 5.0)
 	_ok("Przystań: przewoźnik stoi na pomoście", przystan.cel == "przewoznik" and przystan._npc.has("przewoznik"))
+	przystan.poz = Vector2(10.6, 3.0)
+	await _czekaj_az(func(): return przystan.cel == "przewoznik" and przystan.krag != null and przystan.krag.visible, 3.0)
+	var kp: Vector3 = przystan._npc["przewoznik"]["wezel"].position
+	_ok("Przystań: złoty krąg pod rozmówcą", przystan.krag != null and przystan.krag.visible and Vector2(przystan.krag.position.x, przystan.krag.position.z).distance_to(Vector2(kp.x, kp.z)) < 0.1)
 	await _pad(JOY_BUTTON_A)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Przystań: A przy przewoźniku otwiera Wyprawę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 0, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1c_przewoznik")
-	var om: ShaderMaterial = przystan._npc["przewoznik"]["obrys"]
-	_ok("Przystań: rozmówca podświetlony", float(om.get_shader_parameter("sila")) > 0.8, "%.2f" % float(om.get_shader_parameter("sila")))
 	await _pad(JOY_BUTTON_B)
 	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
 	przystan.uzyj("chlop")

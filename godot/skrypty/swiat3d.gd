@@ -3,6 +3,7 @@ extends Node3D
 ## Układ: świat (x, y) w polach -> 3D (x, 0, y), 1 pole = 1 m. Kamera ortogonalna w rzucie Iso
 ## (64x32 px na pole), więc paski HP, napisy i efekty 2D rysowane nad sceną trafiają w postacie.
 
+const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
 const K = Mapgen.K
@@ -131,7 +132,7 @@ const WYGLAD := {
 		"ton": Color(0.88, 0.9, 0.96), "jasnosc": 0.95,
 		"mur": "kat_mur", "mur_skala": 0.55, "akcent": "kat_mech", "wys_akcentu": 0.7, "sila_akcentu": 0.85, "mur_ton": Color(0.9, 0.95, 1.0), "mur_zar": 0.0,
 		"otoczenie": Color(0.3, 0.38, 0.5), "otoczenie_sila": 0.38, "mgla": Color(0.32, 0.42, 0.5, 0.42), "ksiezyc": Color(0.5, 0.62, 0.9), "ksiezyc_sila": 0.3,
-		"tlo": Color(0.006, 0.01, 0.014), "nasycenie": 0.88, "kontrast": 1.12, "pochodnie": Color(1.0, 0.68, 0.38), "swiatla": 1.3, "mur_jasnosc": 1.35,
+		"tlo": Color(0.006, 0.01, 0.014), "nasycenie": 1.08, "kontrast": 1.12, "pochodnie": Color(1.0, 0.68, 0.38), "swiatla": 1.3, "mur_jasnosc": 1.35,
 	},
 	"outskirts": {
 		"a": "pod_bruk", "a_skala": 0.3, "b": "pod_ziemia", "b_skala": 0.2, "c": "pod_trawa", "c_skala": 0.3,
@@ -139,7 +140,7 @@ const WYGLAD := {
 		"ton": Color(0.92, 0.92, 0.95), "jasnosc": 1.0,
 		"mur": "pod_mur", "mur_skala": 0.42, "akcent": "pod_ziemia", "wys_akcentu": 0.5, "sila_akcentu": 0.7, "mur_ton": Color(0.95, 0.95, 1.0), "mur_zar": 0.0,
 		"otoczenie": Color(0.34, 0.38, 0.52), "otoczenie_sila": 0.45, "mgla": Color(0.45, 0.5, 0.6, 0.38), "ksiezyc": Color(0.6, 0.7, 1.0), "ksiezyc_sila": 0.85,
-		"tlo": Color(0.01, 0.012, 0.02), "nasycenie": 0.85, "kontrast": 1.1, "pochodnie": Color(1.0, 0.7, 0.42), "swiatla": 1.0, "mur_jasnosc": 1.0,
+		"tlo": Color(0.01, 0.012, 0.02), "nasycenie": 1.06, "kontrast": 1.1, "pochodnie": Color(1.0, 0.7, 0.42), "swiatla": 1.0, "mur_jasnosc": 1.0,
 	},
 	"crypt": {
 		"a": "kry_plyty", "a_skala": 0.36, "b": "kry_popiol", "b_skala": 0.2, "c": "kry_lawa", "c_skala": 0.3,
@@ -147,7 +148,7 @@ const WYGLAD := {
 		"ton": Color(0.95, 0.9, 0.88), "jasnosc": 1.25,
 		"mur": "kry_mur", "mur_skala": 0.35, "akcent": "kry_lawa", "wys_akcentu": 0.32, "sila_akcentu": 0.9, "mur_ton": Color(1.0, 0.92, 0.88), "mur_zar": 1.4,
 		"otoczenie": Color(0.5, 0.3, 0.26), "otoczenie_sila": 0.5, "mgla": Color(0.3, 0.16, 0.12, 0.3), "ksiezyc": Color(0.9, 0.5, 0.4), "ksiezyc_sila": 0.35,
-		"tlo": Color(0.016, 0.006, 0.004), "nasycenie": 0.95, "kontrast": 1.14, "pochodnie": Color(1.0, 0.55, 0.25), "swiatla": 1.5, "mur_jasnosc": 2.2,
+		"tlo": Color(0.016, 0.006, 0.004), "nasycenie": 1.12, "kontrast": 1.14, "pochodnie": Color(1.0, 0.55, 0.25), "swiatla": 1.5, "mur_jasnosc": 2.2,
 	},
 }
 var wyglad: Dictionary
@@ -269,8 +270,8 @@ func _srodowisko() -> void:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = wyglad["otoczenie"]
 	e.ambient_light_energy = wyglad["otoczenie_sila"]
-	e.tonemap_mode = Environment.TONE_MAPPER_AGX
-	e.tonemap_exposure = 1.05
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC  # AgX odbarwiał postacie
+	e.tonemap_exposure = 1.0
 	e.glow_enabled = true
 	e.glow_intensity = 0.9
 	e.glow_strength = 1.1
@@ -1195,18 +1196,6 @@ func _przygotuj_ap(ap: AnimationPlayer) -> void:
 		a.loop_mode = Animation.LOOP_LINEAR if petla else Animation.LOOP_NONE
 
 
-var _obrysy := {}
-func _mat_obrysu(kolor: Color, sila: float) -> ShaderMaterial:
-	var k := "%s_%.2f" % [kolor.to_html(), sila]
-	if not _obrysy.has(k):
-		var m := ShaderMaterial.new()
-		m.shader = preload("res://zasoby/3d/shadery/obrys.gdshader")
-		m.set_shader_parameter("kolor", kolor)
-		m.set_shader_parameter("sila", sila)
-		_obrysy[k] = m
-	return _obrysy[k]
-
-
 ## Wyostrzenie obrazu 3D (pod nakładkami 2D i HUD-em).
 func _wyostrzenie() -> void:
 	if lekki:
@@ -1227,8 +1216,8 @@ func _wyostrzenie() -> void:
 func _bohater() -> void:
 	bohater = _scena(GLB_BOHATERA).instantiate()
 	add_child(bohater)
-	for mi in bohater.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_overlay = _mat_obrysu(Color(1.0, 0.72, 0.45), 1.0)
+	WygladPostaci.ozyw(bohater, 0.35, 0.4)
+	WygladPostaci.swiatlo_postaci(bohater, 0.9)
 	_ap_bohatera = bohater.find_child("AnimationPlayer", true, false)
 	_przygotuj_ap(_ap_bohatera)
 	for n in ["bron_dwureczny", "bron_glewia", "bron_topor", "bron_miecz", "bron_tarcza", "bron_pochodnia"]:
@@ -1242,7 +1231,7 @@ func _bohater() -> void:
 	if punkt:
 		punkt.add_child(_swiatlo_pochodni)
 		punkt.add_child(_plomien_bohatera)
-	_poswiata = _swiatlo(Color(0.62, 0.58, 0.8), 2.4, 5.5, false)
+	_poswiata = _swiatlo(Color(0.78, 0.74, 0.8), 2.2, 5.5, false)
 	_poswiata.position.y = 1.6
 	bohater.add_child(_poswiata)
 	_cienie(bohater)
@@ -1397,13 +1386,11 @@ func _wrog3d(en) -> Dictionary:
 	blysk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	blysk.albedo_color = Color(1, 0.9, 0.8, 0.0)
 	blysk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	WygladPostaci.ozyw(n)
+	WygladPostaci.swiatlo_postaci(n, 1.0 if not en.boss else 1.3, 3.6 * s if en.boss else 3.6, 2.3 * s)
 	var cialo: MeshInstance3D = n.find_child("cialo", true, false)
 	if cialo:
 		cialo.material_overlay = blysk
-	blysk.next_pass = _mat_obrysu(Color(0.7, 0.8, 1.0) if not en.boss else Color(1.0, 0.5, 0.3), 0.6)
-	for mi in n.find_children("*", "MeshInstance3D", true, false):
-		if mi != cialo:
-			(mi as MeshInstance3D).material_overlay = _mat_obrysu(Color(0.75, 0.82, 1.0), 0.6)
 	_cienie(n)
 	# zapowiedź ciosu na ziemi: klin zasięgu wypełniający się aż do uderzenia
 	var znak := MeshInstance3D.new()

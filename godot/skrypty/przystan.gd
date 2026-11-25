@@ -5,12 +5,12 @@ extends Node3D
 
 signal otworz(zakladka: int)  # 0 Wyprawa, 1 Ekwipunek i Skrytka, 2 Kupiec, 3 Warownia, 4 Umiejętności
 
+const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
 const SHADER_TERENU := preload("res://zasoby/3d/shadery/teren.gdshader")
 const SHADER_MURU := preload("res://zasoby/3d/shadery/mur.gdshader")
 const SHADER_MGLY := preload("res://zasoby/3d/shadery/mgla.gdshader")
-const SHADER_OBRYSU := preload("res://zasoby/3d/shadery/obrys.gdshader")
 const PX_NA_M := 45.254834
 const ZOOM := 1.85
 const ROZMIAR := 32.0
@@ -106,10 +106,10 @@ func _srodowisko() -> void:
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.008, 0.01, 0.016)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.32, 0.36, 0.5)
+	e.ambient_light_color = Color(0.36, 0.37, 0.46)
 	e.ambient_light_energy = 0.42
-	e.tonemap_mode = Environment.TONE_MAPPER_AGX
-	e.tonemap_exposure = 1.05
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC  # AgX odbarwiał postacie
+	e.tonemap_exposure = 1.0
 	e.glow_enabled = not lekki
 	e.glow_intensity = 0.9
 	e.glow_hdr_threshold = 1.1
@@ -123,7 +123,7 @@ func _srodowisko() -> void:
 	e.fog_density = 0.006
 	e.adjustment_enabled = true
 	e.adjustment_contrast = 1.1
-	e.adjustment_saturation = 0.9
+	e.adjustment_saturation = 1.08
 	we.environment = e
 	add_child(we)
 	var ksiezyc := DirectionalLight3D.new()
@@ -587,8 +587,8 @@ func odswiez_budynki() -> void:
 
 
 func _npc_wszyscy() -> void:
-	var lista := [["marga", "npc_marga", Vector2(11.0, 13.0), "postoj"], ["chojrak", "npc_chojrak", Vector2(12.6, 8.4), "rozglad"],
-			["chlop", "npc_chlop", Vector2(20.4, 17.4), "rozglad"]]
+	var lista := [["marga", "npc_marga", Vector2(11.0, 13.0), "postoj"], ["chojrak", "npc_chojrak", Vector2(12.6, 8.4), "postoj"],
+			["chlop", "npc_chlop", Vector2(20.4, 17.4), "postoj"]]
 	if ResourceLoader.exists("res://zasoby/3d/postacie/npc_przewoznik.glb"):
 		lista.append(["przewoznik", "npc_przewoznik", Vector2(10.1, 1.4), "postoj"])
 	for d in lista:
@@ -598,24 +598,14 @@ func _npc_wszyscy() -> void:
 		var ap: AnimationPlayer = n.find_child("AnimationPlayer", true, false)
 		for a in ap.get_animation_list():
 			ap.get_animation(a).loop_mode = Animation.LOOP_LINEAR
-		ap.play(d[3])
+		ap.play(d[3] if ap.has_animation(d[3]) else "postoj")
 		ap.seek(randf() * ap.current_animation_length, true)
-		var om := _obrys(n, Color(0.9, 0.85, 0.7), 0.55)
-		_npc[d[0]] = {"wezel": n, "ap": ap, "obrys": om, "zmiana": 6.0 + randf() * 8.0}
+		WygladPostaci.ozyw(n)
+		WygladPostaci.swiatlo_postaci(n)
+		_npc[d[0]] = {"wezel": n, "ap": ap, "zmiana": 6.0 + randf() * 8.0}
 		_przeszkody.append([d[2], 0.45])
 	# gawędziarz patrzy w ogień
 	(_npc["chlop"]["wezel"] as Node3D).rotation.y = atan2(19.0 - 20.4, 19.0 - 17.4)
-
-
-func _obrys(n: Node, kolor: Color, sila: float) -> ShaderMaterial:
-	var m := ShaderMaterial.new()
-	m.shader = SHADER_OBRYSU
-	m.set_shader_parameter("kolor", kolor)
-	m.set_shader_parameter("sila", sila)
-	for mi in n.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_overlay = m
-		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	return m
 
 
 func _bohater() -> void:
@@ -636,7 +626,8 @@ func _bohater() -> void:
 				"bron_miecz": b.visible = zestaw == "miecz" or zestaw == "miecz_tarcza"
 				"bron_tarcza": b.visible = zestaw == "miecz_tarcza"
 				"bron_pochodnia": b.visible = false
-	_obrys(bohater, Color(1.0, 0.72, 0.45), 1.0)
+	WygladPostaci.ozyw(bohater, 0.35, 0.4)
+	WygladPostaci.swiatlo_postaci(bohater, 0.9)
 	var poswiata := _swiatlo(Color(0.62, 0.58, 0.8), 1.6, 4.5, false)
 	poswiata.position.y = 1.6
 	poswiata.remove_meta("migotanie")
@@ -815,6 +806,7 @@ func _interakcja() -> void:
 			dn = d
 			najb = k
 	cel = najb
+	_krag_celu(najb)
 	if cel == "":
 		_etykieta.visible = false
 		return
@@ -825,6 +817,40 @@ func _interakcja() -> void:
 	_etykieta.visible = true
 	if Input.is_action_just_pressed("interakcja"):
 		uzyj(cel)
+
+
+## Złoty krąg pod stopami rozmówcy (albo przy miejscu) — zamiast podświetlania całej postaci.
+var krag: MeshInstance3D
+
+
+func _krag_celu(k: String) -> void:
+	if krag == null:
+		krag = MeshInstance3D.new()
+		var tm := TorusMesh.new()
+		tm.inner_radius = 0.62
+		tm.outer_radius = 0.7
+		tm.rings = 48
+		krag.mesh = tm
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = Color(1.0, 0.78, 0.4, 0.8)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.emission_enabled = true
+		m.emission = Color(1.0, 0.7, 0.3)
+		krag.material_override = m
+		krag.scale = Vector3(1.0, 0.05, 1.0)
+		krag.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(krag)
+	krag.visible = k != "" and aktywna
+	if k == "":
+		return
+	var w: Vector2 = MIEJSCA[k][2]
+	if _npc.has(k):
+		var n: Node3D = _npc[k]["wezel"]
+		w = Vector2(n.position.x, n.position.z)
+	krag.position = Vector3(w.x, 0.04, w.y)
+	var t := Time.get_ticks_msec() / 1000.0
+	(krag.material_override as StandardMaterial3D).albedo_color.a = 0.55 + 0.25 * sin(t * 3.0)
 
 
 ## Interakcja z miejscem: otwarcie zakładki Warowni albo kwestia gawędziarza.
@@ -842,17 +868,19 @@ func uzyj(miejsce: String) -> void:
 	otworz.emit(int(m[1]))
 
 
-## Życie NPC: co kilka-kilkanaście sekund inna poza spoczynku (płynne przejście); rozmówca w zasięgu podświetlony.
+## Życie NPC: co kilka-kilkanaście sekund inna poza spoczynku (płynne przejście).
 func _npc_zyja(dt: float) -> void:
 	for k in _npc:
 		var d: Dictionary = _npc[k]
-		var om: ShaderMaterial = d.get("obrys")
-		if om:
-			var cel_sila := 1.15 if k == cel else 0.55
-			var teraz: float = om.get_shader_parameter("sila")
-			om.set_shader_parameter("sila", lerpf(teraz, cel_sila, minf(1.0, dt * 6.0)))
+		var ap0: AnimationPlayer = d["ap"]
+		# rozmówca w zasięgu mówi do bohatera (animacja z gestami), potem wraca do spoczynku
+		if k == cel and aktywna and ap0.has_animation("rozmowa"):
+			if ap0.current_animation != "rozmowa":
+				ap0.play("rozmowa", 0.6)
+			d["zmiana"] = 2.0
+			continue
 		d["zmiana"] = float(d["zmiana"]) - dt
-		if float(d["zmiana"]) > 0.0:
+		if float(d["zmiana"]) > 0.0 and ap0.current_animation != "rozmowa":
 			continue
 		d["zmiana"] = 7.0 + randf() * 9.0
 		var ap: AnimationPlayer = d["ap"]
