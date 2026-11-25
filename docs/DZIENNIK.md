@@ -32,6 +32,7 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 - Dostarczono: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Popiolow_Godot.zip` (exe 111 MB, zip 40 MB).
 - NIE sprawdzone: uruchomienie .exe na Windows autora, prawdziwy pad, dźwięk na PC autora, wydajność, itch.io (Godot → eksport Web to osobny temat).
 - Narzędzia z listy autora: biorę gdtoolkit (linter) i GUT 9.6.1 (testy jednostkowe, jeszcze niewpięty); MCP do edytora i Ziva — nie teraz (agent ma własnego Godota); PixelLab/Retro Diffusion — decyzja autora przy pilocie grafiki (płatne).
+- Opinia autora po zagraniu (11:15): „Podoba mi się! Lepiej niż w przeglądarce!”
 - Następny krok: autor gra w wersję Godot (najlepiej z padem) i zgłasza różnice względem JS. Potem: pilot grafiki Spalonej Osady albo kolejna mechanika z fundamentu (decyzja autora).
 
 ## 2026-11-25 10:40 — konto 1 (Claude, sesja Warownia), rola: gamedev
