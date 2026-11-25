@@ -176,6 +176,12 @@ func _przycisk(b: JoyButton, wcisniety: bool) -> void:
 	Input.parse_input_event(z)
 
 
+func _anim3d() -> String:
+	if rajd == null or rajd.swiat3d == null:
+		return ""
+	return rajd.swiat3d._ap_bohatera.current_animation
+
+
 func _test_wygladu(p, en) -> void:
 	var B = load("res://skrypty/bohater.gd")
 	var wyg: Dictionary = Dane.wyglad
@@ -218,12 +224,14 @@ func _test_wygladu(p, en) -> void:
 	await _czekaj_az(func(): return p.blok, 1.0)
 	await _klatka()
 	var anim_par: String = p.biezaca_anim
+	var anim_par3d := _anim3d()
 	await _zrzut("5_hadraen_parowanie")
 	await _czekaj_az(func(): return p.blok_czas > 0.4, 2.0)
 	await _klatka()
 	var anim_blok: String = p.biezaca_anim
 	_przycisk(JOY_BUTTON_LEFT_SHOULDER, false)
 	_ok("LB: animacja parowania, potem bloku", anim_par == "parowanie" and anim_blok == "blok", anim_par + " → " + anim_blok)
+	_ok("3D: model Hadræna paruje w grze", anim_par3d.ends_with("_parowanie"), anim_par3d)
 	await _czekaj(0.7)
 	# przewrót: B -> animacja przewrotu z nietykalnością
 	p.stamina = p.stamina_max
@@ -232,8 +240,10 @@ func _test_wygladu(p, en) -> void:
 	await _czekaj_az(func(): return p.unik_czas > 0.0 or p.biezaca_anim == "przewrot", 1.0)
 	await _klatka()
 	var anim_unik: String = p.biezaca_anim
+	var anim_unik3d := _anim3d()
 	await _zrzut("6_hadraen_przewrot")
 	_ok("B: przewrót", anim_unik == "przewrot", anim_unik)
+	_ok("3D: model Hadræna robi przewrót w grze", anim_unik3d.ends_with("_przewrot"), anim_unik3d)
 	await _czekaj(0.5)
 	en.uspiony = false
 
@@ -306,6 +316,12 @@ func _test() -> void:
 	en.atak_timer = 0.0
 	await _czekaj(0.1)
 	await _zrzut("3_rajd_zamach")
+	if rajd.swiat3d:
+		var d3: Dictionary = rajd.swiat3d._wrogowie.get(en.get_instance_id(), {})
+		var ap3: AnimationPlayer = d3.get("ap")
+		var l3: OmniLight3D = d3.get("swiatlo")
+		_ok("3D: zapowiedź ciosu wroga (zamach + rozbłysk)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy > 0.5,
+			"%s, %.1f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0])
 	# LB wciśnięty, a cios wroga spada w oknie parowania (deterministycznie, niezależnie od FPS)
 	await _pad(JOY_BUTTON_LEFT_SHOULDER, 0.02)
 	en.zamach = 0.01
@@ -375,7 +391,7 @@ func _test() -> void:
 	p.hp = 9999.0
 	p.hp_max = 9999.0
 	p.w = rajd.mapa.ekstrakcje[0]["w"]
-	await _czekaj_az(func(): return wynik != null, 30.0)
+	await _czekaj_az(func(): return wynik != null, 180.0)  # 6 s czasu gry; w software ~1 FPS
 	_ok("ekstrakcja kończy rajd", wynik != null and ostatni_wynik.get("przezyl", false))
 	await _zrzut("5_wynik")
 	await _czekaj(0.2)
@@ -399,7 +415,7 @@ func _test() -> void:
 	wr.w = p.w + Vector2(0.8, 0.0)
 	wr.stan = "walka"
 	wr.zamach = 0.05
-	await _czekaj_az(func(): return wynik != null, 20.0)
+	await _czekaj_az(func(): return wynik != null, 120.0)
 	_ok("śmierć kończy rajd", wynik != null and not ostatni_wynik.get("przezyl", true))
 	await _pad(JOY_BUTTON_A)
 	await _czekaj(0.3)
