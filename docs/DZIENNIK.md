@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 18:05 — konto autora / agent główny (gamedev + grafik), rola: gamedev
+- Gałąź i commit: `mapy-runda-2` (main nietknięty).
+- Zrobione: Przystań runda 2 domknięta — przewoźnik (Meshy obraz→3D→rig, 35 kr; wypiek animacji postoju jak inni NPC, tekstury 1K) stoi na pomoście, A/E otwiera Wyprawę; łódź z Meshy (894k→24k ścian, `narzedzia/gra_3d/odchudz_lodz.py`) przy pomoście z ciepłą latarnią. Podgląd `--podglad-przystan` ma 5. ujęcie (pomost). Wcześniej w tej rundzie: kontrakty Chojraka, budynki rosnące z poziomem.
+- Kredyty Meshy w rundzie: ok. 140 z 1000 dozwolonych.
+- Testy: pełny `testy.py godot` 52/52 OK (nowe: przewoźnik na pomoście, A przy przewoźniku → Wyprawa); kontrola Linux spakowanej gry 52/52 OK.
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Przystan_2.zip` (exe + TEST_PRZYSTAN.bat, 361 MB).
+- NIE sprawdzone: prawdziwy pad, dźwięk, gra na komputerze autora, wydajność Przystani na słabszym GPU; nagrody kontraktów (40/60/150–400) — do strojenia.
+- Następne: decyzja autora o liczbach kontraktów i „publikuj” dla mapy-runda-2.
+
 ## 2026-11-25 17:40 — agent główny (konto autora), rola: grafik + gamedev
 - Gałąź: mapy-runda-2. Zlecenia autora: (a) idźmy dalej w kierunku map, (b) jeszcze lepsze zapowiedzi ciosów, „nadal ciężko sparować”, (c) **decyzja autora: Warownia jako przystań z swobodnym ruchem, NPC (handlarze, zleceniodawcy, gawędziarze) i obozem bohatera do rozbudowy**, (d) postacie ostrzejsze i bardziej widoczne, (e) wolna ręka, do 1000 kredytów Meshy.
 - Parowanie: główna przyczyna trudności — błysk był 0,26 s przed ciosem, czyli za późno na reakcję człowieka. Teraz: pierścień rytmu od początku zamachu zwęża się do chwili ciosu, rozbłyska, gdy wciśnięcie już zdąży (= długość okna parowania gracza, `rajd.dlugosc_okna_parowania()`), błysk broni w tej samej chwili; podpowiedzi „ZA WCZEŚNIE” / „ZA PÓŹNO”; ostrzeżenie, że z pochodnią nie sparujesz. Czasy ciosów bez zmian.

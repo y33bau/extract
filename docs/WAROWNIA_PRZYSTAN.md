@@ -35,9 +35,9 @@ Decyzja autora (25.11.2026): Warownia to **przystań, po której Hadræn chodzi 
 | **Chojrak**, stary upadły paladyn | `npc_chojrak.glb` | Stół Wypraw: wybór krainy, później kontrakty | ⚔ Wyprawa |
 | **Chłop** przy ognisku | `npc_chlop.glb` | Gawędziarz: plotki, porady, lore świata (krótkie kwestie) | (dymek) |
 | (później) **Heri**, weteran | do wypieczenia | Trener: umiejętności | 📜 Umiejętności |
-| (później) **Przewoźnik** | do zrobienia (Meshy) | łódź = start wyprawy | ⚔ Wyprawa |
+| **Przewoźnik** | gotowy (Meshy, `npc_przewoznik.glb`), stoi na pomoście; obok łódź `przystan/lodz.glb` z latarnią | łódź = start wyprawy | ⚔ Wyprawa |
 
-Do czasu przewoźnika wyprawę daje Chojrak przy pomoście.
+Wyprawę daje przewoźnik na pomoście; Chojrak daje kontrakty (i też otwiera Wyprawę).
 
 ## 4. Obóz bohatera: miejsca na rozbudowę (dzisiejsze budynki z `warownia.json`)
 | Miejsce | Modele autora (modele_meshy) | Zakładka |
@@ -58,7 +58,7 @@ Do czasu przewoźnika wyprawę daje Chojrak przy pomoście.
 
 ## 6. Etapy
 1. **Runda 1 (teraz):** scena Przystani 3D z tekstur NightBrand i modeli autora, swobodny ruch, 3 NPC, obóz z pięcioma miejscami, interakcja otwiera zakładki, start wyprawy, powrót do Przystani po rajdzie. Testy na padzie.
-2. Runda 2: wygląd budynków zależny od poziomu, dymki gawędziarza (pula kwestii), łódź i przewoźnik (Meshy).
+2. Runda 2: wygląd budynków zależny od poziomu, dymki gawędziarza (pula kwestii), łódź i przewoźnik (Meshy) — zrobione 25.11.2026.
 3. Runda 3: kontrakty Chojraka (KONCEPCJE runda 5), ślady łupu w obozie po wyprawie.
 
 ## 7. Czego nie robimy

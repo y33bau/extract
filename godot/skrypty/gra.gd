@@ -41,8 +41,8 @@ func _podglad_przystani(katalog: String) -> void:
 	_zrzuty = katalog
 	DirAccess.make_dir_recursive_absolute(katalog)
 	await _czekaj(0.5)
-	for i in 4:
-		przystan.poz = [Vector2(18.0, 22.0), Vector2(13.0, 14.5), Vector2(14.0, 9.5), Vector2(24.0, 24.0)][i]
+	for i in 5:
+		przystan.poz = [Vector2(18.0, 22.0), Vector2(13.0, 14.5), Vector2(14.0, 9.5), Vector2(24.0, 24.0), Vector2(10.6, 3.0)][i]
 		await _czekaj(0.8)
 		await _zrzut("przystan_%d" % i)
 		print("PODGLAD przystan ", i)
@@ -494,6 +494,16 @@ func _test() -> void:
 	await _pad(JOY_BUTTON_B)
 	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
 	_ok("B wraca do Przystani", not hub.is_visible_in_tree() and przystan.aktywna)
+	# przewoźnik na pomoście: podejście padem + A otwiera Wyprawę
+	przystan.poz = Vector2(10.6, 3.0)
+	await _czekaj_az(func(): return przystan.cel == "przewoznik", 5.0)
+	_ok("Przystań: przewoźnik stoi na pomoście", przystan.cel == "przewoznik" and przystan._npc.has("przewoznik"))
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
+	_ok("Przystań: A przy przewoźniku otwiera Wyprawę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 0, "zakładka %d" % hub.zakladki.current_tab)
+	await _zrzut("1c_przewoznik")
+	await _pad(JOY_BUTTON_B)
+	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
 	przystan.uzyj("chlop")
 	_ok("Przystań: gawędziarz mówi", przystan._dymek.visible and przystan._dymek.text.length() > 10)
 	przystan.poz = Vector2(18.0, 22.0)

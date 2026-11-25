@@ -3,7 +3,7 @@
 import sys, glob, os
 import bpy
 D = '/home/claude/extract/godot/zasoby/3d/postacie/'
-for f in sorted(glob.glob(D + 'npc_*.glb') + glob.glob(D + 'wrog_*.glb')):
+for f in sorted(glob.glob(D + (sys.argv[-1] if sys.argv[-1].endswith('.glb') else 'npc_*.glb')) + ([] if sys.argv[-1].endswith('.glb') else glob.glob(D + 'wrog_*.glb'))):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=f)
     npc = os.path.basename(f).startswith('npc_')

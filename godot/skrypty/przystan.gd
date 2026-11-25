@@ -23,7 +23,8 @@ const ZESTAW_ANIM := {"dwureczny": "dwureczny", "glewia": "dwureczny", "topor": 
 ## Miejsca interakcji: [nazwa wyświetlana, zakładka (-1 = dymek), pozycja (x, z)].
 const MIEJSCA := {
 	"marga": ["Marga — handel", 2, Vector2(11.0, 13.0)],
-	"chojrak": ["Chojrak — stół wypraw", 0, Vector2(12.6, 8.4)],
+	"chojrak": ["Chojrak — kontrakty i wyprawy", 0, Vector2(12.6, 8.4)],
+	"przewoznik": ["Przewoźnik — wypłyń na wyprawę", 0, Vector2(10.1, 1.4)],
 	"chlop": ["Gawędziarz przy ognisku", -1, Vector2(20.4, 17.4)],
 	"kuznia": ["Kuźnia — rozbudowa obozu", 3, Vector2(25.5, 12.5)],
 	"zielarnia": ["Zielarnia — rozbudowa obozu", 3, Vector2(12.5, 24.5)],
@@ -246,17 +247,28 @@ func _pomost() -> void:
 			pal.material_override = d
 			pal.position = Vector3(x, -0.3, z)
 			add_child(pal)
-	# łódź przewoźnika przy końcu pomostu
-	var lodz := MeshInstance3D.new()
-	var kap := CapsuleMesh.new()
-	kap.radius = 0.55
-	kap.height = 3.4
-	lodz.mesh = kap
-	lodz.material_override = d
-	lodz.scale = Vector3(1.0, 0.45, 1.0)
-	lodz.rotation_degrees = Vector3(90, 0, 0)
-	lodz.position = Vector3(12.2, -0.38, 1.4)
-	add_child(lodz)
+	# łódź przewoźnika przy końcu pomostu (model Meshy; zapasowo prosta bryła)
+	if ResourceLoader.exists(P + "lodz.glb"):
+		var lodz_m := _rek(P + "lodz.glb", 2.0, Vector2(12.0, 1.3), 1.57)
+		lodz_m.position.y -= 0.55
+		# latarnia łodzi — żeby łódź nie ginęła w czarnej wodzie
+		var sw := OmniLight3D.new()
+		sw.light_color = Color(1.0, 0.62, 0.3)
+		sw.light_energy = 1.6
+		sw.omni_range = 3.2
+		sw.position = Vector3(12.2, 1.1, 1.3)
+		add_child(sw)
+	else:
+		var lodz := MeshInstance3D.new()
+		var kap := CapsuleMesh.new()
+		kap.radius = 0.55
+		kap.height = 3.4
+		lodz.mesh = kap
+		lodz.material_override = d
+		lodz.scale = Vector3(1.0, 0.45, 1.0)
+		lodz.rotation_degrees = Vector3(90, 0, 0)
+		lodz.position = Vector3(12.2, -0.38, 1.4)
+		add_child(lodz)
 	_rek(P + "rune_lantern.glb", 1.3, Vector2(11.0, 6.6), 0.0)
 	_latarnia(Vector2(11.0, 6.6), 1.2, Color(0.55, 0.8, 1.0))
 	_przeszkody.append([Vector2(11.0, 6.6), 0.35])
@@ -448,8 +460,11 @@ func odswiez_budynki() -> void:
 
 
 func _npc_wszyscy() -> void:
-	for d in [["marga", "npc_marga", Vector2(11.0, 13.0), "postoj"], ["chojrak", "npc_chojrak", Vector2(12.6, 8.4), "rozglad"],
-			["chlop", "npc_chlop", Vector2(20.4, 17.4), "rozglad"]]:
+	var lista := [["marga", "npc_marga", Vector2(11.0, 13.0), "postoj"], ["chojrak", "npc_chojrak", Vector2(12.6, 8.4), "rozglad"],
+			["chlop", "npc_chlop", Vector2(20.4, 17.4), "rozglad"]]
+	if ResourceLoader.exists("res://zasoby/3d/postacie/npc_przewoznik.glb"):
+		lista.append(["przewoznik", "npc_przewoznik", Vector2(10.1, 1.4), "postoj"])
+	for d in lista:
 		var n: Node3D = (load("res://zasoby/3d/postacie/%s.glb" % d[1]) as PackedScene).instantiate()
 		add_child(n)
 		n.position = Vector3(d[2].x, 0.0, d[2].y)
@@ -662,7 +677,9 @@ func uzyj(miejsce: String) -> void:
 
 
 func _npc_patrza(dt: float) -> void:
-	for k in ["marga", "chojrak"]:
+	for k in ["marga", "chojrak", "przewoznik"]:
+		if not _npc.has(k):
+			continue
 		var n: Node3D = _npc[k]["wezel"]
 		var d := poz - Vector2(n.position.x, n.position.z)
 		if d.length() < 5.0:
