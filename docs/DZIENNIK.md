@@ -17,6 +17,13 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 15:10 — agent główny (konto autora)
+- Gałąź: gra-3d.
+- Autor wskazał paczkę tekstur z NightBrand: `C:\Users\Admin\Downloads\GRAFIKI_SWIAT\GRAFIKI_SWIAT` (tekstury 137, efekty 14, rekwizyty_tekstury 328, nazwy = hash). Przejrzano próbkę (efekty 14/14, rekwizyty 31/328, tekstury 25/137).
+- **KOLEJNE DZIAŁANIE (zapisane na polecenie autora): użyć tych tekstur do map** — pilot Spalonej Osady: podłoga, mury, dach z normal mapami + efekty żaru/dymu. Sortowanie plików na kafel / normal / atlas UV / efekt przed użyciem. Atlasy UV z `rekwizyty_tekstury` bez modeli .glb NIE nadają się.
+- Nagranie autora z walki (15 s): Hadræn robi wielkie zamachy i skoki, wróg stoi 2–3 m dalej i „biegnie w miejscu”, ciosy lecą w powietrze, wygląda komicznie. Wracamy do walki i ataków (zasięg i animacja ciosu vs pozycja wroga, chód wroga w miejscu, tempo animacji, obrót myszką).
+- NIE sprawdzone: przyczyny w kodzie (tylko wstępny przegląd), balans nie ruszany.
+
 ## 2026-11-25 14:50 — konto (Claude, sesja Warownia), rola: agent główny
 - Gałąź: `gra-3d`.
 - Uwagi autora po zagraniu (DO ZROBIENIA, następna runda gamedev):
