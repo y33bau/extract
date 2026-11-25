@@ -20,6 +20,8 @@ var plon_tik := 0.0
 var krok_anim := 0.0
 var krok_dzwiek := 0.0
 var w_ruchu := false
+var ruch_wektor := Vector2.ZERO  # świat: kierunek * prędkość z wejścia (do animacji chodu/biegu/uników bocznych)
+var atak_licznik := 0  # rośnie z każdym zamachem (animacja startuje od nowa, także przy powtórzeniu tego samego ciosu)
 # walka
 var atak_czas := 0.0
 var atak_dlugosc := 0.0

@@ -13,7 +13,22 @@ const WYS_MURU := 1.7
 const GLB_BOHATERA := "res://zasoby/3d/postacie/hadraen.glb"
 const ZESTAW_ANIM := {"dwureczny": "dwureczny", "glewia": "dwureczny", "topor": "topor",
 	"miecz": "miecz", "miecz_tarcza": "miecz", "piesci": "piesci"}
-const PETLE := ["postoj", "chod", "blok", "ogluszenie"]
+const PETLE := ["postoj", "chod", "blok", "ogluszenie", "bieg", "tyl", "lewo", "prawo"]
+## Ciosy Hadræna: [moment uderzenia w klipie, koniec ruchu po uderzeniu] w sekundach klipu (zmierzone na dłoni).
+## Klip jest odtwarzany jednym, stałym tempem tak, by uderzenie wypadło ~0,1 s po wciśnięciu ataku (okno trafienia w rajd.gd bez zmian).
+const ATAK_PLAN := {
+	"dwureczny": [[0.33, 0.70], [0.49, 0.95], [0.26, 0.85]],
+	"miecz": [[0.56, 1.00], [0.53, 1.20], [1.17, 1.38]],
+	"piesci": [[0.30, 0.75], [0.30, 0.75], [0.59, 1.30]],
+	"topor": [[0.83, 1.55], [0.92, 1.70], [0.85, 1.60]],
+}
+const ATAK_PRZED := [0.10, 0.10, 0.17]
+## Prędkość (m/s), jaką pokonuje klip przy tempie 1,0: do dopasowania kroków do ruchu (bez ślizgania).
+const REF_BIEG := {"dwureczny": 4.0, "miecz": 3.9, "topor": 3.6, "piesci": 3.6}
+const REF_BOK := {"dwureczny": 2.3, "miecz": 1.1, "topor": 1.1, "piesci": 1.1}
+const REF_TYL := {"dwureczny": 2.5, "miecz": 4.1, "topor": 3.2, "piesci": 3.2}
+const REF_CHOD := 1.2
+const BLEND_PETLA := 0.2
 const SKALA_WROGA := {"scout": 1.0, "warden": 1.04, "archer": 1.0, "knight": 1.06, "brute": 1.18, "boss": 1.38}
 
 var rajd
@@ -25,6 +40,10 @@ var _stan_widoku := PackedByteArray()
 var _mur_przezr := {}    # idx -> bool
 var bohater: Node3D
 var _ap_bohatera: AnimationPlayer
+var _kat_wiz := 0.0
+var _kat_start := false
+var _klucz_anim := ""
+var _offsety: Dictionary = {}
 var _bronie := {}        # nazwa -> MeshInstance3D
 var _swiatlo_pochodni: OmniLight3D
 var _plomien_bohatera: GPUParticles3D
@@ -609,34 +628,97 @@ static func _obrot(k: float) -> float:
 	return atan2(cos(k), sin(k))
 
 
-## Stan bohatera -> [animacja (bez prefiksu zestawu), kąt, postęp 0..1 albo -1 dla pętli].
-func _stan_bohatera(p) -> Array:
-	if p.martwy:
-		return ["smierc", p.kat, minf(1.0, p.smierc_anim / 1.3)]
-	if p.unik_czas > 0.0:
-		var ku: float = atan2(p.unik_kier.y, p.unik_kier.x) if p.unik_kier != Vector2.ZERO else p.kat
-		return ["przewrot", ku, 1.0 - p.unik_czas / p.UNIK_DLUGOSC]
+## Obrót ciała z ograniczoną prędkością i wygładzeniem (bez „śmigła” przy szybkim ruchu myszki).
+static func _obracaj(od: float, do: float, max_rad_s: float, dt: float) -> float:
+	var r := angle_difference(od, do)
+	var krok := r * (1.0 - exp(-dt * 20.0))
+	var lim := max_rad_s * dt
+	return od + clampf(krok, -lim, lim)
+
+
+## Wizualne przesunięcie ciała (doskok, odrzut): logika przeskakuje od razu, widok dopływa płynnie.
+func impuls(cialo, d: Vector2) -> void:
+	var id: int = cialo.get_instance_id()
+	var stary: Vector2 = _offsety.get(id, Vector2.ZERO)
+	_offsety[id] = stary - d
+
+
+func _offset(cialo, dt: float) -> Vector2:
+	var id: int = cialo.get_instance_id()
+	var o: Vector2 = _offsety.get(id, Vector2.ZERO)
+	if o != Vector2.ZERO:
+		o *= exp(-dt * 11.0)
+		if o.length() < 0.003:
+			o = Vector2.ZERO
+		_offsety[id] = o
+	return o
+
+
+func _kat_celu(p) -> float:
+	if p.unik_czas > 0.0 and p.unik_kier != Vector2.ZERO:
+		return atan2(p.unik_kier.y, p.unik_kier.x)
 	if p.zamach_anim > 0.0:
-		return ["atak%d" % (p.combo + 1), p.atak_kat, 1.0 - p.zamach_anim / p.zamach_anim_max]
+		return p.atak_kat
+	return p.kat
+
+
+## Co ma grać Hadræn: [nazwa bez zestawu, klucz stanu, pętla?, tempo, start (s klipu), blend].
+func _plan_animacji(p, styl: String) -> Array:
+	if p.martwy:
+		return ["smierc", "smierc", false, 1.0, 0.0, 0.25]
+	if p.unik_czas > 0.0:
+		# przewrót: klip 1,03 s, gra się od 4% do 80% w czasie uniku (0,3 s)
+		return ["przewrot", "przewrot", false, 0.76 * 1.03 / p.UNIK_DLUGOSC, 0.04, 0.05]
+	if p.zamach_anim > 0.0:
+		var plan: Array = ATAK_PLAN[styl][clampi(p.combo, 0, 2)]
+		var d: float = maxf(p.zamach_anim_max, 0.2)
+		var przed: float = minf(ATAK_PRZED[clampi(p.combo, 0, 2)], d * 0.45)
+		var ts := maxf(0.0, (plan[0] - przed * plan[1] / d) / (1.0 - przed / d))
+		return ["atak%d" % (p.combo + 1), "atak%d_%d" % [p.combo, p.atak_licznik], false, (plan[1] - ts) / d, ts, 0.07]
 	if p.blok:
 		if p.okno_parowania > 0.0 and p.blok_czas < 0.35:
-			return ["parowanie", p.kat, p.blok_czas / 0.35]
-		return ["blok", p.kat, -1.0]
-	if p.w_ruchu:
-		return ["chod", p.kat, -1.0]
-	return ["postoj", p.kat, -1.0]
+			return ["parowanie", "parowanie", false, clampf(_dl_klipu(styl + "_parowanie") / 0.4, 1.0, 2.2), 0.0, 0.05]
+		return ["blok", "blok", true, 1.0, 0.0, BLEND_PETLA]
+	if p.w_ruchu and p.ruch_wektor != Vector2.ZERO:
+		var v: float = p.ruch_wektor.length()
+		var rel := angle_difference(_kat_wiz, atan2(p.ruch_wektor.y, p.ruch_wektor.x))
+		if absf(rel) > 2.36:
+			return ["tyl", "tyl", true, clampf(v / REF_TYL[styl], 0.8, 1.5), 0.0, BLEND_PETLA]
+		if absf(rel) > 0.79:
+			# świat: +y to prawa strona postaci (patrz _obrot)
+			return ["prawo" if rel > 0.0 else "lewo", "prawo" if rel > 0.0 else "lewo", true, clampf(v / REF_BOK[styl], 0.8, 1.6), 0.0, BLEND_PETLA]
+		if v > 2.4:
+			return ["bieg", "bieg", true, clampf(v / REF_BIEG[styl], 0.8, 1.5), 0.0, BLEND_PETLA]
+		return ["chod", "chod", true, clampf(v / REF_CHOD, 0.8, 1.6), 0.0, BLEND_PETLA]
+	return ["postoj", "postoj", true, 1.0, 0.0, BLEND_PETLA]
+
+
+func _dl_klipu(nazwa: String) -> float:
+	return _ap_bohatera.get_animation(nazwa).length if _ap_bohatera.has_animation(nazwa) else 1.0
 
 
 func _aktualizuj_bohatera(dt: float) -> void:
 	var p = rajd.gracz
-	bohater.position = Vector3(p.w.x, 0.0, p.w.y)
-	var st := _stan_bohatera(p)
 	var zestaw: String = p.zestaw
-	var anim_zestaw: String = ZESTAW_ANIM.get(zestaw, "dwureczny")
-	var cel_obr := _obrot(st[1])
-	bohater.rotation.y = lerp_angle(bohater.rotation.y, cel_obr, minf(1.0, dt * 18.0)) if st[2] < 0.0 else cel_obr
-	_graj(_ap_bohatera, anim_zestaw + "_" + str(st[0]), st[2], 1.0 if st[0] != "chod" else 1.15)
-	p.biezaca_anim = st[0]
+	var styl: String = ZESTAW_ANIM.get(zestaw, "dwureczny")
+	if not _kat_start:
+		_kat_start = true
+		_kat_wiz = p.kat
+	var szybki: bool = p.zamach_anim > 0.0 or p.unik_czas > 0.0
+	_kat_wiz = _obracaj(_kat_wiz, _kat_celu(p), 26.0 if szybki else 15.0, dt)
+	var o := _offset(p, dt)
+	bohater.position = Vector3(p.w.x + o.x, 0.0, p.w.y + o.y)
+	bohater.rotation.y = _obrot(_kat_wiz)
+	var pl := _plan_animacji(p, styl)
+	var nazwa: String = styl + "_" + str(pl[0])
+	if _ap_bohatera.has_animation(nazwa):
+		if pl[1] != _klucz_anim or _ap_bohatera.current_animation != nazwa:
+			_klucz_anim = pl[1]
+			_ap_bohatera.play(nazwa, pl[5])
+			if pl[4] > 0.0:
+				_ap_bohatera.seek(pl[4], false)
+		_ap_bohatera.speed_scale = pl[3]
+	p.biezaca_anim = pl[0] if pl[0] not in ["bieg", "tyl", "lewo", "prawo"] else "chod"
 	for n in _bronie.keys():
 		var b: Node3D = _bronie[n]
 		match n:
@@ -686,7 +768,8 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 		var d := _wrog3d(en)
 		zywi[en.get_instance_id()] = true
 		var n: Node3D = d["wezel"]
-		n.position = Vector3(en.w.x, 0.0, en.w.y)
+		var oo := _offset(en, dt)
+		n.position = Vector3(en.w.x + oo.x, 0.0, en.w.y + oo.y)
 		n.visible = en.widoczny_dla_gracza or rajd.widoczne(en.w) == 2
 		d["kat"] = en.kat
 		n.rotation.y = lerp_angle(n.rotation.y, _obrot(en.kat), minf(1.0, dt * 12.0))
@@ -702,7 +785,7 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			l.light_color = Color(1.0, 0.22, 0.12) if en.ciezki else Color(1.0, 0.82, 0.3)
 			l.light_energy = 1.6 + 1.6 * t + sin(czas * 30.0) * 0.6
 		elif en.cios_anim > 0.0:
-			_graj(ap, "cios", 1.0 - en.cios_anim / 0.22)
+			_graj(ap, "cios", 1.0 - en.cios_anim / 0.34)
 		elif en.trafiony > 0.0:
 			_graj(ap, "trafienie", 1.0 - en.trafiony / 0.15)
 		elif czas - en._ruch_czas < 0.15:

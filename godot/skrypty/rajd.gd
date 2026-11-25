@@ -402,9 +402,14 @@ func atak_wrecz() -> void:
 	p.atak_czas = p.atak_dlugosc
 	p.atak_cd = float(bron["cooldown"]) * (1.22 if ciezki else 1.0)
 	p.atak_kat = p.kat
-	p.zamach_anim_max = 0.42 if ciezki else 0.3
+	# wygląd ciosu: dłużej niż okno trafienia, żeby zamach, cięcie i wybrzmienie były czytelne i łączyły się w kolejny cios
+	p.atak_licznik += 1
+	p.zamach_anim_max = maxf(0.46, p.atak_cd * 1.35)
 	p.zamach_anim = p.zamach_anim_max
-	przesun(p, Vector2(cos(p.kat), sin(p.kat)) * (0.32 if ciezki else 0.18))
+	var doskok := Vector2(cos(p.kat), sin(p.kat)) * (0.32 if ciezki else 0.18)
+	przesun(p, doskok)
+	if swiat3d != null:
+		swiat3d.impuls(p, doskok)
 	Dzwiek.zamach(ciezki)
 	var kuznia := 1.0 + Profil.budynek("forge") * 0.12
 	var bieglosc := 1.0 + (Profil.poziom("melee") - 1) * 0.06
@@ -442,7 +447,10 @@ func atak_wrecz() -> void:
 		en.trafiony = 0.15
 		en.stan = "walka"
 		var odrzut := 0.45 if riposta else (0.25 if ciezki else 0.12)
-		przesun(en, Vector2(cos(kat_do), sin(kat_do)) * odrzut)
+		var odrzut_wek := Vector2(cos(kat_do), sin(kat_do)) * odrzut
+		przesun(en, odrzut_wek)
+		if swiat3d != null:
+			swiat3d.impuls(en, odrzut_wek)
 		trafil = true
 		if en.hp <= 0.0:
 			zabij(en)
@@ -823,7 +831,9 @@ func _wejscie() -> void:
 		p.kat = atan2(c.y, c.x)
 	elif mysz_aktywna:
 		var m := Iso.swiat(get_global_mouse_position())
-		p.kat = atan2(m.y - p.w.y, m.x - p.w.x)
+		# martwa strefa: kursor tuż przy postaci nie kręci nią jak śmigłem
+		if m.distance_to(p.w) > 0.9:
+			p.kat = atan2(m.y - p.w.y, m.x - p.w.x)
 	elif ruch.length() > 0.3 and p.atak_czas <= 0.0:
 		var c2 := Iso.ekran_na_swiat_kierunek(ruch)
 		p.kat = atan2(c2.y, c2.x)
@@ -884,6 +894,7 @@ func _aktualizuj(dt: float) -> void:
 	p.stamina = minf(p.stamina_max, p.stamina + odnowa * mnoznik * ciezar * dt)
 
 	p.w_ruchu = false
+	p.ruch_wektor = Vector2.ZERO
 	if not okno_otwarte:
 		if p.unik_czas > 0.0:
 			p.unik_czas -= dt
@@ -896,6 +907,7 @@ func _aktualizuj(dt: float) -> void:
 				var v := 1.9 if p.blok else (1.6 if p.atak_czas > 0.0 else 3.4)
 				przesun(p, ruch * v * dt)
 				p.w_ruchu = true
+				p.ruch_wektor = ruch * v
 				p.krok_anim += dt * (5.0 if p.blok else 8.0)
 				p.krok_dzwiek -= dt
 				if p.krok_dzwiek <= 0.0:
@@ -993,8 +1005,11 @@ func _wrogowie(dt: float) -> void:
 					strzaly.append({"w": en.w + kier * 0.4, "v": kier * 18.0, "dmg": en.dmg, "zasieg": 12.0, "od_gracza": false})
 				else:
 					Dzwiek.zamach(en.boss or en.rodzaj == "warden")
-					en.cios_anim = 0.22
-					przesun(en, Vector2(cos(en.kat), sin(en.kat)) * 0.28)
+					en.cios_anim = 0.34
+					var skok_wroga := Vector2(cos(en.kat), sin(en.kat)) * 0.28
+					przesun(en, skok_wroga)
+					if swiat3d != null:
+						swiat3d.impuls(en, skok_wroga)
 					if p.w.distance_to(en.w) <= en.zasieg + p.promien + 0.25:
 						trafienie_gracza(en, en.dmg)
 						if zakonczony:

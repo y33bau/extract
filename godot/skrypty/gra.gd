@@ -195,6 +195,66 @@ func _anim3d() -> String:
 	return rajd.swiat3d._ap_bohatera.current_animation
 
 
+## Płynność ruchu bohatera: obrót bez skoków, doskok dopływa, kroki dopasowane do kierunku ruchu.
+func _test_plynnosci(p) -> void:
+	var s3 = rajd.swiat3d
+	if s3 == null:
+		return
+	p.pochodnia_w_rece = false
+	# 1. obrót o 180° rozkłada się na klatki
+	p.kat = 0.0
+	await _czekaj(0.3)
+	p.kat = PI
+	var yaw_prev: float = s3.bohater.rotation.y
+	var max_krok := 0.0
+	var klatek := 0
+	for i in 12:
+		await _klatka()
+		var y: float = s3.bohater.rotation.y
+		var k := absf(angle_difference(yaw_prev, y))
+		max_krok = maxf(max_krok, k)
+		if k > 0.01:
+			klatek += 1
+		yaw_prev = y
+	_ok("obrót o 180° płynny (bez skoku w jednej klatce)", max_krok < 1.0 and klatek >= 3, "max %.2f rad/klatkę, %d klatek" % [max_krok, klatek])
+	# 2. doskok przy ciosie dopływa, nie teleportuje
+	p.atak_cd = 0.0
+	p.combo_reset = 0.0
+	p.stamina = p.stamina_max
+	rajd.atak_wrecz()
+	await _klatka()
+	var skok: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
+	if _zrzuty != "":  # sekwencja ciosu do oceny ruchu (co klatkę gry, 0,05 s)
+		for i in 10:
+			await _zrzut("seq_atak_%02d" % i)
+	await _czekaj(0.6)
+	var po: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
+	_ok("doskok do wroga dopływa płynnie", skok > 0.05 and po < 0.03, "po ciosie %.2f m od logiki, po 0,6 s %.2f m" % [skok, po])
+	await _czekaj(0.6)
+	# 3. kroki zgodne z kierunkiem ruchu względem twarzy
+	var wyniki := {}
+	for konf in [["bieg", Vector2(1, 0), Vector2(1, 0), ["_bieg"]], ["tyl", Vector2(1, 0), Vector2(-1, 0), ["_tyl"]], ["bok", Vector2(1, 0), Vector2(0, -1), ["_lewo", "_prawo"]]]:
+		_os(JOY_AXIS_LEFT_X, konf[1].x)
+		_os(JOY_AXIS_LEFT_Y, konf[1].y)
+		_os(JOY_AXIS_RIGHT_X, konf[2].x)
+		_os(JOY_AXIS_RIGHT_Y, konf[2].y)
+		var pasuje := func() -> bool:
+			var an: String = s3._ap_bohatera.current_animation
+			return konf[3].any(func(suf): return an.ends_with(suf))
+		await _czekaj_az(pasuje, 12.0)  # obrót ciała jest wygładzony, więc przy małym FPS trwa dłużej
+		await _czekaj(0.2)
+		wyniki[konf[0]] = s3._ap_bohatera.current_animation
+		if _zrzuty != "":
+			for i in 3:
+				await _zrzut("seq_%s_%02d" % [konf[0], i])
+	_os(JOY_AXIS_LEFT_X, 0.0)
+	_os(JOY_AXIS_LEFT_Y, 0.0)
+	_os(JOY_AXIS_RIGHT_X, 0.0)
+	_os(JOY_AXIS_RIGHT_Y, 0.0)
+	_ok("kroki: bieg przodem, krok w tył, krok w bok", wyniki["bieg"].ends_with("_bieg") and wyniki["tyl"].ends_with("_tyl") and (wyniki["bok"].ends_with("_lewo") or wyniki["bok"].ends_with("_prawo")), str(wyniki))
+	await _czekaj(0.3)
+
+
 func _test_wygladu(p, en) -> void:
 	var B = load("res://skrypty/bohater.gd")
 	var wyg: Dictionary = Dane.wyglad
@@ -378,6 +438,8 @@ func _test() -> void:
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true
 
+	await _test_plynnosci(p)
+
 	# skrzynia: A otwiera, przeszukanie, zabierz wszystko, B zamyka
 	var sk: Dictionary = rajd.mapa.skrzynie[0]
 	p.w = sk["w"] + Vector2(0.6, 0.0)
@@ -416,9 +478,16 @@ func _test() -> void:
 	p.hp_max = 9999.0
 	for w in rajd.wrogowie:  # test ekstrakcji, nie walki: wróg nie może wypchnąć gracza z kręgu
 		w.uspiony = true
+	await _czekaj_az(func(): return p.unik_czas <= 0.0, 5.0)  # przewrót w toku przesunąłby gracza z kręgu (wyścig przy małym FPS)
 	p.w = rajd.mapa.ekstrakcje[0]["w"]
-	await _czekaj_az(func(): return wynik != null, 180.0)  # 6 s czasu gry; w software ~1 FPS
-	_ok("ekstrakcja kończy rajd", wynik != null and ostatni_wynik.get("przezyl", false))
+	var eks_diag := ""
+	var eks_t := 0.0
+	while wynik == null and eks_t < 180.0:
+		await _czekaj(0.1)
+		eks_t += 0.1
+		if rajd != null:
+			eks_diag = "pozostało %.1f s, w kręgu %s, odl %.1f, %d FPS" % [rajd.ekstrakcja_czas, str(rajd.w_ekstrakcji), p.w.distance_to(rajd.mapa.ekstrakcje[0]["w"]), Engine.get_frames_per_second()]
+	_ok("ekstrakcja kończy rajd", wynik != null and ostatni_wynik.get("przezyl", false), eks_diag)
 	await _zrzut("5_wynik")
 	await _czekaj(0.2)
 	await _pad(JOY_BUTTON_A)

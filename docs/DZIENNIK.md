@@ -17,6 +17,20 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 15:40 — agent główny (konto autora), rola: gamedev
+- Gałąź: plynna-walka (z gra-3d). Cel autora: płynna walka i ruch, „jak taniec z mieczem”, bez epileptycznych podrygów.
+- **Przyczyna**: klipy ataków trwają 0,8–2,5 s, a gra grała je w 0,3–0,42 s (3–8 razy szybciej); przewrót 1 s w 0,3 s; chód 1 m/s przy ruchu 3,4 m/s (ślizganie); ciało obracało się natychmiast za myszką; doskok to teleport; brak przejść między animacjami.
+- Zrobione (tylko wygląd; okna trafień, obrażenia, koszty staminy, zasięgi, czasy uniku i parowania BEZ ZMIAN):
+  - Nowe animacje ruchu Hadræna dla wszystkich broni: bieg, krok w tył, kroki w bok (paczki Mixamo autora), dobór wg kierunku ruchu względem twarzy i prędkości; tempo kroków dopasowane do prędkości.
+  - Ciosy: jedno stałe tempo klipu, uderzenie ok. 0,1 s po wciśnięciu (tabela ATAK_PLAN w swiat3d.gd, zmierzona na dłoni), wybrzmienie 0,46 s lub dłużej (czas wyglądu = 1,35 × cooldown broni), płynne przejścia 0,07–0,2 s między stanami.
+  - Obrót ciała: wygładzony, ograniczona prędkość; martwa strefa 0,9 pola przy kursorze tuż przy postaci (koniec „śmigła”).
+  - Doskok przy ciosie i odrzut wrogów dopływają (`impuls()`), logika nadal przeskakuje od razu.
+  - Cios wroga (animacja `cios`) 0,34 s zamiast 0,22 s (tylko wygląd).
+  - Testy: 35/35 (nowe: obrót bez skoku, płynny doskok, bieg/tył/bok).
+- Narzędzia: `narzedzia/gra_3d/ruch_sekwencja.gd` (zrzuty ciosów klatka po klatce), cfg_hadraen.json + 16 nowych klipów.
+- NIE sprawdzone: wrażenie z grania na żywo i na prawdziwym padzie; kierunki kroków w bok oceniono z danych klipów, nie okiem; kilka klipów ciosów ma szeroki obrót tułowia (dwuręczny cios 2, topór cios 2, pięści) — do oceny autora; wrogowie nadal bez płynnych przejść; balans nie ruszany.
+- Do rozważenia (wymaga zgody autora, bo dotyka balansu): wydłużenie okna ciosu i czasu uniku, żeby ruch i obrażenia pasowały do wolniejszych, płynniejszych animacji.
+
 ## 2026-11-25 15:10 — agent główny (konto autora)
 - Gałąź: gra-3d.
 - Autor wskazał paczkę tekstur z NightBrand: `C:\Users\Admin\Downloads\GRAFIKI_SWIAT\GRAFIKI_SWIAT` (tekstury 137, efekty 14, rekwizyty_tekstury 328, nazwy = hash). Przejrzano próbkę (efekty 14/14, rekwizyty 31/328, tekstury 25/137).
