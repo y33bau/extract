@@ -17,6 +17,14 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-25 23:40 — agent główny, rola: grafik
+- Gałąź `mapy-runda-2`. Dokończone: rycerz (nowy model z opisu przez agenta Meshy, 9+30 kr) i boss-utopiec (ponowne użycie monitu w pozie T, 35 kr) — remesh 30K, rig humanoid, wypiek, ożywienie kolorów. Wszyscy wrogowie i NPC są teraz z Meshy w pozie T.
+- Usunięte osierocone tekstury starych wypieków rycerza i bossa.
+- Przerwa: komputer autora zaatakowany trojanem (fałszywa strona opendiablo2.com, komenda wklejona w Win+R). Autor usunął zagrożenia (Malwarebytes), zresetował przeglądarki, zmienił hasła; praca wznowiona na jego „kontynuuj”. Nie ma związku z pracą nad grą.
+- Kredyty Meshy w dniu: ok. 465 z 1000.
+- Testy: 61/61 OK. Galeria kontrolna: wszyscy wrogowie obejrzani.
+- NIE sprawdzone: wygląd na monitorze autora, prawdziwy pad, wydajność z nowymi modelami.
+
 ## 2026-11-25 21:30 — konto autora / agent główny (grafik + gamedev), rola: grafik
 - Gałąź: `mapy-runda-2`, commity `94d625c` (NPC, światło) i `66dc53b` (wrogowie). main nietknięty.
 - Zlecenie autora (/goal „pracuj dopóki postacie nie będą żyły”): NPC i moby szare, poświata na bohaterze brzydka, Chojrak „jak po udarze”, chłop „jak połamany”; kolory mają być nasycone jak w podglądzie Meshy; wolno generować nowe postacie w Meshy.
