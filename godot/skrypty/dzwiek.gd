@@ -29,6 +29,11 @@ func _ready() -> void:
 	_bufory["lup"] = _miks([_ton(580, 880, 0.10, "tri", 0.09)])
 	_bufory["ui"] = _miks([_ton(420, 320, 0.04, "tri", 0.05)])
 	_bufory["tik"] = _miks([_ton(528, 528, 0.10, "sin", 0.09)])
+	# zapowiedzi ciosów wrogów: zwykły = metaliczny dźwięk ostrza, ciężki = niski pomruk
+	_bufory["zapowiedz"] = _miks([_ton(760, 980, 0.16, "tri", 0.07), _szum(0.18, 2600, 0.05, "bp", true)])
+	_bufory["zapowiedz_c"] = _miks([_ton(70, 52, 0.42, "saw", 0.16), _ton(105, 78, 0.38, "sq", 0.06)])
+	_bufory["blysk"] = _miks([_ton(2350, 2300, 0.20, "sin", 0.15), _ton(3520, 3450, 0.14, "sin", 0.08)])
+	_bufory["blysk_c"] = _miks([_ton(150, 90, 0.18, "saw", 0.14), _szum(0.10, 600, 0.12, "lp", true)])
 	_bufory["ekstrakcja"] = _miks([_ton(392, 523, 0.24, "tri", 0.13), _przesun(_ton(523, 784, 0.40, "tri", 0.15), 0.18)])
 
 
@@ -55,6 +60,8 @@ func lup() -> void: _graj("lup")
 func ui() -> void: _graj("ui")
 func tik() -> void: _graj("tik")
 func ekstrakcja() -> void: _graj("ekstrakcja")
+func zapowiedz(ciezki := false) -> void: _graj("zapowiedz_c" if ciezki else "zapowiedz")
+func blysk(ciezki := false) -> void: _graj("blysk_c" if ciezki else "blysk")
 
 
 # ---------------- synteza

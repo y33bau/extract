@@ -26,6 +26,45 @@ func _ready() -> void:
 	hub_warstwa.add_child(hub)
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--podglad="):
+			_podglad.call_deferred(a.substr(10))
+
+
+## Podgląd oprawy dla agenta: --podglad=kraina,ziarno,katalog -> zrzuty kilku miejsc mapy (bez sterowania).
+func _podglad(arg: String) -> void:
+	var cz := arg.split(",")
+	Profil.resetuj()
+	rozpocznij_rajd(cz[0], cz[1])
+	await _czekaj(0.3)
+	var p = rajd.gracz
+	for en in rajd.wrogowie:
+		en.uspiony = true
+	hud.visible = false
+	var miejsca: Array = [p.w]
+	for k in rajd.mapa.kosze:
+		miejsca.append(k + Vector2(1.2, 0.8))
+		if miejsca.size() >= 3:
+			break
+	if rajd.mapa.ekstrakcje.size() > 0:
+		miejsca.append(rajd.mapa.ekstrakcje[0]["w"])
+	if rajd.wrogowie.size() > 0:
+		var en = rajd.wrogowie[0]
+		miejsca.append(en.w + Vector2(1.2, 0.0))
+	for i in miejsca.size():
+		p.w = miejsca[i]
+		p.kat = 2.4
+		if i == miejsca.size() - 1 and rajd.wrogowie.size() > 0:
+			var en = rajd.wrogowie[0]
+			en.uspiony = false
+			en.stan = "walka"
+			en.zamach = en.zamach_dl * 0.75
+		await _czekaj(0.6)
+		_zrzuty = cz[2]
+		DirAccess.make_dir_recursive_absolute(_zrzuty)
+		await _zrzut("%s_%d" % [cz[0], i])
+		print("PODGLAD ", cz[0], " ", i)
+	get_tree().quit(0)
 
 
 func rozpocznij_rajd(kraina: String, ziarno: String) -> void:
@@ -195,6 +234,24 @@ func _anim3d() -> String:
 	return rajd.swiat3d._ap_bohatera.current_animation
 
 
+## Oprawa mapy: materiały krainy z tekstur NightBrand, maska murów, pochodnie nie wiszą w powietrzu.
+func _test_mapy() -> void:
+	var s3 = rajd.swiat3d
+	if s3 == null:
+		return
+	var mat = s3._mat.get("podloga")
+	var tex: Texture2D = mat.get_shader_parameter("a_alb") if mat is ShaderMaterial else null
+	_ok("mapa: podłoga z tekstur NightBrand krainy", tex != null and tex.resource_path.contains(s3.wyglad["a"]), tex.resource_path.get_file() if tex else "brak")
+	var mur = s3._mat.get("mur")
+	_ok("mapa: mury z własnym materiałem", mur is ShaderMaterial and mur.get_shader_parameter("m_alb") != null)
+	s3.odswiez_widok()
+	var wiszace := 0
+	for pm in s3._pochodnie_murow:
+		if (pm[0] as Node3D).visible and s3._mury_ciete.get(pm[2], false):
+			wiszace += 1
+	_ok("mapa: pochodnie na obniżonych murach ukryte", s3._pochodnie_murow.size() > 0 and wiszace == 0, "%d pochodni" % s3._pochodnie_murow.size())
+
+
 ## Płynność ruchu bohatera: obrót bez skoków, doskok dopływa, kroki dopasowane do kierunku ruchu.
 func _test_plynnosci(p) -> void:
 	var s3 = rajd.swiat3d
@@ -360,6 +417,7 @@ func _test() -> void:
 	rozpocznij_rajd("catacombs", "TEST01")
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)
+	_test_mapy()
 	var p = rajd.gracz
 	for en in rajd.wrogowie:
 		en.w = Vector2(2.5, 2.5) if rajd.mapa.kafel(2, 2) != 2 else en.w
@@ -406,6 +464,18 @@ func _test() -> void:
 		var l3: OmniLight3D = d3.get("swiatlo")
 		_ok("3D: zapowiedź ciosu wroga (zamach + rozbłysk)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy > 0.5,
 			"%s, %.1f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0])
+		var zn: MeshInstance3D = d3.get("znak")
+		_ok("zapowiedź: klin zasięgu na ziemi", zn != null and zn.visible, "widoczny" if zn and zn.visible else "brak")
+		# błysk „paruj teraz” pojawia się przed uderzeniem, w czasie krótszym niż okno parowania
+		# (wywołanie wprost, bez czekania na klatki: przy małym FPS cios spadłby w trakcie testu)
+		var zostaw: float = en.zamach
+		en.zamach = rajd.swiat3d.BLYSK_PRZED * 0.5
+		rajd.swiat3d._zapowiedz(en, d3, 0.9, true)
+		var gw: Sprite3D = d3.get("glint")
+		var widac_blysk: bool = gw != null and gw.visible
+		en.zamach = maxf(zostaw, 0.3)
+		await _zrzut("3b_zapowiedz_blysk")
+		_ok("zapowiedź: błysk broni w chwili parowania", widac_blysk and rajd.swiat3d.BLYSK_PRZED < 0.28, "błysk %.2f s przed ciosem" % rajd.swiat3d.BLYSK_PRZED)
 	# LB wciśnięty, a cios wroga spada w oknie parowania (deterministycznie, niezależnie od FPS)
 	await _pad(JOY_BUTTON_LEFT_SHOULDER, 0.02)
 	en.zamach = 0.01
