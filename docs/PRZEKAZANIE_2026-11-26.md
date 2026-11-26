@@ -1,12 +1,12 @@
 Stan na 2026-11-26, rola: agent główny
 
-# PRZEKAZANIE — sesja 26.11.2026 (konto 2), od startu do HUD-u
+# PRZEKAZANIE — sesja 26.11.2026 (konto 2), od startu do namierzania
 
 Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw `START_TUTAJ.md`, `ZASADY.md`, `FUNDAMENT.md`, potem ten plik. Szczegóły każdej rundy są w `DZIENNIK.md` (najnowsze na górze).
 
 ## 1. Stan w jednym akapicie
 
-`main` = `97c0c22` (opublikowano 26.11 o 00:06 całą linię do `mapy-runda-2`). Od tego czasu powstały **4 nieopublikowane rundy na gałęziach, każda zawiera poprzednią**:
+`main` = `97c0c22` (opublikowano 26.11 o 00:06 całą linię do `mapy-runda-2`). Od tego czasu powstały **5 nieopublikowanych rund na gałęziach, każda zawiera poprzednią**:
 `walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → `hud-nightbrand` → **`namierzanie` (najnowsza — od niej zaczynaj)**. Testy: **94/94 OK**, kontrola spakowanej gry Linux 94/94 OK. Ostatnia paczka dla autora: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Namierzanie.zip` (`TEST_NAMIERZANIE.bat`). Autor nie powiedział jeszcze „publikuj” dla żadnej z tych rund — na „publikuj” scal `namierzanie` do main (`--ff-only`; zawiera wszystkie poprzednie).
 
 ## 2. Co zrobiono (chronologicznie)
@@ -35,10 +35,10 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 - Próg mocnego ciosu `rajd.PROG_MOCNEGO` = 0,35 s. Mocny cios używa liczb ciężkiego ciosu combo (bez nowych liczb). Podczas ładowania krok jak przy bloku (1,9).
 - Starsze, nadal czekające: wrogowie 34/44/50 na mapę, czas rajdu 15 min, skrzynie 40–80, nagrody kontraktów 40/60/150–400.
 
-## 5. Sterowanie (stan na `hud-nightbrand`, źródło: `godot/skrypty/sterowanie.gd`, lista dla gracza: `Sterowanie.OPIS`)
+## 5. Sterowanie (stan na `namierzanie`, źródło: `godot/skrypty/sterowanie.gd`, lista dla gracza: `Sterowanie.OPIS`)
 | Czynność | Klawiatura i mysz | Pad |
 |---|---|---|
-| Ruch / celowanie | WASD, strzałki / mysz | lewy / prawy drążek |
+| Ruch / kierunek postaci | WASD, strzałki (kursor NIE obraca postaci; LPM na wroga = cios w niego) | lewy / prawy drążek |
 | Cios (combo); przytrzymaj = mocny | LPM, J | X, RT, RB |
 | Blok i parowanie | PPM, L | LB |
 | Unik | Spacja, Shift | **A** (było B) |
