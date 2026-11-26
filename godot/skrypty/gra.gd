@@ -10,6 +10,7 @@ const Hud = preload("res://skrypty/hud.gd")
 const Okno = preload("res://skrypty/okno_lupu.gd")
 const Przystan = preload("res://skrypty/przystan.gd")
 const Pauza = preload("res://skrypty/pauza.gd")
+const EkranTytulowy = preload("res://skrypty/ekran_tytulowy.gd")
 
 var hub_warstwa: CanvasLayer
 var hub: Hub
@@ -21,6 +22,8 @@ var pauza: Pauza
 var wynik: CanvasLayer
 var wynik_przycisk: Button
 var ostatni_wynik := {}
+var tytul: EkranTytulowy
+var _w_tytule := false
 
 
 func _ready() -> void:
@@ -41,6 +44,21 @@ func _ready() -> void:
 		if przystan != null:
 			przystan.odswiez_budynki())
 	_przystan()
+	tytul = EkranTytulowy.new()
+	tytul.visible = false
+	add_child(tytul)
+	tytul.kontynuuj.connect(zamknij_tytul)
+	tytul.opcje.connect(func():
+		tytul.visible = false
+		pauza.otworz("Warownia Popiołów", false)
+		pauza.zakladki.current_tab = 2)
+	pauza.wznowiono.connect(func(): if _w_tytule: tytul.visible = true; tytul.przycisk_opcje.grab_focus())
+	var narzedzia_agenta := false
+	for a in OS.get_cmdline_user_args():
+		if a == "--test" or a.begins_with("--podglad") or a.begins_with("--pomiar"):
+			narzedzia_agenta = true
+	if not narzedzia_agenta:
+		pokaz_tytul.call_deferred()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
 	for a in OS.get_cmdline_user_args():
@@ -300,7 +318,25 @@ func _przystan() -> void:
 	hub.visible = false
 
 
+## Ekran tytułowy (etap 5 przebudowy menu): na starcie gry, przed Przystanią.
+func pokaz_tytul() -> void:
+	_w_tytule = true
+	if przystan:
+		przystan.aktywna = false
+	tytul.pokaz()
+
+
+func zamknij_tytul() -> void:
+	_w_tytule = false
+	tytul.visible = false
+	Dzwiek.ui()
+	if przystan and not hub.is_visible_in_tree():
+		przystan.aktywna = true
+
+
 func moze_pauzowac() -> bool:
+	if _w_tytule:
+		return false
 	if rajd != null:
 		return not rajd.zakonczony and not rajd.okno_otwarte
 	return przystan != null and przystan.aktywna and not hub.is_visible_in_tree()
@@ -308,7 +344,7 @@ func moze_pauzowac() -> bool:
 
 func otworz_pauze() -> void:
 	if rajd != null:
-		pauza.otworz(str(rajd.kraina["name"]), true, "Pokonani %d   ·   Parowania %d" % [rajd.zabici, rajd.parowania])
+		pauza.otworz(str(rajd.kraina["name"]), true, "Pokonani %d   ·   Parowania %d" % [rajd.zabici, rajd.parowania], str(rajd.kraina["id"]))
 	else:
 		pauza.otworz("Przystań · Warownia Popiołów", false)
 
@@ -372,47 +408,121 @@ func _koniec_rajdu(przezyl: bool, powod: String, s: Dictionary) -> void:
 	ostatni_wynik = {"przezyl": przezyl, "powod": powod, "s": s}
 	if okno:
 		okno.visible = false
+	if hud:
+		hud.visible = false
+	# Wynik wyprawy jak menu NightBrand (instrukcja przebudowy menu, etap 4): ilustracja biotopu w tle,
+	# lewy panel = przebieg w tabeli par, prawy = łup jako ikony + suma złota, awanse z paskiem.
 	wynik = CanvasLayer.new()
 	wynik.layer = 30
 	add_child(wynik)
-	var tlo := ColorRect.new()
-	tlo.color = Color(0, 0, 0, 0.82)
+	var tlo := Control.new()
 	tlo.set_anchors_preset(Control.PRESET_FULL_RECT)
 	tlo.theme = Ui.motyw()
 	wynik.add_child(tlo)
-	var p := Ui.panel()
-	p.custom_minimum_size = Vector2(520, 0)
-	tlo.add_child(p)
-	p.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
-	p.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	p.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var czern := ColorRect.new()
+	czern.color = Color.BLACK
+	czern.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tlo.add_child(czern)
+	var obraz := TextureRect.new()
+	obraz.texture = load("res://zasoby/ui/menu/%s.webp" % Pauza.TLA.get(str(s.get("kraina_id", "")), "tlo_menu_1"))
+	obraz.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	obraz.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	obraz.modulate = Color(0.5, 0.42, 0.4) if przezyl else Color(0.42, 0.3, 0.3)
+	obraz.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tlo.add_child(obraz)
+	tlo.add_child(Ui.gradient_pionowy())
+	tlo.add_child(Ui.winieta())
+	var marg := MarginContainer.new()
+	marg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for k in ["left", "right"]:
+		marg.add_theme_constant_override("margin_" + k, 110)
+	marg.add_theme_constant_override("margin_top", 26)
+	marg.add_theme_constant_override("margin_bottom", 24)
+	tlo.add_child(marg)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 10)
-	p.add_child(v)
-	var t := Ui.etykieta("Ekstrakcja udana" if przezyl else "Poległeś w ruinach", 26, Color("34d399") if przezyl else Color("ef4444"))
+	v.add_theme_constant_override("separation", 6)
+	marg.add_child(v)
+	var t := Ui.naglowek_menu("EKSTRAKCJA UDANA" if przezyl else "POLEGŁEŚ", 44, Color("a7e8c4") if przezyl else Color("e87a6a"), 4)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.add_theme_constant_override("outline_size", 6)
+	t.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
 	v.add_child(t)
-	var pw := Ui.etykieta(powod, 14)
+	var sep := TextureRect.new()
+	sep.texture = load("res://zasoby/ui/menu/separator_z_pietnem.webp")
+	sep.custom_minimum_size = Vector2(300, 40)
+	sep.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sep.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	v.add_child(sep)
+	var pw := Ui.tekst_menu(powod, 15, Ui.M_DRUGI)
 	pw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(pw)
+	var odst := Control.new()
+	odst.custom_minimum_size = Vector2(0, 8)
+	v.add_child(odst)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 24)
+	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(h)
+	var pl := PanelContainer.new()
+	pl.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
+	pl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(pl)
+	var lv := VBoxContainer.new()
+	lv.add_theme_constant_override("separation", 6)
+	pl.add_child(lv)
+	lv.add_child(Ui.belka_sekcji("Przebieg wyprawy"))
 	var m := int(s["czas"] / 60.0)
 	var sek := int(s["czas"]) % 60
-	var txt := "Kraina: %s (%s)\nCzas wyprawy: %d:%02d\nPokonani wrogowie: %d\nUdane parowania: %d\nRynsztunek: %s\nDoświadczenie: %s" % [
-		s["kraina"], s["ziarno"], m, sek, s["zabici"], s["parowania"],
-		"zabezpieczony w Warowni" if przezyl else "utracony (Relikwiarz ocalał)",
-		"zaliczone w całości" if przezyl else "zaliczona połowa"]
-	if przezyl:
-		txt += "\nWartość łupu z sakwy: %d zł" % s["wartosc"]
+	lv.add_child(Ui.para("Kraina", str(s["kraina"]) + ("  (%s)" % s["ziarno"] if Ui.tryb_autora() else "")))
+	lv.add_child(Ui.para("Czas wyprawy", "%d:%02d" % [m, sek]))
+	lv.add_child(Ui.para("Pokonani wrogowie", str(s["zabici"])))
+	lv.add_child(Ui.para("Udane parowania", str(s["parowania"])))
+	lv.add_child(Ui.para("Rynsztunek", "zabezpieczony w Warowni" if przezyl else "utracony (Relikwiarz ocalał)", Ui.M_ZIELONY if przezyl else Ui.M_OSTRZ))
+	lv.add_child(Ui.para("Doświadczenie", "zaliczone w całości" if przezyl else "zaliczona połowa", Ui.M_ZLOTO2 if przezyl else Ui.M_OSTRZ))
+	var pp := PanelContainer.new()
+	pp.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
+	pp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(pp)
+	var rv := VBoxContainer.new()
+	rv.add_theme_constant_override("separation", 6)
+	pp.add_child(rv)
+	rv.add_child(Ui.belka_sekcji("Łup"))
+	var siatka := GridContainer.new()
+	siatka.columns = 8
+	siatka.add_theme_constant_override("h_separation", 6)
+	siatka.add_theme_constant_override("v_separation", 6)
+	for id in s.get("lup", []):
+		var ik := TextureRect.new()
+		ik.texture = Dane.ikona(str(id))
+		ik.custom_minimum_size = Vector2(40, 40)
+		ik.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ik.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ik.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ik.tooltip_text = str(Dane.p(str(id)).get("name", ""))
+		siatka.add_child(ik)
+	rv.add_child(siatka)
+	if s.get("lup", []).is_empty():
+		rv.add_child(Ui.tekst_menu("Sakwa wróciła pusta." if przezyl else "Łup przepadł w mroku.", 14, Ui.M_DRUGI))
+	var zl := Ui.naglowek_menu("%d zł" % int(s["wartosc"]) if przezyl else "0 zł", 34, Ui.M_ZLOTO2)
+	zl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rv.add_child(zl)
+	var pz := Ui.tekst_menu("wartość łupu z sakwy", 12, Ui.M_DRUGI)
+	pz.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rv.add_child(pz)
 	for kt in s.get("kontrakty", []):
-		txt += "\nKontrakt Chojraka wykonany: %s" % kt
+		rv.add_child(Ui.para("Kontrakt Chojraka", str(kt), Ui.M_ZIELONY))
 	for a in s["awanse"]:
-		txt += "\nAwans: %s — poziom %d" % [Dane.umiejetnosci[a[0]]["name"], a[1]]
-	v.add_child(Ui.etykieta(txt, 14))
-	wynik_przycisk = Ui.przycisk_akcji("POWRÓT DO WAROWNI")
-	wynik_przycisk.custom_minimum_size = Vector2(0, 48)
+		rv.add_child(Ui.para("Awans: %s" % Dane.umiejetnosci[a[0]]["name"], "poziom %d" % a[1], Ui.M_ZLOTO2))
+	var dol := HBoxContainer.new()
+	dol.alignment = BoxContainer.ALIGNMENT_CENTER
+	dol.custom_minimum_size = Vector2(0, 80)
+	v.add_child(dol)
+	wynik_przycisk = Ui.przycisk_menu("Powrót do Warowni", true)
+	wynik_przycisk.custom_minimum_size = Vector2(340, 68)
 	wynik_przycisk.pressed.connect(powrot_do_warowni)
-	v.add_child(wynik_przycisk)
+	dol.add_child(wynik_przycisk)
 	wynik_przycisk.grab_focus.call_deferred()
+	Ui.blokada_po_otwarciu(self)
 
 
 func powrot_do_warowni() -> void:
@@ -521,6 +631,26 @@ func _test_kramu() -> void:
 	Profil.d = kopia_profilu  # test nie zmienia profilu (zakup był tylko sprawdzeniem)
 
 
+## Ekran tytułowy (etap 5): fokus na „Kontynuuj”, A po blokadzie 0,4 s prowadzi do Przystani; Opcje otwierają pauzę → Opcje.
+func _test_tytulu() -> void:
+	pokaz_tytul()
+	await _klatka()
+	await _klatka()
+	_ok("ekran tytułowy: Warownia Popiołów, fokus na Kontynuuj", tytul.visible and get_viewport().gui_get_focus_owner() == tytul.przycisk_kontynuuj and not przystan.aktywna)
+	await _zrzut("0_ekran_tytulowy")
+	tytul.przycisk_opcje.pressed.emit()
+	await _klatka()
+	_ok("ekran tytułowy: Opcje otwierają pauzę na zakładce Opcje", pauza.visible and pauza.zakladki.current_tab == 2 and not tytul.visible)
+	pauza.zamknij()
+	await _klatka()
+	_ok("ekran tytułowy: po Opcjach wraca", tytul.visible)
+	await _czekaj(0.5)
+	tytul.przycisk_kontynuuj.grab_focus()
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return not tytul.visible, 2.0)
+	_ok("ekran tytułowy: A na Kontynuuj → Przystań", not tytul.visible and przystan.aktywna)
+
+
 ## Szlif menu i UI (zlecenie autora 26.11, ocena NightBrand): jeden panel opisu w Kupcu, bez narzędzi autora
 ## na widoku gracza, Reset poza górnym paskiem, spokojne „wybrane”, znaczki LB/RB przy zakładkach.
 func _test_szlifu_menu() -> void:
@@ -529,39 +659,90 @@ func _test_szlifu_menu() -> void:
 	await _klatka()
 	await _klatka()
 	var kraina: Dictionary = Dane.krainy[0]
-	hub.opis.text = "%s\n%s" % [kraina["subtitle"], kraina["desc"]]  # jak po fokusie na krainie
+	var tekst_szczegolow := func() -> String:
+		var t := ""
+		for l in hub.ekran.szczegoly.find_children("*", "Label", true, false):
+			t += (l as Label).text + "\n"
+		return t
+	var w_wyprawie: bool = tekst_szczegolow.call().contains(str(kraina["desc"])) or hub.wybrana_kraina != kraina["id"]
 	hub.zakladki.current_tab = 2
 	await _klatka()
 	await _klatka()
-	var w_kupcu: bool = hub.panel_opisu.visible and hub.opis.text.contains(str(kraina["desc"]))
-	_ok("Wyprawa → Kupiec: brak tekstu krainy, jeden panel opisu", not w_kupcu and not hub.panel_opisu.visible and hub.opis.text == "", "dolny panel %s" % hub.panel_opisu.visible)
+	_ok("Wyprawa → Kupiec: szczegóły bez tekstu krainy (jeden panel opisu)", w_wyprawie and not tekst_szczegolow.call().contains(str(kraina["desc"])))
 	var przed := int(Profil.d["gold"])
 	Profil.d["gold"] = 0
 	hub._kup("ember_flask")
 	await _klatka()
 	_ok("Kupiec: komunikat w prawym panelu", hub._sz_kom != null and hub._sz_kom.text == "Za mało złota!", hub._sz_kom.text if hub._sz_kom else "brak")
 	Profil.d["gold"] = przed
-	var gora_reset := hub.find_children("*", "Button", true, false).any(func(b): return b.text == "Reset")
-	_ok("Warownia: Reset zniknął z górnego paska", not gora_reset)
+	var gora := hub.find_children("*", "Button", true, false).filter(func(b): return b.text in ["Reset", "Dźwięk: wł.", "Dźwięk: wył."] or b.text.begins_with("Grafika:"))
+	_ok("Warownia: Reset, Dźwięk i Grafika nie w menu Warowni (są w Opcjach pauzy)", gora.is_empty())
 	hub.zakladki.current_tab = 0
 	await _klatka()
 	await _klatka()
-	var pole_ziarna := hub.t_wyprawa.find_children("*", "LineEdit", true, false)
+	var pole_ziarna := hub.ekran.find_children("*", "LineEdit", true, false)
 	_ok("Wyprawa: ziarno mapy i Losuj ukryte (tylko tryb autora)", pole_ziarna.size() > 0 and not (pole_ziarna[0] as LineEdit).is_visible_in_tree())
-	var wybrany: Array = hub.t_wyprawa.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "kraina_" + hub.wybrana_kraina)
-	_ok("wybrana kraina: spokojny znak, nie biała ramka", wybrany.size() == 1 and (wybrany[0] as Button).get_theme_stylebox("normal") is StyleBoxTexture)
-	var gw := hub.t_wyprawa.find_children("*", "Button", true, false).filter(func(b): return str(b.text).contains("★"))
-	var skala_ok := true
-	for b in gw:
-		var gwiazdki := 0
-		for ch in str(b.text):
-			if ch == "★" or ch == "☆":
-				gwiazdki += 1
-		skala_ok = skala_ok and gwiazdki == 4
-	_ok("trudność: jedna skala gwiazdek (4)", gw.size() >= 3 and skala_ok, "%d krain" % gw.size())
+	var wybrany: Array = hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "kraina_" + hub.wybrana_kraina)
+	var nazwa_wybranej: Label = wybrany[0].get_meta("etykieta_nazwy") if wybrany.size() == 1 else null
+	_ok("wybrana kraina: znak ◆, nie biała ramka", nazwa_wybranej != null and nazwa_wybranej.text.begins_with("◆") and not (wybrany[0] as Button).get_theme_stylebox("normal") is StyleBoxFlat)
+	var znaki_ok := true
+	var krain := 0
+	for b in hub.ekran.lista.find_children("*", "Button", true, false):
+		if str(b.get_meta("klucz", "")).begins_with("kraina_"):
+			krain += 1
+			var t := ""
+			for l in b.find_children("*", "Label", true, false):
+				t += (l as Label).text
+			var n := 0
+			for ch in t:
+				if ch == "◆" or ch == "◇":
+					n += 1
+			znaki_ok = znaki_ok and (n == 4 or n == 5)  # 4 znaki trudności (+ ◆ przy wybranej)
+	_ok("trudność: jedna skala znaków (◆◆◇◇)", krain >= 3 and znaki_ok, "%d krain" % krain)
 	await _pad(JOY_BUTTON_DPAD_DOWN)
 	_ok("pad: menu wie, że gra się padem (znaczki LB/RB)", Sterowanie.pad_aktywny)
 	await _zrzut("2b_wyprawa_pad")
+	# każda sekcja na szablonie: tytuł, lista z wierszami, szczegóły
+	var sekcje_ok := true
+	for i in 5:
+		hub.zakladki.current_tab = i
+		await _klatka()
+		var wiersze := hub.ekran.lista.find_children("*", "Button", true, false).size()
+		var szczeg := hub.ekran.szczegoly.get_child_count()
+		sekcje_ok = sekcje_ok and wiersze > 0 and szczeg > 0 and hub.ekran.tytul.text == hub.TYTULY[i] and hub.ekran.aktywna == i
+		await _zrzut("menu_%d_%s" % [i, hub.SEKCJE[i].to_lower()])
+	_ok("menu Warowni: 5 sekcji na szablonie (lista + szczegóły)", sekcje_ok)
+	# odbiór instrukcji §6: (b) RB i LB zmieniają sekcję na każdym ekranie, (c) B wraca z każdego ekranu do Przystani
+	var nawig_ok := true
+	var nawig_info := []
+	for i in 5:
+		otworz_menu(i)
+		await _czekaj(0.45)  # blokada 0,4 s po otwarciu ekranu
+		await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+		var po_rb: int = hub.zakladki.current_tab
+		await _pad(JOY_BUTTON_LEFT_SHOULDER)
+		var po_lb: int = hub.zakladki.current_tab
+		await _pad(JOY_BUTTON_B)
+		await _czekaj_az(func(): return not hub.is_visible_in_tree(), 2.0)
+		var wrocil: bool = not hub.is_visible_in_tree() and przystan != null and przystan.aktywna
+		if po_rb != (i + 1) % 5 or po_lb != i or not wrocil:
+			nawig_ok = false
+			nawig_info.append("%s: RB→%d LB→%d B %s" % [hub.SEKCJE[i], po_rb, po_lb, wrocil])
+	_ok("menu: LB/RB zmieniają sekcję i B wraca do Przystani z każdego ekranu", nawig_ok, ", ".join(nawig_info))
+	otworz_menu(0)
+	await _czekaj(0.45)
+	# Warownia: rozbudowa z wiersza działa jak dawniej (te same koszty)
+	hub.zakladki.current_tab = 3
+	await _klatka()
+	var kopia: Dictionary = Profil.d.duplicate(true)
+	Profil.d["gold"] = 99999
+	for s in ["iron", "ash", "relic"]:
+		for j in 6:
+			Profil.d["stash"].append(Profil.nowy_przedmiot({"iron": "iron_ingot", "ash": "ash_essence", "relic": "ancient_relic"}[s]))
+	var lv0 := Profil.budynek("forge")
+	hub._rozbuduj("forge")
+	_ok("Warownia: rozbudowa Kuźni z menu", Profil.budynek("forge") == lv0 + 1, "poziom %d → %d" % [lv0, Profil.budynek("forge")])
+	Profil.d = kopia
 	hub.zakladki.current_tab = 2
 	await _klatka()
 	await _zrzut("1e_kram_szlif")
@@ -804,7 +985,7 @@ func _test_pauzy(gdzie: String, zrzut: String) -> void:
 	var wiersze := pauza.zakladki.get_child(0).find_children("*", "Label", true, false).size()
 	_ok("%s: pauza — sterowanie klawiatura + pad dla każdej czynności" % gdzie, wiersze >= Sterowanie.OPIS.size() * 2, "%d etykiet" % wiersze)
 	if rajd != null:
-		_ok("rajd: pod pauzą HUD schowany, wynik walki w podtytule", not hud.visible and pauza.podtytul.text.contains("Pokonani"), pauza.podtytul.text)
+		_ok("rajd: pod pauzą HUD schowany, wynik walki w podtytule", not hud.visible and pauza.podtytul.text.to_lower().contains("pokonani"), pauza.podtytul.text)
 		_ok("rajd: w pauzie nie ma usuwania zapisu", not pauza.dane_zapisu.visible)
 	else:
 		_ok("Przystań: Opcje → usuń zapis (z potwierdzeniem)", pauza.dane_zapisu.visible and pauza.zakladki.get_child(2).name == "Opcje")
@@ -1246,6 +1427,7 @@ func _test() -> void:
 	Profil.resetuj()
 	print("-- test gry Godot (symulowany pad)")
 	await _czekaj(0.4)
+	await _test_tytulu()
 	# Warownia-Przystań: start w 3D, swobodny ruch, NPC otwierają menu
 	_ok("Przystań: start w 3D, menu Warowni ukryte", przystan != null and przystan.is_inside_tree() and not hub.is_visible_in_tree())
 	await _zrzut("1_przystan")
@@ -1261,15 +1443,23 @@ func _test() -> void:
 	_ok("Przystań: Y przy Mardze otwiera Kupca", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1b_marga_kupiec")
 	# przejście zakładek padem (RB): w Kramie najpierw Kup → Sprzedaj, za skrajną zakładką — Warownia
-	_ok("Kram Margi na szablonie NightBrand (stary układ schowany)", hub.kram.visible and not hub.uklad.visible and hub.kram.tytul.text == "KRAM MARGI")
+	_ok("Kram Margi na szablonie NightBrand", hub.ekran.visible and hub.ekran.tytul.text == "KRAM MARGI")
 	hub.tryb_kupca = "kup"
 	hub.odswiez()
+	_os(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	await _klatka()
+	_os(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	await _klatka()
+	_ok("Kram: RT przełącza Kup → Sprzedaj łup", hub.tryb_kupca == "sprzedaj" and hub.zakladki.current_tab == 2)
+	_os(JOY_AXIS_TRIGGER_LEFT, 1.0)
+	await _klatka()
+	_os(JOY_AXIS_TRIGGER_LEFT, 0.0)
+	await _klatka()
+	_ok("Kram: LT wraca do Kup", hub.tryb_kupca == "kup")
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
-	_ok("Kram: RB przełącza Kup → Sprzedaj łup", hub.tryb_kupca == "sprzedaj" and hub.zakladki.current_tab == 2 and hub.kram.aktywna == 1)
-	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
-	_ok("RB przełącza zakładkę (z Kramu do Warowni)", hub.zakladki.current_tab == 3 and hub.uklad.visible and not hub.kram.visible)
+	_ok("RB przełącza sekcję (Kram → Warownia)", hub.zakladki.current_tab == 3 and hub.ekran.tytul.text == "ROZBUDOWA WAROWNI" and hub.ekran.aktywna == 3)
 	await _pad(JOY_BUTTON_LEFT_SHOULDER)
-	_ok("LB wraca do Kramu", hub.zakladki.current_tab == 2 and hub.kram.visible)
+	_ok("LB wraca do Kramu", hub.zakladki.current_tab == 2 and hub.ekran.tytul.text == "KRAM MARGI")
 	hub.tryb_kupca = "kup"
 	hub.zakladki.current_tab = 1
 	await _zrzut("2_ekwipunek")
@@ -1315,7 +1505,9 @@ func _test() -> void:
 	var zloto_przed_rajdem: int = int(Profil.d["gold"])
 	hub.zakladki.current_tab = 0
 	hub.odswiez()
-	_ok("Wyprawa: lista kontraktów Chojraka", hub.t_wyprawa.get_children().any(func(c): return c is Label and c.text.contains("KONTRAKTY")))
+	var belki := hub.ekran.lista.find_children("*", "Label", true, false).map(func(l): return (l as Label).text)
+	var kontrakty := hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "kontrakt")
+	_ok("Wyprawa: lista kontraktów Chojraka", belki.has("KONTRAKTY CHOJRAKA") and kontrakty.size() >= 1, "%d kontraktów" % kontrakty.size())
 	rozpocznij_rajd("catacombs", "TEST01")
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)

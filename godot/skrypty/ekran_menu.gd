@@ -219,12 +219,39 @@ func _ready() -> void:
 	ustaw_stopke([["lb", "Q / E", "Zakładki"], ["a", "Enter", "Wybierz"], ["b", "Esc", "Wróć"]])
 
 
-func _process(_dt: float) -> void:
+var _krzyzak_czas := 0.0
+var _krzyzak_nast := 0.0
+
+
+func _process(dt: float) -> void:
 	if not is_visible_in_tree():
 		return
 	if Sterowanie.pad_aktywny != _pad_byl:
 		_pad_byl = Sterowanie.pad_aktywny
 		_odswiez_znaczki()
+	# prawa gałka przewija panel szczegółów (zasada pada NightBrand)
+	var os := Input.get_axis("celuj_gora", "celuj_dol")
+	if absf(os) > 0.2:
+		przewijanie_szczegolow.scroll_vertical += int(os * 600.0 * dt)
+	# krzyżak przytrzymany: pierwszy krok, 0,4 s przerwy, potem co 0,16 s (pad nie ma autopowtarzania)
+	var kier := 0
+	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_DOWN):
+		kier = 1
+	elif Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_UP):
+		kier = -1
+	if kier == 0:
+		_krzyzak_czas = 0.0
+		return
+	_krzyzak_czas += dt
+	if _krzyzak_czas >= 0.4 and _krzyzak_czas >= _krzyzak_nast:
+		_krzyzak_nast = _krzyzak_czas + 0.16
+		var f := get_viewport().gui_get_focus_owner()
+		if f != null and is_ancestor_of(f):
+			var n := f.find_valid_focus_neighbor(SIDE_BOTTOM if kier > 0 else SIDE_TOP)
+			if n != null:
+				n.grab_focus()
+	elif _krzyzak_czas < 0.4:
+		_krzyzak_nast = 0.4
 
 
 ## Zakładki ekranu (nazwy) i która jest aktywna.

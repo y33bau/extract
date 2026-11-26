@@ -1559,6 +1559,9 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 	prof["stats"]["parries"] += parowania
 	var wartosc := 0
 	var l: Dictionary = p.rynsztunek
+	var lup_ids: Array = []  # tylko do ekranu wyniku (ikony łupu)
+	for it in l["backpack"]:
+		lup_ids.append(it["id"])
 	if przezyl:
 		Dzwiek.ekstrakcja()
 		prof["stats"]["survived"] += 1
@@ -1587,7 +1590,8 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 	var kontrakty: Array = Profil.rozlicz_kontrakty(kraina["id"], zabici, parowania, przezyl)
 	Profil.zapisz()
 	var podsumowanie := {"kraina": kraina["name"], "ziarno": ziarno, "czas": czas, "zabici": zabici, "parowania": parowania,
-		"wartosc": wartosc, "mnoznik_xp": mnoznik_xp, "awanse": awanse, "kontrakty": kontrakty}
+		"wartosc": wartosc, "mnoznik_xp": mnoznik_xp, "awanse": awanse, "kontrakty": kontrakty,
+		"kraina_id": kraina["id"], "lup": lup_ids if przezyl else []}
 	var opoznienie := 1.7 if p.martwy else 0.0
 	if opoznienie > 0.0:
 		await get_tree().create_timer(opoznienie).timeout

@@ -17,6 +17,20 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 16:30 — nowe konto, rola: gamedev — przebudowa menu, etapy 3–5 (całe menu na szablonie NightBrand)
+- Gałąź: `menu-etap2` (ciąg dalszy, łańcuch: `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).
+- **Decyzja autora (16:13): „Rób wszystkie kolejne etapy menu”** = zgoda także na etap 5 (ekran tytułowy), który instrukcja kazała najpierw uzgodnić.
+- Uwaga: sesja została wznowiona w trakcie pracy (15:56); część etapów była już w plikach bez commita — sprawdzone testem i zrzutami, dokończone, zatwierdzone tym wpisem.
+- Etap 3: cała Warownia na jednym szablonie (`hub.ekran`): zakładki = 5 sekcji (LB/RB, Q/E), tytuły STÓŁ CHOJRAKA / RYNSZTUNEK / KRAM MARGI / ROZBUDOWA WAROWNI / BIEGŁOŚCI. Wyprawa: krainy z miniaturą, trudność ◆◆◇◇, łup ★, kontrakty Chojraka ze złotem po prawej, „Wyrusz” (Start/Menu) z potwierdzeniem. Ekwipunek: belki Rynsztunek / Relikwiarz / Sakwa / Skrytka, portret Hadræna w szczegółach. Kram: Kup / Sprzedaj jako podzakładki LT/RT (Z/C). Warownia i Biegłości: wiersz „poziom N/3”, szczegóły z ilustracją, tabela (następny poziom, koszt), „Rozbuduj”. Prawa gałka przewija szczegóły; blokada 0,4 s po otwarciu ekranu.
+- Etap 4: pauza z malowanym tłem biotopu, podzakładki „Klawiatura i mysz” / „Kontroler Xbox”; okno łupu w dwóch panelach z ramą, opis pod spodem, stopka A/Y/X/B, tło 0,96 (HUD nie przebija); wynik wyprawy z tłem krainy, tabelą przebiegu, łupem jako ikony i złotem dużym napisem.
+- Etap 5: ekran tytułowy na starcie gry (`ekran_tytulowy.gd`): Warownia Popiołów + Piętno, Kontynuuj / Opcje / Wyjdź, Hadræn przy ognisku, pasek postępu. Logo graficzne — prompt w `docs/PROMPTY_MENU.md`.
+- Zasoby: `zasoby/ui/menu/` uzupełnione (`narzedzia/menu_zasoby.py`: kaplica, hadraen, rozdzial_2/5, ikony, ornamenty). Prompty na własne ilustracje (3 krainy, 4 stanowiska Przystani, logo, ikony 128 px): `docs/PROMPTY_MENU.md` (kopia u autora).
+- Testy: `testy.py godot` OK **130/130** (nowe m.in.: ekran tytułowy i jego przyciski, 5 sekcji na szablonie, LB/RB i B na każdym ekranie, rozbudowa z menu, znaki trudności). Kontrola spakowanej gry OK 130/130.
+- Dostarczone: `Menu_wszystkie_ekrany_przed_po_wzor.jpg`, gra w częściach `Warownia_NoweMenu.zip.001/.002` + `ZLOZ_Warownia_NoweMenu.bat`, `PROMPTY_MENU.md`.
+- NIE sprawdzone: Georgia u autora (zrzuty z Liberation Serif), prawdziwy pad (LT/RT, prawa gałka, chowanie kursora), ekrany inne niż 16:9, `ZLOZ_*.bat` u autora.
+- Decyzja autora czeka: trójkąt „!” nad wrogiem (instrukcja NightBrand §7: ostrzeżenie = tylko podświetlenie).
+- Następny krok: ocena autora; grafiki z promptów; potem doczytywanie assetów w Czarnoborze i odchudzenie paczki.
+
 ## 2026-11-26 15:55 — nowe konto, rola: gamedev — przebudowa menu, etap 1 i 2 (Kram Margi na szablonie NightBrand)
 - Gałąź: `menu-etap2` (od `szlif-menu-ui`; łańcuch: `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).
 - Zlecenie autora (15:37): przeczytać `INSTRUKCJA_PRZEBUDOWY_MENU_WAROWNIA_2026-11-26.md`, rozpakować `PAKIET_MENU_NIGHTBRAND.zip`, zrobić etap 1 i 2, pokazać Kram Margi obok wzoru.

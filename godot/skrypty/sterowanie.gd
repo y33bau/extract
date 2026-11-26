@@ -63,6 +63,9 @@ func _ready() -> void:
 	# zakładki menu: LB / RB na padzie, Q / E na klawiaturze (jak w NightBrand); w rajdzie tylko w oknach
 	_akcja("zakladka_lewo", [_pr(JOY_BUTTON_LEFT_SHOULDER), _klaw(KEY_Q)])
 	_akcja("zakladka_prawo", [_pr(JOY_BUTTON_RIGHT_SHOULDER), _klaw(KEY_E)])
+	# podzakładki menu (np. Kram: Kup / Sprzedaj): LT / RT na padzie, Z / C na klawiaturze
+	_akcja("podzakladka_lewo", [_os(JOY_AXIS_TRIGGER_LEFT, 1.0), _klaw(KEY_Z)])
+	_akcja("podzakladka_prawo", [_os(JOY_AXIS_TRIGGER_RIGHT, 1.0), _klaw(KEY_C)])
 
 
 func _input(e: InputEvent) -> void:

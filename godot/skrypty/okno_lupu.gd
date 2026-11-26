@@ -25,68 +25,119 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	# wygląd jak menu NightBrand (instrukcja przebudowy menu, etap 4): tytuł z separatorem, dwa panele w ramie
+	# (lewy: rynsztunek, Relikwiarz, Sakwa; prawy: zawartość skrzyni), opis pod panelami, stopka ze znaczkami
 	tlo = ColorRect.new()
-	tlo.color = Color(0, 0, 0, 0.72)
+	tlo.color = Color(0.02, 0.015, 0.02, 0.96)  # HUD i świat nie przebijają przez okno łupu (było 0,86)
 	tlo.set_anchors_preset(Control.PRESET_FULL_RECT)
 	tlo.theme = Ui.motyw()
 	add_child(tlo)
-	var pan := Ui.panel()
-	pan.custom_minimum_size = Vector2(980, 560)
-	pan.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
-	pan.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	pan.grow_vertical = Control.GROW_DIRECTION_BOTH
-	tlo.add_child(pan)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	pan.add_child(v)
-	var naglowek := HBoxContainer.new()
-	var t := Ui.etykieta("SAKWA I ŁUPY", 18, Ui.ZLOTO)
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	naglowek.add_child(t)
-	naglowek.add_child(Ui.etykieta("Klik / A bierze   ·   Shift / Y do Relikwiarza   ·   PPM / X wyrzuca   ·   Tab / B zamyka", 12, Ui.SZARY))
-	var zamknij := Button.new()
-	zamknij.text = "Zamknij"
-	zamknij.pressed.connect(zamknij_okno)
-	naglowek.add_child(zamknij)
-	v.add_child(naglowek)
+	tlo.add_child(Ui.winieta())
+	var kol := VBoxContainer.new()
+	kol.add_theme_constant_override("separation", 6)
+	kol.custom_minimum_size = Vector2(1060, 0)
+	kol.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	kol.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	kol.grow_vertical = Control.GROW_DIRECTION_BOTH
+	tlo.add_child(kol)
+	var t := Ui.naglowek_menu("SAKWA I ŁUPY", 30, Color("f0dcb6"), 3)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	kol.add_child(t)
+	var sep := TextureRect.new()
+	sep.texture = load("res://zasoby/ui/menu/separator_z_pietnem.webp")
+	sep.custom_minimum_size = Vector2(260, 34)
+	sep.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sep.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	kol.add_child(sep)
 	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 16)
-	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(h)
+	h.add_theme_constant_override("separation", 20)
+	h.custom_minimum_size = Vector2(0, 430)
+	kol.add_child(h)
+	var pl := PanelContainer.new()
+	pl.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
+	pl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pl.size_flags_stretch_ratio = 1.2
+	h.add_child(pl)
 	var lewa := VBoxContainer.new()
-	lewa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lewa.size_flags_stretch_ratio = 1.3
-	h.add_child(lewa)
-	rynsztunek_txt = Ui.etykieta("", 13)
+	lewa.add_theme_constant_override("separation", 6)
+	pl.add_child(lewa)
+	lewa.add_child(Ui.belka_sekcji("Rynsztunek"))
+	rynsztunek_txt = Ui.tekst_menu("", 14, Ui.M_TEKST)
 	lewa.add_child(rynsztunek_txt)
-	lewa.add_child(Ui.etykieta("RELIKWIARZ (chroniony po śmierci)", 13, Ui.ZLOTO))
+	lewa.add_child(Ui.belka_sekcji("Relikwiarz  (przeżywa śmierć)"))
 	siatka_rel = GridContainer.new()
-	siatka_rel.columns = 5
+	siatka_rel.columns = 4
 	lewa.add_child(siatka_rel)
-	lewa.add_child(Ui.etykieta("SAKWA", 13, Ui.SZARY))
+	lewa.add_child(Ui.belka_sekcji("Sakwa"))
 	siatka_sakwy = GridContainer.new()
 	siatka_sakwy.columns = 4
 	lewa.add_child(siatka_sakwy)
+	var pp := PanelContainer.new()
+	pp.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
+	pp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(pp)
 	var prawa := VBoxContainer.new()
-	prawa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	h.add_child(prawa)
-	var hp := HBoxContainer.new()
-	tytul = Ui.etykieta("", 15, Ui.ZAR)
-	tytul.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hp.add_child(tytul)
-	zabierz = Ui.przycisk_akcji("Zabierz wszystko")
-	zabierz.pressed.connect(_zabierz_wszystko)
-	hp.add_child(zabierz)
-	prawa.add_child(hp)
+	prawa.add_theme_constant_override("separation", 8)
+	pp.add_child(prawa)
+	var bel := PanelContainer.new()
+	bel.add_theme_stylebox_override("panel", Ui._flat(Ui.M_BELKA, Ui.M_BELKA_RAMA, 1, [14, 5, 14, 5]))
+	tytul = Ui.naglowek_menu("", 17, Ui.M_JASNY)
+	bel.add_child(tytul)
+	prawa.add_child(bel)
 	szukanie = Ui.pasek(Ui.ZAR, 6)
 	prawa.add_child(szukanie)
 	siatka_lupu = GridContainer.new()
 	siatka_lupu.columns = 2
 	prawa.add_child(siatka_lupu)
-	opis = Ui.etykieta("", 13, Ui.POPIOL)
+	var wyp := Control.new()
+	wyp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	prawa.add_child(wyp)
+	zabierz = Ui.przycisk_menu("Zabierz wszystko", true)
+	zabierz.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	zabierz.pressed.connect(_zabierz_wszystko)
+	prawa.add_child(zabierz)
+	# opis zaznaczonego przedmiotu: pasek pod panelami
+	var po := PanelContainer.new()
+	po.add_theme_stylebox_override("panel", Ui._flat(Color(0.07, 0.066, 0.075, 0.94), Ui.M_LINIA, 1, [16, 8, 16, 8]))
+	opis = Ui.tekst_menu("", 14, Ui.M_TEKST)
 	opis.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	opis.custom_minimum_size = Vector2(0, 64)
-	v.add_child(opis)
+	opis.custom_minimum_size = Vector2(0, 58)
+	po.add_child(opis)
+	kol.add_child(po)
+	# stopka: znaczki pada albo klawisze zamiast zdania z instrukcją
+	_stopka = HBoxContainer.new()
+	_stopka.alignment = BoxContainer.ALIGNMENT_CENTER
+	_stopka.add_theme_constant_override("separation", 30)
+	_stopka.custom_minimum_size = Vector2(0, 40)
+	kol.add_child(_stopka)
+	var zamknij := Ui.przycisk_menu("Zamknij")
+	zamknij.focus_mode = Control.FOCUS_NONE
+	zamknij.pressed.connect(zamknij_okno)
+	_stopka_zamknij = zamknij
+	_odswiez_stopke()
+
+
+var _stopka: HBoxContainer
+var _stopka_zamknij: Button
+var _pad_byl := false
+
+
+func _odswiez_stopke() -> void:
+	if _stopka_zamknij.get_parent():
+		_stopka_zamknij.get_parent().remove_child(_stopka_zamknij)
+	for c in _stopka.get_children():
+		c.queue_free()
+	var pad: bool = Sterowanie.pad_aktywny
+	_pad_byl = pad
+	for w in [["a", "Klik", "Weź / użyj"], ["y", "Shift + klik", "Do Relikwiarza"], ["x", "PPM", "Wyrzuć"], ["b", "Tab", "Zamknij"]]:
+		var hh := HBoxContainer.new()
+		hh.add_theme_constant_override("separation", 8)
+		hh.add_child(Ui.ikona_pada(w[0], 24.0) if pad else Ui.klawisz(w[1]))
+		var l := Ui.tekst_menu(w[2], 15, Ui.M_TEKST)
+		l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		hh.add_child(l)
+		_stopka.add_child(hh)
+	_stopka.add_child(_stopka_zamknij)
 
 
 func otworz(_pojemnik) -> void:
@@ -115,6 +166,8 @@ func _unhandled_input(e: InputEvent) -> void:
 
 func _process(_dt: float) -> void:
 	_blokada = maxf(0.0, _blokada - _dt)
+	if otwarte and Sterowanie.pad_aktywny != _pad_byl:
+		_odswiez_stopke()
 	if otwarte and rajd.aktywny_pojemnik != null:
 		szukanie.value = rajd.postep_szukania * 100.0
 
@@ -159,7 +212,7 @@ func odswiez() -> void:
 			else:
 				var b := Button.new()
 				b.text = "Przeszukiwanie…"
-				b.custom_minimum_size = Vector2(190, 58)
+				b.custom_minimum_size = Vector2(190, 54)
 				b.disabled = true
 				siatka_lupu.add_child(b)
 	_przywroc_fokus.call_deferred()
@@ -167,9 +220,10 @@ func odswiez() -> void:
 
 func _slot(inst, klucz: String, akcja: Callable) -> Button:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(160, 58)
+	b.custom_minimum_size = Vector2(128, 54)
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.add_theme_font_size_override("font_size", 12)  # długie nazwy („Tonik Wytrzymałości”) bez ucięcia
+	b.add_theme_font_override("font", Ui.czcionka_tekstu())  # szeryf z małymi literami: węższy niż kapitaliki
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.set_meta("klucz", klucz)
 	if inst == null:
@@ -178,7 +232,7 @@ func _slot(inst, klucz: String, akcja: Callable) -> Button:
 		b.add_theme_stylebox_override("normal", Ui.styl_slotu(Color.GRAY))
 		b.add_theme_stylebox_override("focus", Ui.styl_slotu(Color.GRAY, true))
 		b.add_theme_stylebox_override("hover", Ui.styl_slotu(Color.GRAY, true))
-		b.modulate = Color(1, 1, 1, 0.55)
+		b.modulate = Color(1, 1, 1, 0.32)  # puste miejsca bledsze niż pełne
 		b.focus_entered.connect(func(): opis.text = ""; _fokus_klucz = klucz)
 		return b
 	var d := Dane.p(inst["id"])

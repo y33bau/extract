@@ -187,6 +187,99 @@ static func tryb_autora() -> bool:
 	return "--autor" in OS.get_cmdline_user_args()
 
 
+## Blokada 0,4 s po otwarciu ekranu menu (A, które otworzyło menu, nie klika pierwszej pozycji; zasada NightBrand).
+static func blokada_po_otwarciu(wezel: Node, czas := 0.4) -> void:
+	var vp := wezel.get_viewport()
+	if vp == null:
+		return
+	vp.gui_disable_input = true
+	wezel.get_tree().create_timer(czas, true, false, true).timeout.connect(func(): if is_instance_valid(vp): vp.gui_disable_input = false)
+
+
+## Tło menu: czarne półcienie u góry i u dołu (gradient teksturą, bez shaderów).
+static func gradient_pionowy() -> TextureRect:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.28, 0.7, 1.0])
+	g.colors = PackedColorArray([Color(0, 0, 0, 0.6), Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.1), Color(0, 0, 0, 0.7)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	gt.width = 4
+	gt.height = 256
+	return _pelny_ekran(gt)
+
+
+## Lekka czerwona winieta na brzegach ekranu.
+static func winieta() -> TextureRect:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+	g.colors = PackedColorArray([Color(0, 0, 0, 0.0), Color(0.1, 0.0, 0.0, 0.15), Color(0.12, 0.0, 0.0, 0.6)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.05, 1.05)
+	gt.width = 256
+	gt.height = 256
+	return _pelny_ekran(gt)
+
+
+static func _pelny_ekran(tex: Texture2D) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = tex
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_SCALE
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	return t
+
+
+## Ikona przycisku pada (zasoby/ui/pad_*.webp) o zadanej wysokości.
+static func ikona_pada(n: String, wys := 26.0) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = load("res://zasoby/ui/pad_%s.webp" % n)
+	var r := t.texture.get_size()
+	t.custom_minimum_size = Vector2(wys * r.x / maxf(1.0, r.y), wys)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return t
+
+
+## Znaczek pada dla opisu sterowania: ikona przycisku, gałka (L, R, L3, R3) albo krzyżak z kierunkiem — nie tekst.
+static func znaczek_pada(opis: String) -> Control:
+	var o := opis.to_lower()
+	if ResourceLoader.exists("res://zasoby/ui/pad_%s.webp" % o):
+		return ikona_pada(o, 30.0 if o in ["lb", "rb", "lt", "rt"] else 28.0)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 6)
+	h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if o.begins_with("krzyżak"):
+		h.add_child(ikona_pada("krzyzak", 28.0))
+		var kier := o.split(":", false, 1)
+		if kier.size() == 2:
+			h.add_child(tekst_menu(kier[1].strip_edges(), 13, M_DRUGI))
+		return h
+	var litera := "L" if (o.begins_with("lew") or o.begins_with("l")) else "R"
+	var wcisk := o.ends_with("3")
+	var g := Control.new()
+	g.custom_minimum_size = Vector2(28, 28)
+	g.draw.connect(func():
+		var c := Vector2(14, 14)
+		g.draw_circle(c, 13.0, Color("1a1614"))
+		g.draw_arc(c, 13.0, 0.0, TAU, 32, M_WYL, 1.5, true)
+		g.draw_circle(c, 7.5, Color("3a3230"))
+		g.draw_arc(c, 7.5, 0.0, TAU, 24, Color("8f8170"), 1.0, true)
+		var f := czcionka(700)
+		var t := litera + ("3" if wcisk else "")
+		g.draw_string(f, Vector2(0, 18.5), t, HORIZONTAL_ALIGNMENT_CENTER, 28.0, 11, M_JASNY))
+	h.add_child(g)
+	if not wcisk:
+		h.add_child(tekst_menu("gałka", 13, M_DRUGI))
+	return h
+
+
 ## Wybrana opcja (kraina, tryb kramu, kategoria): spokojny znak — jaśniejsza tablica i złoty napis, bez drugiej ramki.
 ## Fokus zostaje jeden: złota poświata z motywu (btn_fokus).
 static func styl_wybrany() -> StyleBoxTexture:
@@ -456,8 +549,8 @@ static func klawisz(t: String) -> PanelContainer:
 static func zakladka_menu(t: String, aktywna: bool) -> Button:
 	var b := Button.new()
 	b.text = t
-	var n := _tm("rama_zakladki_aktywna" if aktywna else "rama_zakladki", [30, 18, 30, 18], [34, 8, 34, 8])
-	var f := _tm("rama_zakladki_aktywna", [30, 18, 30, 18], [34, 8, 34, 8])
+	var n := _tm("rama_zakladki_aktywna" if aktywna else "rama_zakladki", [30, 18, 30, 18], [24, 8, 24, 8])
+	var f := _tm("rama_zakladki_aktywna", [30, 18, 30, 18], [24, 8, 24, 8])
 	if not aktywna:
 		f.modulate_color = Color(1.2, 1.1, 0.95)
 	b.add_theme_stylebox_override("normal", n)
@@ -468,7 +561,7 @@ static func zakladka_menu(t: String, aktywna: bool) -> Button:
 	b.add_theme_color_override("font_color", M_JASNY if aktywna else M_DRUGI)
 	b.add_theme_color_override("font_focus_color", Color("fff1d6"))
 	b.add_theme_color_override("font_hover_color", Color("fff1d6"))
-	b.custom_minimum_size = Vector2(220, 52)
+	b.custom_minimum_size = Vector2(196, 52)
 	return b
 
 

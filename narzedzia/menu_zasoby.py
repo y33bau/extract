@@ -26,6 +26,16 @@ SKALE = {
     "tla/tlo_menu_1.webp": ("tlo_menu_1.webp", 1280 / 1672),
     "tla/rozdzial_1.webp": ("rozdzial_1.webp", 1280 / 1672),
     "tla/rozdzial_4.webp": ("rozdzial_4.webp", 1280 / 1672),
+    "tla/rozdzial_2.webp": ("rozdzial_2.webp", 1280 / 1672),
+    "tla/rozdzial_5.webp": ("rozdzial_5.webp", 1280 / 1672),
+    "tla/kaplica.webp": ("kaplica.webp", 1.0),
+    "portrety/hadraen.webp": ("hadraen.webp", 0.6),
+    "ui/ikona_kaplica.webp": ("ikona_kaplica.webp", 1.0),
+    "ui/ikona_kronika.webp": ("ikona_kronika.webp", 1.0),
+    "ui/ikona_opcje.webp": ("ikona_opcje.webp", 1.0),
+    "ui/ikona_instrukcja.webp": ("ikona_instrukcja.webp", 1.0),
+    "ui/ornament_lewy.webp": ("ornament_lewy.webp", 1.0),
+    "ui/ornament_prawy.webp": ("ornament_prawy.webp", 1.0),
 }
 
 
