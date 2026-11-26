@@ -17,6 +17,9 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 18:15 — nowe konto, rola: agent główny — ocena rundy mapy
+- **Ocena autora (18:13):** runda `mapa-mgla-i-wczytywanie` — „ocena pozytywna, są rzeczy do zmiany, ale to na później”. Bez „publikuj” (czeka). Lista poprawek autora: do zebrania później.
+
 ## 2026-11-26 18:30 — nowe konto, rola: gamedev — mapa: mgła, głębia, szersze korytarze, mniej przedmiotów, lżejsza paczka
 - Gałąź: `mapa-mgla-i-wczytywanie` (od `main` `78dbfb4`).
 - Zlecenie: zadanie mentora `ZADANIE_WAROWNIA_MGLA_I_WCZYTYWANIE_2026-11-26.md` + prośby autora (17:14): szersze korytarze, mniej przedmiotów, głębia poza mapą zamiast czarnego tła.
