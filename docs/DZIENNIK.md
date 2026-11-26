@@ -32,6 +32,7 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
   - **Poległy wróg**: po animacji śmierci (1,4 s) rozsypuje się w pył (popiół z iskrami, ok. 0,55 s). Na jego miejscu z ziemi wyrasta skrzyneczka albo krzyżyk; boss zostawia złoty kufer. Przeszukanie działa jak dotąd.
   - **Pole widzenia** (`rajd.gd`): przód 13 m (było 11,5), boki i tył 8 m (było 4,8). Wróg, który z nami walczy, jest widoczny do 12 m, jeśli nic go nie zasłania, także za plecami. Liczby do strojenia.
 - Testy: nowe testy łupu, rozpadu i pola widzenia. `testy.py godot` → OK 153/153.
+- **Ocena autora (21:23): „bardzo dobre”** (osada, łup, rozpad w pył, pole widzenia). Gałęzie `pilot-spalona-osada` → `osada-w-rajdzie` → `grafika-osada-lup` czekają na „publikuj”.
 - Poprawka (21:12, autor: „nadal zostaje stary sprite”): `rajd.gd` co klatkę włączał sprite 2D zwłok także w 3D. Teraz w 3D nigdy go nie pokazuje; czerwony krąg walki gaśnie przy śmierci. Test dopisany, OK 154/154.
 - NIE sprawdzone:
   - wygląd pyłu na prawdziwej karcie;
