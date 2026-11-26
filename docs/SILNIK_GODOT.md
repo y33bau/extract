@@ -127,7 +127,8 @@ Sceny budujemy **w kodzie** (węzły tworzone w `_ready`), a nie w edytorze. Dzi
 | `Windows` | gra dla autora: jeden `.exe` z wszytym pck | `godot --headless --path . --export-release "Windows" ../dist/godot/Warownia_Popiolow.exe` |
 | `Linux (kontrola agenta)` | sprawdzenie spakowanej gry w środowisku agenta | `godot --headless --path . --export-release "Linux (kontrola agenta)" /tmp/linux_kontrola/warownia.x86_64`, potem uruchom z `-- --test` pod `xvfb-run` |
 
-Paczka dla autora: zip z `Warownia_Popiolow.exe` + `TEST_WAROWNIA_GODOT.bat` → folder autora `NIGHTBRAND\WAROWNIA_POPIOLOW`. Pliki `.exe`/`.zip` nie trafiają do repo. Windows może ostrzec o „nieznanym wydawcy” (brak podpisu) — uprzedź autora.
+Paczka dla autora: zip z `Warownia_Popiolow.exe` + `TEST_WAROWNIA_GODOT.bat` → folder autora `NIGHTBRAND\WAROWNIA_POPIOLOW`.
+**Paczki do 3 GB (decyzja autora 26.11.2026):** narzędzie przesyłania przyjmuje najwyżej 400 MB na plik. Zip większy niż ok. 390 MB dziel: `python3 narzedzia/paczka_czesci.py <zip> <katalog> [350]` → części `.001`, `.002`… + `ZLOZ_<nazwa>.bat` (u autora: dwuklik skleja przez `copy /b` i rozpakowuje PowerShellem). Wyślij każdą część i bat osobno (`SendUserFile` → `device_commit_files`). Pliki `.exe`/`.zip` nie trafiają do repo. Windows może ostrzec o „nieznanym wydawcy” (brak podpisu) — uprzedź autora.
 
 ## 8. Środowisko agenta (Linux, jednorazowo na sesję)
 

@@ -17,6 +17,12 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 15:30 — nowe konto, rola: gamedev — paczki do 3 GB
+- **Decyzja autora (15:26): „400 MB zwiększ na 3 GB”.** Limit 400 MB na plik jest w narzędziu przesyłania (nie da się go zmienić), więc duże paczki idą w częściach.
+- Zrobione: `narzedzia/paczka_czesci.py` — dzieli zip na części po 350 MB i tworzy `ZLOZ_<nazwa>.bat` (skleja `copy /b`, rozpakowuje `Expand-Archive`). Sprawdzone: sklejone części = plik identyczny z oryginałem (`cmp`). Opis w `SILNIK_GODOT.md` §7.
+- NIE sprawdzone: uruchomienie `ZLOZ_*.bat` na Windowsie autora (PowerShell zwykle jest w Windows 10/11).
+- Następny krok: kolejne paczki > 390 MB dostarczać w częściach.
+
 ## 2026-11-26 15:25 — nowe konto, rola: gamedev — szlif menu i UI (zlecenie od zespołu NightBrand)
 - Gałąź: `szlif-menu-ui` (od `walka-i-oznaczenia`, nie od `main` — obie rundy zmieniają `hud.gd`; paczka zawiera obie).
 - Zlecenie autora (15:07): przekazanie zespołu NightBrand — `NIGHTBRAND\WAROWNIA_POPIOLOW\ZADANIE_WAROWNIA_SZLIF_MENU_UI_2026-11-26.md` (+ OCENA_…, PODPOWIEDZI_…). Tylko wygląd i porządek UI, bez rozgrywki i balansu.
