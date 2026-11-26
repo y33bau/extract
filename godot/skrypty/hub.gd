@@ -585,7 +585,7 @@ func _kupiec() -> void:
 					var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
 					ls.remove_at(nr)
 					d["gold"] += cena
-					Dzwiek.lup()
+					Dzwiek.monety()
 					_zmiana())
 				var itk := it
 				_kram_wiersz(w, func(): _pokaz_szczegoly(itk["id"], itk, -cena))
@@ -757,7 +757,7 @@ func _kup(id: String) -> void:
 	else:
 		l["backpack"].append(inst)
 	_info("Kupiono: " + str(def["name"]))
-	Dzwiek.lup()
+	Dzwiek.monety()
 	_zmiana()
 
 

@@ -17,6 +17,28 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 22:25 — nowe konto, rola: gamedev + grafik — poprawki autora (chód, poświata, drzewa, mgła, dźwięki)
+- Gałąź: `poprawki-autora-1` (od main po publikacji osady).
+- **Uwagi autora (21:31–21:36):**
+  - chód rozkrokiem „jak kowboj”;
+  - poświata zamiast „słupa światła” przed atakiem;
+  - drzewa w wyższej jakości;
+  - odsłanianie mapy jak fog of war zamiast kwadratów;
+  - podpiąć dźwięki z `NightBrand_test_912\assets\dzwieki` (dźwięk miecza = Sword Parry 1).
+- Zrobione:
+  - **Chód:** `korekta_chodu.gd` (SkeletonModifier3D) ściąga kolano ku linii biodra (siła 0,75, tylko w ruchu). Pomiar szkieletu: kolana z ok. 1,2–1,4× do ok. 1,0–1,1× szerokości bioder, stopy z 1,2–1,4× do 0,75–1,0×.
+  - **Zapowiedź ciosu:** bez światła punktowego. Fresnel `poswiata.gdshader` jako przebieg po obrysie (złota / czerwona / błękitna). Płaska barwa ciała usunięta.
+  - **Drzewa:** przy ścieżce LOD0 (Wysoka, Ultra), dalej LOD1/2. Na Wysokiej i Ultrze alpha-to-coverage na liściach.
+  - **Mgła:** podłoga odsłania się z zapasem 2 pól. Mrok rysuje shader terenu z gładkiej mapy jasności (L8 128², rozmycie 9 próbek, falujący brzeg z szumu) zamiast jasności kafli.
+  - **Dźwięki:** 31 próbek NightBrand w `zasoby/dzwieki/` wg `SFX_SAMPLE_MAP` NightBrand. Nowe zdarzenia: śmierć wroga, złamana postawa, monety w kramie. Cięciwa i błysk zostają z syntezatora.
+  - `testy.py`: limit czasu testu Godota 300 → 600 s (pełny test trwa ok. 5 min także na main; to nie osłabia testów).
+- Testy: nowe (dźwięki, mgła, korekta chodu, poświata bez światła). `--test` → OK 157/157.
+- NIE sprawdzone:
+  - wygląd poświaty, mgły i drzew na prawdziwej karcie (brak zrzutów: render programowy za wolny);
+  - głośność dźwięków u autora;
+  - chód na oko (tylko pomiar szkieletu);
+  - płynność przy LOD0.
+
 ## 2026-11-26 21:25 — nowe konto, rola: agent główny — publikacja osady
 - **Decyzja autora (21:24): „publikuj, potem dopracujemy parę rzeczy”.**
 - Opublikowano na main (fast-forward): `pilot-spalona-osada` → `osada-w-rajdzie` → `grafika-osada-lup`. Test na main: OK 154/154.

@@ -892,6 +892,7 @@ func postura(en: Wrog, ile: float) -> void:
 	if en.postura <= 0.0:
 		en.postura = en.postura_max
 		en.ogluszenie = 1.8 if en.boss else 2.2
+		Dzwiek.postawa()   # złamana postawa (próbka „Postawa” z NightBrand)
 		en.zamach = 0.0
 		en.atak_timer = en.ogluszenie
 		hitstop = maxf(hitstop, 0.12)
@@ -1147,6 +1148,7 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 
 
 func zabij(en: Wrog) -> void:
+	Dzwiek.smierc_wroga()
 	if swiat3d != null:
 		swiat3d.krew(en.w, en.kat + PI, true, true)
 	wrogowie.erase(en)

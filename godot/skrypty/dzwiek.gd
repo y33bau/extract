@@ -1,5 +1,32 @@
 extends Node
-## Efekty dźwiękowe syntetyzowane przy starcie (port syntezatora z wersji JS): szum przez filtr + tony.
+## Efekty dźwiękowe. Od 26.11 próbki z NightBrand (zasoby/dzwieki/, mapa jak SFX_SAMPLE_MAP w NightBrand:
+## ostrze, trafienie, blok, parowanie, przewrót, kroki, ból, leczenie, łup, UI, warkot wroga, śmierć wroga).
+## Gdzie próbki nie ma (cięciwa, błysk przed parowaniem), gra syntezator (port z wersji JS).
+
+## nazwa zdarzenia -> [pliki (losowo jeden), głośność dB]; do strojenia
+const PROBKI := {
+	"zamach": [["sword_attack_1", "sword_attack_2"], -3.0],
+	"zamach_c": [["sword_attack_3"], -2.0],
+	"trafienie": [["sword_hit_1", "sword_hit_2"], -2.0],
+	"blok": [["sword_blocked_1", "sword_blocked_2"], -2.0],
+	"parowanie": [["sword_parry_1", "sword_parry_2"], 0.0],
+	"riposta": [["sword_hit_3"], 0.0],
+	"unik": [["przewrot"], -6.0],
+	"krok": [["krok_1", "krok_2", "krok_3", "krok_4", "krok_5"], -16.0],
+	"bol": [["bol"], -3.0],
+	"picie": [["leczenie"], -5.0],
+	"lup": [["lup_1", "lup_2"], -6.0],
+	"ui": [["ui"], -8.0],
+	"tik": [["tik"], -10.0],
+	"ekstrakcja": [["dzwon"], -3.0],
+	"zapowiedz": [["warkot_1", "warkot_2"], -9.0],
+	"zapowiedz_c": [["ostrzezenie_ciezki"], -4.0],
+	"smierc_wroga": [["smierc_wroga"], -6.0],
+	"postawa": [["postawa"], -3.0],
+	"monety": [["monety_1", "monety_2"], -6.0],
+	"wstecz": [["wstecz"], -8.0],
+}
+var _probki := {}   # nazwa -> [Array[AudioStream], dB]
 
 const HZ := 22050
 var wyciszony := false
@@ -35,15 +62,36 @@ func _ready() -> void:
 	_bufory["blysk"] = _miks([_ton(2350, 2300, 0.20, "sin", 0.15), _ton(3520, 3450, 0.14, "sin", 0.08)])
 	_bufory["blysk_c"] = _miks([_ton(150, 90, 0.18, "saw", 0.14), _szum(0.10, 600, 0.12, "lp", true)])
 	_bufory["ekstrakcja"] = _miks([_ton(392, 523, 0.24, "tri", 0.13), _przesun(_ton(523, 784, 0.40, "tri", 0.15), 0.18)])
+	for nazwa in PROBKI:
+		var lista: Array = []
+		for plik in PROBKI[nazwa][0]:
+			var st = load("res://zasoby/dzwieki/%s.mp3" % plik)
+			if st is AudioStream:
+				lista.append(st)
+		if not lista.is_empty():
+			_probki[nazwa] = [lista, float(PROBKI[nazwa][1])]
 
 
 func _graj(nazwa: String) -> void:
-	if wyciszony or not _bufory.has(nazwa):
+	if wyciszony or not (_probki.has(nazwa) or _bufory.has(nazwa)):
 		return
 	var g: AudioStreamPlayer = _gracze[_nastepny]
 	_nastepny = (_nastepny + 1) % _gracze.size()
-	g.stream = _bufory[nazwa]
+	if _probki.has(nazwa):
+		var lista: Array = _probki[nazwa][0]
+		g.stream = lista[randi() % lista.size()]   # kosmetyka: randi() poza strumieniami ziarna mapy
+		g.volume_db = _probki[nazwa][1]
+		g.pitch_scale = randf_range(0.95, 1.05)
+	else:
+		g.stream = _bufory[nazwa]
+		g.volume_db = -4.0
+		g.pitch_scale = 1.0
 	g.play()
+
+
+## Czy zdarzenie gra próbkę NightBrand (test).
+func z_probki(nazwa: String) -> bool:
+	return _probki.has(nazwa)
 
 
 func zamach(ciezki := false) -> void: _graj("zamach_c" if ciezki else "zamach")
@@ -62,6 +110,10 @@ func tik() -> void: _graj("tik")
 func ekstrakcja() -> void: _graj("ekstrakcja")
 func zapowiedz(ciezki := false) -> void: _graj("zapowiedz_c" if ciezki else "zapowiedz")
 func blysk(ciezki := false) -> void: _graj("blysk_c" if ciezki else "blysk")
+func smierc_wroga() -> void: _graj("smierc_wroga")
+func postawa() -> void: _graj("postawa")
+func monety() -> void: _graj("monety")
+func wstecz() -> void: _graj("wstecz")
 
 
 # ---------------- synteza

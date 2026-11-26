@@ -168,7 +168,7 @@ def test_godot():
     r = subprocess.run(['xvfb-run', '-a', '-s', '-screen 0 1280x720x24', 'godot', '--path', str(g),
                         '--rendering-driver', 'opengl3', '--', '--test', f'--zrzuty={tmp / "zrzuty"}',
                         f'--zapis={tmp / "zapis_testowy.json"}'],
-                       capture_output=True, text=True, timeout=300)
+                       capture_output=True, text=True, timeout=600)  # 26.11: pełny test trwa ok. 5 min w środowisku agenta
     for linia in r.stdout.splitlines():
         if linia.startswith(('  OK', '  BŁĄD', 'WYNIK', '--')):
             print(linia)

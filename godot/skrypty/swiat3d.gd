@@ -81,6 +81,7 @@ var _do_sprawdzenia := {}    # pola wysokich rzeczy, których kotwica zmieniła 
 const CZAS_ODSLONY := 0.3
 const CZAS_PRZYGASZENIA := 0.7
 const SHADER_OTOCZENIA := preload("res://zasoby/3d/shadery/otoczenie.gdshader")
+const SHADER_POSWIATY := preload("res://zasoby/3d/shadery/poswiata.gdshader")
 
 
 func zbuduj(r) -> void:
@@ -106,6 +107,7 @@ func zbuduj(r) -> void:
 		_teren = rajd.mapa.teren
 		_licz_odl_przejscia()
 	_licz_kotwice_pelna()
+	_licz_zalezne()
 	_jasn.resize(N * N)
 	_cel_jasn.resize(N * N)
 	_materialy()
@@ -270,6 +272,8 @@ func _materialy() -> void:
 	var w := wyglad
 	_mgla_obraz = Image.create(N, N, false, Image.FORMAT_L8)
 	_mgla_tex = ImageTexture.create_from_image(_mgla_obraz)
+	_jasn_obraz = Image.create(N, N, false, Image.FORMAT_L8)
+	_jasn_tex = ImageTexture.create_from_image(_jasn_obraz)
 	_szum = _tekstura_szumu()
 	_maska = _tekstura_maski()
 	var t := ShaderMaterial.new()
@@ -288,6 +292,8 @@ func _materialy() -> void:
 	t.set_shader_parameter("sciezka_jasn", float(w.get("sciezka_jasn", 1.0)))
 	t.set_shader_parameter("sciezka_czysta", float(w.get("sciezka_czysta", 0.0)))
 	_mgla_do(t)
+	t.set_shader_parameter("jasnosc_mapy", _jasn_tex)
+	t.set_shader_parameter("mgla_gladka", true)
 	_mat["podloga"] = t
 	_mat["sciezka"] = t
 	var m := ShaderMaterial.new()
@@ -515,8 +521,14 @@ func _mapa() -> void:
 			var p := Vector3(i % N + 0.5, 0.0, i / N + 0.5)
 			if wp.size() > 3:
 				p += wp[3]
-			mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))  # nieznane: niewidoczne
-			mm.set_instance_color(n, Color(0, 0, 0, 1))  # po odkryciu wyłania się z czerni (_krok_mgly)
+			if k in PODLOGI:
+				# podłoga: pojawia się z zapasem 2 pól wokół odkrytego (_odslon_podloge), a mrok i brzeg
+				# odsłaniania rysuje shader terenu z gładkiej mapy jasności (bez kwadratów)
+				mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))
+				mm.set_instance_color(n, Color(0.7, 1.0, 0.85, 1.0) if k == "ekstrakcja" else Color.WHITE)
+			else:
+				mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))  # nieznane: niewidoczne
+				mm.set_instance_color(n, Color(0, 0, 0, 1))  # po odkryciu wyłania się z czerni (_krok_mgly)
 			if not _indeks.has(i):
 				_indeks[i] = []
 			_indeks[i].append([k, n, p, wp[1], wp[2]])
@@ -1114,6 +1126,10 @@ func _mat_las(nazwa: String) -> StandardMaterial3D:
 		m.albedo_texture = load("res://zasoby/3d/las/%s.webp" % nazwa)
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 		m.alpha_scissor_threshold = 0.45
+		if jakosc >= 2 and not lekki:
+			# gładkie brzegi liści i gałęzi przy MSAA (Wysoka, Ultra) zamiast poszarpanych pikseli
+			m.alpha_antialiasing_mode = BaseMaterial3D.ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE
+			m.alpha_antialiasing_edge = 0.3
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
 		m.roughness = 0.92
 		m.vertex_color_use_as_albedo = true
@@ -1290,10 +1306,13 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 				_wierzch(i, 3.1, listy, siatki, "korona")  # głęboki las: zwarte korony zamiast czarnej pustki
 			if co > 0 and h % co == 0:
 				var dr: Array = _wybierz_drzewo(h)
-				if d <= 2:
-					_model_las("drz_" + dr[0], dr[0], dr[1], i, h, listy, siatki)
+				# autor 26.11: drzewa w wyższej jakości — przy ścieżce pełna siatka (Wysoka i Ultra), dalej uproszczenia
+				if d <= 1:
+					_model_las("drz_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, _lod_blisko())
+				elif d == 2:
+					_model_las("drzs_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, 1)  # bez cieni
 				else:
-					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, 2)  # głębiej: prostsze, bez cieni
+					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, _lod_daleko())  # głębiej: prostsze, bez cieni
 			if d == 1:
 				var r1: Array = RUNO_BRZEGU[h % RUNO_BRZEGU.size()]
 				_runo(r1[0], r1[1], i, h, listy, siatki)
@@ -1302,7 +1321,7 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 					_runo(r2[0], r2[1], i, h / 5, listy, siatki)
 		K.FILAR:
 			var dr2: Array = _wybierz_drzewo(h)
-			_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.75, i, h, listy, siatki, 0.1)
+			_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.75, i, h, listy, siatki, 0.1, _lod_blisko())
 		K.GRUZ:
 			_model_las("las_glaz", "p4_mossy_boulder", 0.9, i, h, listy, siatki, 0.1)
 		K.PODLOGA:
@@ -1315,6 +1334,15 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 			elif h % 100 < 5:  # autor 26.11: mniej runa na polanach (było 9%)
 				var r3: Array = RUNO_POLANY[(h / 100) % RUNO_POLANY.size()]
 				_runo(r3[0], r3[1], i, h, listy, siatki)
+
+
+## Poziom szczegółów drzew wg ustawienia jakości: 0 = pełna siatka (ok. 12,8 tys. trójkątów), 1 i 2 = uproszczenia.
+func _lod_blisko() -> int:
+	return 0 if jakosc >= 2 and not lekki else 1
+
+
+func _lod_daleko() -> int:
+	return 1 if jakosc >= 3 and not lekki else 2
 
 
 func _wybierz_drzewo(h: int) -> Array:
@@ -1442,7 +1470,7 @@ func _pole_osady(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dict
 				_wierzch(i, WYS_MURU * 0.98, listy, siatki, "wierzch")
 				if d >= 2 and d <= 5 and h % 11 == 0:
 					var dr: Array = DRZEWA_OSADY[(h / 11) % DRZEWA_OSADY.size()]
-					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, 2)
+					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, _lod_daleko())
 				return
 			var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
 			var hh := (1.2 if brzeg else 1.0) + float(_hash(x, y) % 9 - 4) * 0.05
@@ -1460,7 +1488,7 @@ func _pole_osady(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dict
 		K.FILAR:
 			if tt == TO.DRZEWO:
 				var dr2: Array = DRZEWA_OSADY[h % DRZEWA_OSADY.size()]
-				_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.85, i, h, listy, siatki, 0.1)
+				_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.85, i, h, listy, siatki, 0.1, _lod_blisko())
 			# studnia (2×2) stoi jako rekwizyt w _wystroj_osady
 		K.GRUZ:
 			if tt == TO.PLOT:
@@ -1614,6 +1642,8 @@ func odswiez_widok() -> void:
 		_stan_widoku[i] = klucz
 		for wpis in _indeks[i]:
 			var rodzaj: String = wpis[0]
+			if rodzaj in PODLOGI:
+				continue  # podłoga: zawsze stoi, jasność z mapy jasności (_krok_mgly)
 			if rodzaj.begins_with("drz") or rodzaj.begins_with("korona") or rodzaj.begins_with("wierzch"):
 				var pw: Vector3 = wpis[2]
 				_do_sprawdzenia[clampi(int(pw.z), 0, N - 1) * N + clampi(int(pw.x), 0, N - 1)] = true
@@ -1643,6 +1673,7 @@ func odswiez_widok() -> void:
 			_fade[i] = true
 	_ciete_ost = ciete_teraz
 	_przekroj_wysokich(g)
+	_odslon_podloge(widok)
 	# mapa znanych pól dla miękkiego brzegu mgły (raz na przeliczenie widoku)
 	var zmiana := false
 	for i in rajd.zmienione_widoku:
@@ -1877,6 +1908,11 @@ func _bohater() -> void:
 	WygladPostaci.swiatlo_postaci(bohater, 1.35)  # ciemna zbroja: mocniejsze światło postaci, żeby nie ginął w mroku
 	_ap_bohatera = bohater.find_child("AnimationPlayer", true, false)
 	_przygotuj_ap(_ap_bohatera)
+	var szk: Skeleton3D = bohater.find_children("*", "Skeleton3D", true, false)[0] if not bohater.find_children("*", "Skeleton3D", true, false).is_empty() else null
+	if szk:
+		_korekta_chodu = preload("res://skrypty/korekta_chodu.gd").new()
+		_korekta_chodu.influence = 0.0
+		szk.add_child(_korekta_chodu)
 	for n in ["bron_dwureczny", "bron_glewia", "bron_topor", "bron_miecz", "bron_tarcza", "bron_pochodnia"]:
 		var b: Node3D = bohater.find_child(n, true, false)
 		if b:
@@ -2005,6 +2041,7 @@ func _dl_klipu(nazwa: String) -> float:
 	return _ap_bohatera.get_animation(nazwa).length if _ap_bohatera.has_animation(nazwa) else 1.0
 
 
+var _korekta_chodu: SkeletonModifier3D
 func _aktualizuj_bohatera(dt: float) -> void:
 	var p = rajd.gracz
 	var zestaw: String = p.zestaw
@@ -2033,6 +2070,10 @@ func _aktualizuj_bohatera(dt: float) -> void:
 		if pl[1] == "ladowanie":
 			_ap_bohatera.seek(pl[4], true)
 	p.biezaca_anim = pl[0] if pl[0] not in ["bieg", "tyl", "lewo", "prawo"] else "chod"
+	if _korekta_chodu:
+		# autor 26.11: bez „kowbojskiego” rozkroku w ruchu; postawa bojowa w miejscu bez zmian
+		var w_ruchu: bool = pl[0] in ["chod", "bieg", "tyl", "lewo", "prawo"]
+		_korekta_chodu.influence = move_toward(_korekta_chodu.influence, 1.0 if w_ruchu else 0.0, dt * 4.0)
 	for n in _bronie.keys():
 		var b: Node3D = _bronie[n]
 		match n:
@@ -2082,6 +2123,9 @@ func _wrog3d(en) -> Dictionary:
 	obrys.grow = true
 	obrys.grow_amount = GRUBOSC_OBRYSU
 	obrys.albedo_color = KOLOR_OBRYSU
+	var poswiata := ShaderMaterial.new()
+	poswiata.shader = SHADER_POSWIATY
+	obrys.next_pass = poswiata
 	_cienie(n)
 	# zapowiedź ciosu na ziemi: klin zasięgu wypełniający się aż do uderzenia
 	var znak := MeshInstance3D.new()
@@ -2135,7 +2179,7 @@ func _wrog3d(en) -> Dictionary:
 	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat, "rodzaj": en.rodzaj,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
-		"krag": krag, "obrys": obrys, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
+		"krag": krag, "obrys": obrys, "poswiata": poswiata, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
 	return d
 
@@ -2312,9 +2356,8 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 		elif en.zamach > 0.0:
 			var t: float = 1.0 - en.zamach / en.zamach_dl
 			_graj(ap, "zamach", t)
-			# zapowiedź ciosu: rozbłysk na wrogu (złoty = do sparowania, czerwony = ciężki)
-			l.light_color = Color(1.0, 0.22, 0.12) if en.ciezki else Color(1.0, 0.82, 0.3)
-			l.light_energy = 1.6 + 1.6 * t + sin(czas * 30.0) * 0.6
+			# zapowiedź ciosu: poświata sylwetki (poswiata.gdshader w _reakcja_wroga), bez światła na otoczenie
+			# (autor 26.11: „lekki shader zamiast słupa światła”)
 			_zapowiedz(en, d, t, n.visible)
 		elif en.cios_anim > 0.0:
 			_graj(ap, "cios", 1.0 - en.cios_anim / 0.34)
@@ -2344,6 +2387,7 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			d2["smierc"] = 0.0
 			(d2["swiatlo"] as OmniLight3D).light_energy = 0.0
 			(d2["blysk"] as StandardMaterial3D).albedo_color.a = 0.0
+			(d2["blysk"] as StandardMaterial3D).next_pass = null   # bez obrysu i poświaty na poległym
 			(d2["znak"] as MeshInstance3D).visible = false
 			(d2["glint"] as Sprite3D).visible = false
 			(d2["pierscien"] as MeshInstance3D).visible = false
@@ -2542,13 +2586,15 @@ func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
 	var kol := Color(1.0, 0.93, 0.82, 0.85 * f * f)
 	# zapowiedź ciosu na ciele (autor 26.11: „nie widzę ciosu wroga”): sylwetka nabiera barwy aż do uderzenia —
 	# złota = do sparowania, czerwona = ciężki (tylko unik), błękitna = strzała
+	var pw: ShaderMaterial = d["poswiata"]
+	var sila_p := 0.0
 	if en.zamach > 0.0 and en.ogluszenie <= 0.0 and en.zamach_dl > 0.0:
 		var t: float = 1.0 - en.zamach / en.zamach_dl
 		var kz := Color(1.0, 0.2, 0.1) if en.ciezki else (Color(0.6, 0.8, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.78, 0.25))
-		var az: float = 0.06 + 0.26 * t * t + 0.05 * sin(Time.get_ticks_msec() / 1000.0 * 28.0)  # obrys niesie główny sygnał
-		if az > kol.a:
-			kol = Color(kz, az)
-	d["tint_zamachu"] = kol.a if en.zamach > 0.0 else 0.0
+		sila_p = 0.35 + 0.9 * t * t + 0.08 * sin(Time.get_ticks_msec() / 1000.0 * 22.0)  # do strojenia
+		pw.set_shader_parameter("kolor", kz)
+	pw.set_shader_parameter("sila", sila_p)
+	d["tint_zamachu"] = sila_p
 	b.albedo_color = kol
 
 
@@ -2772,6 +2818,53 @@ func aktualizuj(dt: float, czas: float) -> void:
 
 # ---------------------------------------------------------------- MGŁA PŁYNNIE I GŁĘBIA (runda mapa-mgla-i-wczytywanie)
 ## Jasność pól zmienia się płynnie do celu: odsłonięcie ~0,3 s, przygaszenie do „widzianego” ~0,7 s.
+const PODLOGI := ["podloga", "sciezka", "ekstrakcja", "chata"]
+var _jasn_obraz: Image
+var _jasn_tex: ImageTexture
+var _jasn_brudne := false
+var _zalezne := {}   # pole przejścia -> pola nieprzechodnie, które biorą od niego jasność (gładka mgła)
+
+
+var _podl_wl := PackedByteArray()
+## Podłoga wokół odkrytych pól (promień 2): shader ściemnia ją gładko ku nieznanemu, więc brzeg nie jest
+## schodkiem z kafli; dalej podłogi nie ma (nie zdradza układu i nie obciąża karty).
+func _odslon_podloge(widok: PackedByteArray) -> void:
+	if _podl_wl.size() != N * N:
+		_podl_wl.resize(N * N)
+		_podl_wl.fill(0)
+	for i in rajd.zmienione_widoku:
+		if widok[i] == 0:
+			continue
+		var x: int = i % N
+		var y: int = i / N
+		for dy in range(-2, 3):
+			for dx in range(-2, 3):
+				var ux := x + dx
+				var uy := y + dy
+				if ux < 0 or uy < 0 or ux >= N or uy >= N:
+					continue
+				var u := uy * N + ux
+				if _podl_wl[u] == 1:
+					continue
+				_podl_wl[u] = 1
+				for wpis in _indeks.get(u, []):
+					if wpis[0] in PODLOGI:
+						var pp: Vector3 = wpis[2]
+						(_mm[wpis[0]].multimesh as MultiMesh).set_instance_transform(wpis[1], Transform3D(wpis[3], Vector3(pp.x, wpis[4], pp.z)))
+
+
+func _licz_zalezne() -> void:
+	var tmp := {}
+	for j in N * N:
+		var k: int = _kotwica_pelna[j]
+		if k >= 0 and k != j:
+			if not tmp.has(k):
+				tmp[k] = []
+			tmp[k].append(j)
+	for k in tmp:
+		_zalezne[k] = PackedInt32Array(tmp[k])
+
+
 func _krok_mgly(dt: float) -> void:
 	if _fade.is_empty():
 		return
@@ -2783,9 +2876,17 @@ func _krok_mgly(dt: float) -> void:
 		_jasn[i] = c
 		if is_equal_approx(c, cel):
 			gotowe.append(i)
+		# gładka mgła: jasność pola i pól, które od niego zależą (mury, gąszcz — najbliższe przejście)
+		var kol_j := Color(c, c, c)
+		_jasn_obraz.set_pixel(i % N, i / N, kol_j)
+		for j in _zalezne.get(i, PackedInt32Array()):
+			_jasn_obraz.set_pixel(j % N, j / N, kol_j)
+		_jasn_brudne = true
 		if not _indeks.has(i):
 			continue
 		for wpis in _indeks[i]:
+			if wpis[0] in PODLOGI:
+				continue
 			var mm: MultiMesh = _mm[wpis[0]].multimesh
 			if wpis[0] == "ekstrakcja":
 				mm.set_instance_color(wpis[1], Color(c * 0.7, c, c * 0.85, 1.0))
@@ -2793,6 +2894,9 @@ func _krok_mgly(dt: float) -> void:
 				mm.set_instance_color(wpis[1], Color(c, c, c, 1.0))
 	for i in gotowe:
 		_fade.erase(i)
+	if _jasn_brudne:
+		_jasn_brudne = false
+		_jasn_tex.update(_jasn_obraz)
 
 
 ## Najbliższe pole przechodnie dla każdego pola mapy (BFS bez limitu): wierzch skały i korony lasu

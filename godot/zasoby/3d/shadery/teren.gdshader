@@ -48,6 +48,21 @@ float brzeg_mgly(vec2 p) {
 		+ texture(mgla_znane, uv + vec2(0.0, d)).r + texture(mgla_znane, uv - vec2(0.0, d)).r) * 0.16;
 	return smoothstep(0.3, 0.92, s);
 }
+// Gładka mgła wojny (autor 26.11: „odsłanianie mapy to parada kwadratów”): jasność pól (0 nieznane, 0,3 pamięć,
+// 1 widoczne) z tekstury mapy, rozmyta i z falującym brzegiem z szumu — podłoga stoi zawsze, a mrok rysuje shader.
+uniform sampler2D jasnosc_mapy : hint_default_white, filter_linear, repeat_disable;
+uniform bool mgla_gladka = false;
+float jas_gladka(vec2 p) {
+	vec2 fala = (texture(szum, p * 0.085 + vec2(0.13, 0.71)).rg - 0.5) * 1.5;
+	vec2 uv = (p + fala) / rozmiar_mgly;
+	float d = 1.05 / rozmiar_mgly;
+	float s = texture(jasnosc_mapy, uv).r * 0.25;
+	s += (texture(jasnosc_mapy, uv + vec2(d, 0.0)).r + texture(jasnosc_mapy, uv - vec2(d, 0.0)).r
+		+ texture(jasnosc_mapy, uv + vec2(0.0, d)).r + texture(jasnosc_mapy, uv - vec2(0.0, d)).r) * 0.125;
+	s += (texture(jasnosc_mapy, uv + vec2(d, d)).r + texture(jasnosc_mapy, uv - vec2(d, d)).r
+		+ texture(jasnosc_mapy, uv + vec2(d, -d)).r + texture(jasnosc_mapy, uv - vec2(d, -d)).r) * 0.0625;
+	return smoothstep(0.02, 0.98, s);
+}
 uniform float sciezka_jasn = 1.0;     // las: wydeptana ścieżka jaśniejsza od runa (czytelność ponad nastrój)
 uniform float sciezka_czysta = 0.0;   // las: na ścieżce mniej liści i mchu (warstwa C)
 
@@ -107,13 +122,14 @@ void fragment() {
 	}
 
 	// pamięć mapy (widziane, ale nie teraz): wyblakłe i chłodne, jak w klasycznych grach izometrycznych
-	float pamiec = 1.0 - smoothstep(0.6, 0.95, COLOR.r);
+	float jm = mgla_gladka ? jas_gladka(p) : COLOR.r;
+	float pamiec = 1.0 - smoothstep(0.6, 0.95, jm);
 	float szar = dot(kol, vec3(0.3, 0.59, 0.11));
 	kol = mix(kol, vec3(szar) * vec3(0.8, 0.88, 1.05), pamiec * 0.75);
-	float brzeg = brzeg_mgly(p);
-	ALBEDO = kol * COLOR.rgb * brzeg;
+	float brzeg = mgla_gladka ? jm : brzeg_mgly(p);
+	ALBEDO = kol * (mgla_gladka ? COLOR.rgb : COLOR.rgb * brzeg) * (mgla_gladka ? jm : 1.0);
 	ROUGHNESS = szorst;
-	SPECULAR = 0.35;
+	SPECULAR = 0.35 * brzeg;
 	NORMAL_MAP = nrm;
 	NORMAL_MAP_DEPTH = normalna;
 	AO = mix(1.0, 0.35 + 0.65 * rh.g, 0.7);
@@ -123,6 +139,6 @@ void fragment() {
 		// gorące piksele warstwy C (pomarańczowe w teksturze) świecą i pulsują w szumie
 		float goraco = clamp((cc.r - cc.b * 1.3 - 0.12) * 4.0, 0.0, 1.0) * tc;
 		float puls = 0.65 + 0.35 * sin(TIME * 1.7 + n2.r * 12.0);
-		EMISSION = kolor_zaru * goraco * zar * puls * COLOR.r * brzeg;
+		EMISSION = kolor_zaru * goraco * zar * puls * (mgla_gladka ? jm : COLOR.r * brzeg);
 	}
 }

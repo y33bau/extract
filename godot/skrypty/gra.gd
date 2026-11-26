@@ -1462,6 +1462,23 @@ func _test_osady_w_rajdzie() -> void:
 		var plik := String((sk["wezel3d"] as Node3D).get_child(0).scene_file_path)
 		if not plik.begins_with("res://zasoby/3d/las/"):
 			modele_ok = false
+	# autor 26.11 (21:31–21:36): dźwięki NightBrand, chód bez rozkroku, gładka mgła, drzewa w wyższej jakości
+	var brak_probek: Array = []
+	for nz in ["zamach", "zamach_c", "trafienie", "blok", "parowanie", "riposta", "unik", "krok", "bol", "picie", "lup", "ui", "ekstrakcja", "zapowiedz", "smierc_wroga", "postawa"]:
+		if not Dzwiek.z_probki(nz):
+			brak_probek.append(nz)
+	_ok("dźwięki: próbki NightBrand pod swoimi funkcjami (ostrze, parowanie, blok, kroki…)", brak_probek.is_empty(), ", ".join(brak_probek))
+	var podl_nieznana := false
+	for k in s3._mm:
+		if String(k) == "podloga":
+			var mmp: MultiMesh = s3._mm[k].multimesh
+			for nn in mini(200, mmp.instance_count):
+				if mmp.get_instance_transform(nn).basis.get_scale().length() > 0.5:
+					podl_nieznana = true
+	var tm: ShaderMaterial = s3._mat["podloga"]
+	_ok("mgła: podłoga stoi zawsze, mrok rysuje gładka mapa jasności (bez kwadratów)", podl_nieznana and tm.get_shader_parameter("mgla_gladka") == true and tm.get_shader_parameter("jasnosc_mapy") == s3._jasn_tex)
+	var kch = s3._korekta_chodu
+	_ok("chód: korekta rozkroku na szkielecie bohatera", kch != null and kch.get_parent() is Skeleton3D and float(kch.sila) > 0.5)
 	# autor 26.11: szersze pole widzenia; wróg w walce nie znika za plecami (taktyka jak w soulsach)
 	var wr = rajd.wrogowie[1]
 	rajd.gracz.pochodnia_w_rece = true
@@ -1969,8 +1986,10 @@ func _test() -> void:
 		var d3: Dictionary = rajd.swiat3d._wrogowie.get(en.get_instance_id(), {})
 		var ap3: AnimationPlayer = d3.get("ap")
 		var l3: OmniLight3D = d3.get("swiatlo")
-		_ok("3D: zapowiedź ciosu wroga (zamach + rozbłysk)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy > 0.5,
-			"%s, %.1f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0])
+		var pw3: ShaderMaterial = d3.get("poswiata")
+		var sila3: float = float(pw3.get_shader_parameter("sila")) if pw3 else 0.0
+		_ok("3D: zapowiedź ciosu wroga (zamach + poświata sylwetki, bez słupa światła)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy < 0.01 and sila3 > 0.2,
+			"%s, światło %.1f, poświata %.2f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0, sila3])
 		var zn: MeshInstance3D = d3.get("znak")
 		var przod := Vector2(zn.global_transform.basis.x.x, zn.global_transform.basis.x.z).normalized() if zn else Vector2.ZERO
 		var cel := Vector2(cos(en.kat), sin(en.kat))
