@@ -55,6 +55,13 @@ var blokada_wejscia := 0.0
 # Bufor wejścia (jak w Soulsborne): naciśnięcie w trakcie zamrożenia lub odnowienia nie przepada
 var bufor_ataku := 0.0
 var bufor_mocnego := 0.0
+## Namierzanie (decyzja autora 26.11.2026): kursor nie obraca postaci; cios celuje w kliknięty / namierzony /
+## ogłuszony (riposta) / najbliższy wróg przed postacią. Namierzanie: R / środkowy przycisk myszy / R3.
+var cel_namierzony = null
+var _klik_cel = null
+var _klik_kier := Vector2.ZERO
+var _klik_czas := 0.0
+const ZASIEG_NAMIERZANIA := 9.0
 ## Mocny cios jak w NightBrand: przytrzymaj cios co najmniej tyle (s), puść = mocny cios (parametry ciężkiego ciosu z combo).
 const PROG_MOCNEGO := 0.35
 var bufor_uniku := 0.0
@@ -584,6 +591,14 @@ func atak_wrecz(mocny := false) -> void:
 		return
 	p.stamina = maxf(0.0, p.stamina - float(bron["stamina"]))
 	p.blok = false
+	# cel ciosu: ogłuszony (riposta) > namierzony > kliknięty > najbliższy przed postacią
+	_cel_doskoku = cel_ciosu(float(bron["range"]))
+	if _cel_doskoku != null:
+		var dc: Vector2 = _cel_doskoku.w - p.w
+		p.kat = atan2(dc.y, dc.x)
+	elif _klik_czas > 0.0 and _klik_kier != Vector2.ZERO:
+		p.kat = atan2(_klik_kier.y, _klik_kier.x)  # klik w puste miejsce: cios w stronę kliknięcia
+	_klik_czas = 0.0
 	p.combo = (p.combo + 1) % 3 if p.combo_reset > 0.0 else 0
 	if mocny:
 		p.combo = 2  # mocny cios = ciężki cios combo (te same obrażenia, postura, czas; bez nowych liczb)
@@ -597,10 +612,16 @@ func atak_wrecz(mocny := false) -> void:
 	p.atak_licznik += 1
 	p.zamach_anim_max = maxf(0.46, p.atak_cd * 1.35)
 	p.zamach_anim = p.zamach_anim_max
-	var doskok := Vector2(cos(p.kat), sin(p.kat)) * (0.32 if ciezki else 0.18)
+	# doskok tylko do celu i tylko tyle, by domknąć dystans (nie w ścianę, nie w pustkę)
+	var doskok := Vector2.ZERO
+	if _cel_doskoku != null:
+		var dd: Vector2 = _cel_doskoku.w - p.w
+		var brak: float = dd.length() - (float(bron["range"]) * 0.7 + _cel_doskoku.promien)
+		doskok = dd.normalized() * clampf(brak, 0.0, 0.32 if ciezki else 0.18)
+	var przed_doskokiem := p.w
 	przesun(p, doskok)
 	if swiat3d != null:
-		swiat3d.impuls(p, doskok)
+		swiat3d.impuls(p, p.w - przed_doskokiem)
 	Dzwiek.zamach(ciezki)
 	if swiat3d != null:
 		swiat3d.efekt("ciecie_zar" if ciezki else "ciecie", p.w + Vector2(cos(p.kat), sin(p.kat)) * 0.75, 1.05, p.kat, 1.5 if ciezki else 1.25, 0.24, 0.08)
@@ -661,6 +682,122 @@ func atak_wrecz(mocny := false) -> void:
 		xp("melee", 6)
 
 
+var _cel_doskoku = null
+
+
+func _zywy(en) -> bool:
+	return en != null and is_instance_valid(en) and en.hp > 0.0 and wrogowie.has(en)
+
+
+## Wróg pod kursorem myszy (środek sylwetki na ekranie, nie stopy).
+func wrog_pod_kursorem():
+	var m := get_global_mouse_position()
+	var naj = null
+	var min_d := 46.0
+	for en in wrogowie:
+		if not en.widoczny_dla_gracza and widoczne(en.w) != 2:
+			continue
+		var d: float = m.distance_to(Iso.ekran(en.w) + Vector2(0, -38.0 if not en.boss else -60.0))
+		if d < min_d:
+			min_d = d
+			naj = en
+	return naj
+
+
+## Cel ciosu: ogłuszony najbliższy (riposta) > namierzony > kliknięty > najbliższy przed postacią w zasięgu.
+func cel_ciosu(zasieg: float):
+	var p := gracz
+	var naj = null
+	var min_d := zasieg + 1.3
+	for en in wrogowie:
+		if en.ogluszenie > 0.0 and en.hp > 0.0:
+			var d: float = p.w.distance_to(en.w)
+			if d < min_d:
+				min_d = d
+				naj = en
+	if naj != null:
+		return naj
+	if _zywy(cel_namierzony) and p.w.distance_to(cel_namierzony.w) < zasieg + 1.6:
+		return cel_namierzony
+	if _klik_czas > 0.0 and _zywy(_klik_cel) and p.w.distance_to(_klik_cel.w) < zasieg + 2.0:
+		return _klik_cel
+	var najlepszy := 1e9
+	for en in wrogowie:
+		if en.hp <= 0.0 or (not en.widoczny_dla_gracza and widoczne(en.w) != 2):
+			continue
+		var d: Vector2 = en.w - p.w
+		var odl: float = d.length()
+		if odl > zasieg + 1.0:
+			continue
+		var kat_roz: float = absf(angle_difference(p.kat, atan2(d.y, d.x)))
+		if kat_roz > 2.0 and odl > zasieg * 0.6:
+			continue  # za plecami i nie tuż obok
+		var ocena: float = odl + kat_roz * 0.8
+		if ocena < najlepszy and linia_wzroku(p.w, en.w):
+			najlepszy = ocena
+			naj = en
+	return naj
+
+
+## Cel strzału z łuku: namierzony albo najbliższy w stożku przed postacią (do 10 m).
+func cel_strzalu():
+	var p := gracz
+	if _zywy(cel_namierzony):
+		return cel_namierzony
+	var naj = null
+	var najlepszy := 1e9
+	for en in wrogowie:
+		if en.hp <= 0.0 or widoczne(en.w) != 2:
+			continue
+		var d: Vector2 = en.w - p.w
+		var kat_roz: float = absf(angle_difference(p.kat, atan2(d.y, d.x)))
+		if d.length() > 10.0 or kat_roz > 0.7:
+			continue
+		var ocena: float = d.length() + kat_roz * 4.0
+		if ocena < najlepszy and linia_wzroku(p.w, en.w):
+			najlepszy = ocena
+			naj = en
+	return naj
+
+
+## Namierzanie (R / środkowy przycisk / R3): włącz na najbliższego widocznego wroga przed postacią, drugie naciśnięcie wyłącza.
+func przelacz_namierzanie() -> void:
+	if cel_namierzony != null:
+		cel_namierzony = null
+		Dzwiek.ui()
+		return
+	cel_namierzony = _najblizszy_do_namierzenia(ZASIEG_NAMIERZANIA)
+	if cel_namierzony != null:
+		Dzwiek.ui()
+
+
+func _najblizszy_do_namierzenia(zasieg: float):
+	var p := gracz
+	var naj = null
+	var najlepszy := 1e9
+	for en in wrogowie:
+		if en.hp <= 0.0 or widoczne(en.w) != 2:
+			continue
+		var d: Vector2 = en.w - p.w
+		if d.length() > zasieg or not linia_wzroku(p.w, en.w):
+			continue
+		var ocena: float = d.length() + absf(angle_difference(p.kat, atan2(d.y, d.x))) * 1.5
+		if ocena < najlepszy:
+			najlepszy = ocena
+			naj = en
+	return naj
+
+
+## Cel zginął, uciekł daleko albo zniknął w mroku: przeskocz na najbliższego obok albo zwolnij.
+func _pilnuj_namierzania() -> void:
+	if cel_namierzony == null:
+		return
+	if not _zywy(cel_namierzony):
+		cel_namierzony = _najblizszy_do_namierzenia(6.0)
+	elif gracz.w.distance_to(cel_namierzony.w) > ZASIEG_NAMIERZANIA + 5.0 or widoczne(cel_namierzony.w) == 0:
+		cel_namierzony = null
+
+
 func postura(en: Wrog, ile: float) -> void:
 	if en.ogluszenie > 0.0 or en.hp <= 0.0:
 		return
@@ -707,6 +844,10 @@ func strzal_z_luku() -> void:
 	p.luk_cd = 0.58
 	Dzwiek.cieciwa()
 	var lucznictwo := Profil.poziom("archery") - 1
+	var cel_luku = cel_strzalu()
+	if cel_luku != null:
+		var dl: Vector2 = cel_luku.w - p.w
+		p.kat = atan2(dl.y, dl.x)
 	var kier := Vector2(cos(p.kat), sin(p.kat))
 	strzaly.append({"w": p.w + kier * 0.4, "v": kier * float(luk["speed"]) * (1.0 + lucznictwo * 0.04),
 		"dmg": float(luk["dmg"]) * (1.0 + lucznictwo * 0.08), "zasieg": float(luk["range"]), "od_gracza": true})
@@ -1009,6 +1150,12 @@ func zamknij_okno() -> void:
 
 # ---------------------------------------------------------------- PĘTLA
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and not okno_otwarte:
+		mysz_aktywna = true
+		_klik_cel = wrog_pod_kursorem()
+		var m := Iso.swiat(get_global_mouse_position())
+		_klik_kier = (m - gracz.w).normalized() if m.distance_to(gracz.w) > 0.3 else Vector2.ZERO
+		_klik_czas = 0.6
 	if e is InputEventMouseMotion:
 		mysz_aktywna = true
 	elif e is InputEventJoypadMotion and absf(e.axis_value) > 0.4:
@@ -1061,14 +1208,15 @@ func _wejscie() -> void:
 	var p := gracz
 	var ruch := Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol")
 	var cel := Input.get_vector("celuj_lewo", "celuj_prawo", "celuj_gora", "celuj_dol")
-	if cel.length() > 0.3:
+	_pilnuj_namierzania()
+	if Input.is_action_just_pressed("namierz"):
+		przelacz_namierzanie()
+	if cel_namierzony != null and p.unik_czas <= 0.0:
+		var dn: Vector2 = cel_namierzony.w - p.w
+		p.kat = atan2(dn.y, dn.x)
+	elif cel.length() > 0.3:
 		var c := Iso.ekran_na_swiat_kierunek(cel)
 		p.kat = atan2(c.y, c.x)
-	elif mysz_aktywna:
-		var m := Iso.swiat(get_global_mouse_position())
-		# martwa strefa: kursor tuż przy postaci nie kręci nią jak śmigłem
-		if m.distance_to(p.w) > 0.9:
-			p.kat = atan2(m.y - p.w.y, m.x - p.w.x)
 	elif ruch.length() > 0.3 and p.atak_czas <= 0.0:
 		var c2 := Iso.ekran_na_swiat_kierunek(ruch)
 		p.kat = atan2(c2.y, c2.x)
@@ -1077,6 +1225,7 @@ func _wejscie() -> void:
 	if not Input.is_action_pressed("parowanie"):
 		p.blok = false
 	var dt := get_process_delta_time()
+	_klik_czas = maxf(0.0, _klik_czas - dt)
 	bufor_ataku = maxf(0.0, bufor_ataku - dt)
 	bufor_uniku = maxf(0.0, bufor_uniku - dt)
 	if bufor_uniku > 0.0 and p.unik_cd <= 0.0 and p.unik_czas <= 0.0:
@@ -1153,7 +1302,7 @@ func _aktualizuj(dt: float) -> void:
 		else:
 			var ruch := Iso.ekran_na_swiat_kierunek(Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol"))
 			if ruch != Vector2.ZERO:
-				var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (1.6 if p.atak_czas > 0.0 else 3.4)
+				var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (0.5 if p.atak_czas > 0.0 else (1.6 if p.zamach_anim > 0.0 else 3.4))
 				przesun(p, ruch * v * dt)
 				p.w_ruchu = true
 				p.ruch_wektor = ruch * v

@@ -3,15 +3,16 @@ extends Node
 ## Wszystkie akcje w jednym miejscu. Układ jak w NightBrand (decyzja autora 26.11.2026):
 ##   lewy drążek ruch, prawy drążek celowanie, X / RT / RB cios (przytrzymanie = mocny cios), LB blok i parowanie, A unik,
 ##   Y rozmowa i przeszukiwanie, B łuk, krzyżak: góra/lewo/prawo mikstury, dół pochodnia,
-##   R3 zrzut sakwy, Widok (Back) sakwa, Start pauza, LB/RB w menu przełączają zakładki.
+##   R3 namierzanie, L3 zrzut sakwy, Widok (Back) sakwa, Start pauza, LB/RB w menu przełączają zakładki.
 ##   Klawiatura: WASD / strzałki, LPM / J cios, PPM / L blok, Spacja / Shift unik, E / Enter rozmowa,
 ##   Q łuk, F pochodnia, G zrzut sakwy, Tab / I sakwa, 1-2-3 mikstury, Esc / P pauza.
 
 ## Opis dla gracza (pauza → Sterowanie). Kolejność = kolejność na liście. [nazwa, klawiatura i mysz, przyciski pada (ikony zasoby/ui/pad_*)]
 const OPIS := [
 	["Ruch", "W A S D  /  strzałki", ["lewy drążek"]],
-	["Celowanie", "mysz", ["prawy drążek"]],
-	["Cios (combo)", "LPM  /  J", ["x", "rt", "rb"]],
+	["Kierunek postaci", "kierunek ruchu (kursor nie obraca)", ["prawy drążek"]],
+	["Namierzanie wroga (wł. / wył.)", "R  /  środkowy przycisk", ["R3"]],
+	["Cios (klik na wroga = atak na niego)", "LPM  /  J", ["x", "rt", "rb"]],
 	["Mocny cios: przytrzymaj cios i puść", "przytrzymaj LPM  /  J", ["x", "rt", "rb"]],
 	["Blok i parowanie", "PPM  /  L", ["lb"]],
 	["Unik (przewrót)", "Spacja  /  Shift", ["a"]],
@@ -19,7 +20,7 @@ const OPIS := [
 	["Strzał z łuku", "Q", ["b"]],
 	["Mikstury", "1  2  3", ["krzyżak: góra / lewo / prawo"]],
 	["Pochodnia", "F", ["krzyżak: dół"]],
-	["Zrzuć sakwę", "G", ["R3"]],
+	["Zrzuć sakwę", "G", ["L3"]],
 	["Sakwa", "Tab  /  I", ["widok"]],
 	["Pauza", "Esc  /  P", ["menu"]],
 ]
@@ -42,7 +43,8 @@ func _ready() -> void:
 	_akcja("luk", [_klaw(KEY_Q), _pr(JOY_BUTTON_B)])
 	_akcja("interakcja", [_klaw(KEY_E), _klaw(KEY_ENTER), _klaw(KEY_KP_ENTER), _pr(JOY_BUTTON_Y)])
 	_akcja("pochodnia", [_klaw(KEY_F), _pr(JOY_BUTTON_DPAD_DOWN)])
-	_akcja("zrzut_sakwy", [_klaw(KEY_G), _pr(JOY_BUTTON_RIGHT_STICK)])
+	_akcja("zrzut_sakwy", [_klaw(KEY_G), _pr(JOY_BUTTON_LEFT_STICK)])
+	_akcja("namierz", [_klaw(KEY_R), _mysz(MOUSE_BUTTON_MIDDLE), _pr(JOY_BUTTON_RIGHT_STICK)])
 	_akcja("sakwa", [_klaw(KEY_TAB), _klaw(KEY_I), _pr(JOY_BUTTON_BACK)])
 	_akcja("mikstura_1", [_klaw(KEY_1), _pr(JOY_BUTTON_DPAD_UP)])
 	_akcja("mikstura_2", [_klaw(KEY_2), _pr(JOY_BUTTON_DPAD_LEFT)])

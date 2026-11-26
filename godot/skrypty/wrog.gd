@@ -115,7 +115,7 @@ func _aktualizuj_nakladke(czas: float) -> void:
 	else:
 		hp_cien = hp
 		_cien_przerwa = 0.0
-	var pokaz := hp > 0.0 and widoczny_dla_gracza and not boss and (hp < hp_max or postura < postura_max or stan == "walka")
+	var pokaz := hp > 0.0 and widoczny_dla_gracza and not boss and (hp < hp_max or postura < postura_max or stan == "walka" or _namierzony())
 	_alfa_paska = move_toward(_alfa_paska, 1.0 if pokaz else 0.0, dt * 6.0)
 
 
@@ -144,6 +144,17 @@ func _rysuj_nakladke() -> void:
 				nakladka.draw_rect(Rect2(-szer / 2.0 - 1.0, gora + 7.0, szer + 2.0, 4.0), Color(kp, 0.35 * a))
 			nakladka.draw_rect(Rect2(-bw / 2.0, gora + 8.0, bw, 2.0), Color(0.05, 0.035, 0.04, 0.8 * a))
 			nakladka.draw_rect(Rect2(-szer / 2.0, gora + 8.0, szer, 2.0), Color(kp, a))
+	if _namierzony():
+		# namierzony: złote narożniki wokół paska i nad głową (jak w Soulsach)
+		var kz := Color(1.0, 0.82, 0.4, 0.95)
+		var l := -bw / 2.0 - 6.0
+		var pr := bw / 2.0 + 6.0
+		var g := gora - 5.0
+		var d := gora + 14.0
+		for rog in [[Vector2(l, g), 1, 1], [Vector2(pr, g), -1, 1], [Vector2(l, d), 1, -1], [Vector2(pr, d), -1, -1]]:
+			var pk: Vector2 = rog[0]
+			nakladka.draw_line(pk, pk + Vector2(7.0 * rog[1], 0), kz, 2.0)
+			nakladka.draw_line(pk, pk + Vector2(0, 6.0 * rog[2]), kz, 2.0)
 	if ogluszenie > 0.0:
 		# wróg odsłonięty: pulsujący złoty romb nad głową = czas na ripostę
 		var puls2 := 0.5 + 0.5 * sin(t * 12.0)
@@ -169,6 +180,11 @@ func _rysuj_nakladke() -> void:
 
 
 static var _tex_x: Texture2D
+
+
+func _namierzony() -> bool:
+	var r = get_parent().get_parent() if get_parent() else null
+	return r != null and "cel_namierzony" in r and r.cel_namierzony == self
 
 
 func _rajd_pad() -> bool:

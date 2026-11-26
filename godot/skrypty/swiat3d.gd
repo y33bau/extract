@@ -1653,7 +1653,10 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			_zgas_zapowiedz(d, dt)
 		_reakcja_wroga(en, d, n, dt)
 		var krag: MeshInstance3D = d["krag"]
-		krag.visible = n.visible and en.stan == "walka" and not lekki_krag
+		var namierzony: bool = rajd.cel_namierzony == en
+		krag.visible = n.visible and (en.stan == "walka" or namierzony) and not lekki_krag
+		(krag.material_override as ShaderMaterial).set_shader_parameter("kolor", Color(1.0, 0.75, 0.3) if namierzony else Color(0.62, 0.07, 0.05))
+		(krag.material_override as ShaderMaterial).set_shader_parameter("sila", 1.6 if namierzony else 1.0)
 		krag.global_position = Vector3(n.position.x, 0.025, n.position.z)
 	# polegli: animacja śmierci i ciało zostaje na ziemi
 	for id in _wrogowie.keys():

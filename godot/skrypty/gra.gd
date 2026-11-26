@@ -424,6 +424,79 @@ func _test_kramu() -> void:
 	Profil.d = kopia_profilu  # test nie zmienia profilu (zakup był tylko sprawdzeniem)
 
 
+## Namierzanie i celowanie (decyzja autora 26.11.2026): kursor nie obraca postaci, klik na wroga = cios w niego,
+## riposta w najbliższego ogłuszonego, brak doskoku bez celu, namierzanie R / R3.
+func _test_namierzania(p, en) -> void:
+	var drugi = null
+	for w in rajd.wrogowie:
+		if w != en and not w.boss:
+			drugi = w
+			break
+	en.uspiony = true
+	en.atak_timer = 99.0
+	en.ogluszenie = 0.0
+	# kursor nie obraca postaci
+	var w0: Vector2 = en.w
+	en.w = Vector2(2.5, 2.5)
+	if drugi:
+		drugi.uspiony = true
+		drugi.w = Vector2(2.5, 2.5)
+	rajd.mysz_aktywna = true
+	p.kat = 0.3
+	await _czekaj(0.3)
+	_ok("kursor nie obraca postaci", absf(angle_difference(p.kat, 0.3)) < 0.01, "kąt %.2f" % p.kat)
+	# bez celu: brak doskoku (nie wjeżdża w ścianę)
+	p.atak_cd = 0.0
+	p.stamina = p.stamina_max
+	rajd.bufor_ataku = 0.0
+	var w_przed: Vector2 = p.w
+	rajd.atak_wrecz()
+	_ok("cios bez wroga: brak doskoku", p.w.distance_to(w_przed) < 0.001)
+	await _czekaj_az(func(): return p.zamach_anim <= 0.0, 3.0)
+	# klik na wroga z boku: cios celuje w niego
+	var bok := Vector2(cos(p.kat + 1.6), sin(p.kat + 1.6))
+	en.w = p.w + bok * 1.4
+	if rajd.pelne(en.w.x, en.w.y):
+		en.w = p.w - bok * 1.4
+	en.widoczny_dla_gracza = true
+	rajd._klik_cel = en
+	rajd._klik_czas = 0.5
+	p.atak_cd = 0.0
+	p.stamina = p.stamina_max
+	rajd.atak_wrecz()
+	var do_en: Vector2 = en.w - p.w
+	_ok("klik na wroga: cios w jego stronę", absf(angle_difference(p.kat, atan2(do_en.y, do_en.x))) < 0.05)
+	await _czekaj_az(func(): return p.zamach_anim <= 0.0, 3.0)
+	# riposta w najbliższego ogłuszonego (nawet gdy inny stoi na wprost)
+	if drugi:
+		drugi.w = p.w + Vector2(cos(p.kat + PI), sin(p.kat + PI)) * 1.0
+		if rajd.pelne(drugi.w.x, drugi.w.y):
+			drugi.w = p.w + Vector2(cos(p.kat), sin(p.kat)) * 1.0
+		drugi.widoczny_dla_gracza = true
+		drugi.ogluszenie = 2.0
+		var hp_d: float = drugi.hp
+		p.atak_cd = 0.0
+		p.stamina = p.stamina_max
+		rajd.atak_wrecz()
+		_ok("riposta trafia najbliższego ogłuszonego wroga", drugi.ogluszenie <= 0.0 and drugi.hp < hp_d, "HP %.0f → %.0f" % [hp_d, drugi.hp])
+		drugi.w = Vector2(2.5, 2.5)
+		drugi.hp = drugi.hp_max
+		await _czekaj_az(func(): return p.zamach_anim <= 0.0, 3.0)
+	# namierzanie: R3 włącza, postać zwraca się do celu, drugie naciśnięcie wyłącza
+	p.kat = atan2(-do_en.y, -do_en.x)
+	await _pad(JOY_BUTTON_RIGHT_STICK)
+	await _czekaj_az(func(): return rajd.cel_namierzony != null, 2.0)
+	await _czekaj(0.2)
+	var do_cel: Vector2 = en.w - p.w
+	_ok("R3: namierzanie wroga, postać zwrócona do celu", rajd.cel_namierzony == en and absf(angle_difference(p.kat, atan2(do_cel.y, do_cel.x))) < 0.1)
+	await _zrzut("7c_namierzanie")
+	await _pad(JOY_BUTTON_RIGHT_STICK)
+	await _czekaj_az(func(): return rajd.cel_namierzony == null, 2.0)
+	_ok("R3 ponownie: koniec namierzania", rajd.cel_namierzony == null)
+	rajd.mysz_aktywna = false
+	en.w = w0
+
+
 ## Mocny cios (jak w NightBrand): przytrzymanie X ładuje (poza zamachu, wolniejszy krok), puszczenie = ciężki cios combo.
 func _test_mocnego_ciosu(p, en) -> void:
 	en.ogluszenie = 0.0
@@ -699,10 +772,18 @@ func _test_plynnosci(p) -> void:
 			klatek += 1
 		yaw_prev = y
 	_ok("obrót o 180° płynny (bez skoku w jednej klatce)", max_krok < 1.0 and klatek >= 3, "max %.2f rad/klatkę, %d klatek" % [max_krok, klatek])
-	# 2. doskok przy ciosie dopływa, nie teleportuje
+	# 2. doskok do wroga przy ciosie dopływa, nie teleportuje (doskok jest tylko do celu)
 	p.atak_cd = 0.0
 	p.combo_reset = 0.0
 	p.stamina = p.stamina_max
+	var en_d = rajd.wrogowie[0]
+	var en_d_w: Vector2 = en_d.w
+	en_d.uspiony = true
+	en_d.atak_timer = 99.0
+	en_d.w = p.w + Vector2(cos(p.kat), sin(p.kat)) * 1.9
+	if rajd.pelne(en_d.w.x, en_d.w.y):
+		en_d.w = p.w - Vector2(cos(p.kat), sin(p.kat)) * 1.9
+	en_d.widoczny_dla_gracza = true
 	rajd.atak_wrecz()
 	await _klatka()
 	var skok: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
@@ -712,6 +793,7 @@ func _test_plynnosci(p) -> void:
 	await _czekaj(0.6)
 	var po: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
 	_ok("doskok do wroga dopływa płynnie", skok > 0.05 and po < 0.03, "po ciosie %.2f m od logiki, po 0,6 s %.2f m" % [skok, po])
+	en_d.w = en_d_w
 	await _czekaj(0.6)
 	# 3. kroki zgodne z kierunkiem ruchu względem twarzy
 	var wyniki := {}
@@ -1012,6 +1094,7 @@ func _test() -> void:
 	_ok("ciosy łamią posturę", pekla)
 	_ok("combo ma własne animacje ciosów", ciosy.has("atak1") and ciosy.has("atak2"), ", ".join(ciosy.keys()))
 	await _test_mocnego_ciosu(p, en)
+	await _test_namierzania(p, en)
 	await _test_oprawy_walki(p, en)
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true
@@ -1041,9 +1124,9 @@ func _test() -> void:
 
 	# zrzut sakwy R3
 	p.rynsztunek["backpack"].append(Profil.nowy_przedmiot("golden_idol"))
-	await _pad(JOY_BUTTON_RIGHT_STICK)
+	await _pad(JOY_BUTTON_LEFT_STICK)
 	var sakwy := rajd.zwloki.filter(func(z): return z["sakwa"])
-	_ok("R3 zrzuca sakwę (pas zostaje)", sakwy.size() == 1 and rajd.sakwa_obciazenie() == 0)
+	_ok("L3 zrzuca sakwę (pas zostaje)", sakwy.size() == 1 and rajd.sakwa_obciazenie() == 0)
 	# podnieś z powrotem
 	rajd.otworz(sakwy[0])
 	await _czekaj(0.3)
