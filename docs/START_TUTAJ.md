@@ -22,7 +22,8 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 | `docs/SILNIK_GODOT.md` | architektura, konwencje, pułapki, „jak dodać”, testy, eksport, środowisko | gamedev, grafik |
 | `docs/GRAFIKA.md` | styl, formaty sprite'ów i kafli, kolory, proces produkcji | grafik |
 | `docs/NARZEDZIA.md` | narzędzia, skille i MCP: co używamy, co odłożone i dlaczego | przy pytaniu o narzędzia |
-| `docs/PRZEKAZANIE_2026-11-26.md` | raport ostatniej sesji (4 rundy, decyzje, pułapki) | nowy agent po 26.11 |
+| `docs/PRZEKAZANIE_2026-11-26.md` | raport sesji 25.11–26.11 (9 rund, decyzje, biblioteka grafik NightBrand, pułapki) | nowy agent po 26.11 |
+| `magazyn/nightbrand/` | grafiki NightBrand pod czytelnymi nazwami (wybór v1) + spis całości; pełna biblioteka u autora: `NIGHTBRAND\WAROWNIA_GRAFIKA\Biblioteka_grafik_NightBrand.zip` | grafik, każdy buduje świat |
 | `docs/KONCEPCJE.md` | pomysły autora z ocenami (nie wszystko wchodzi do v1!) | koncepciarz, planowanie |
 | `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
@@ -30,12 +31,12 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 - **Silnik: Godot 4.7.2, renderer Forward+, prawdziwe 3D z kamerą izometryczną** (decyzje autora 25.11.2026). Gra w `godot/`; wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`.
 - Gra: Warownia-Przystań w 3D (swobodny ruch, NPC: Marga = kupiec, Chojrak = wyprawy i kontrakty, chłop = gawędziarz, przewoźnik z łodzią; obóz rosnący z poziomem), rajd 20 min na mapach 128×128 z ziarna (lochy oraz las Czarnobór od 26.11) (7 rodzajów komnat, 3–4 ekstrakcje, patrole, pościg), walka (combo, parowanie z pierścieniem rytmu, riposta, blok, przewrót, postura, pochodnia vs tarcza, zrzut sakwy), mgła wojny, minimapa, łup, śmierć (Relikwiarz, połowa doświadczenia), dźwięk, pad wszędzie, ustawienie jakości grafiki.
 - Postacie: Hadræn (płynny ruch i walka przyjęte przez autora), 6 typów wrogów i NPC z Meshy w pozie T — **autor 26.11.2026: „Postacie są super”**.
-- Testy: `testy.py godot` 94/94 (gałąź `namierzanie`).
-- Rundy nieopublikowane: `walka-oprawa` (oprawa walki, przyjęta: „o wiele lepiej”) → `menu-i-pauza` (menu, pauza Esc/Start, sterowanie jak NightBrand; „OK jak na betę”) → `mocny-cios-sklep` (mocny cios przez przytrzymanie, Kram Margi) → `hud-nightbrand` (HUD jak NightBrand, wskaźniki walki) → **`namierzanie`** (namierzanie, klik na wroga, płynny ruch, parowanie; zamknięta 10:45, czeka na ocenę — ZACZYNAJ OD NIEJ). Raport sesji: `docs/PRZEKAZANIE_2026-11-26.md`. Następne: świat rajdu.
+- Testy: `testy.py godot` 100/100 (gałąź `las-w-rajdzie`).
+- Rundy nieopublikowane (łańcuch, każda zawiera poprzednie): `walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → `hud-nightbrand` → `namierzanie` → `magazyn-nightbrand` → `pilot-czarnobor` → `mapy-128` → **`las-w-rajdzie`** (Czarnobór grywalny; ZACZYNAJ OD NIEJ). Raport: `docs/PRZEKAZANIE_2026-11-26.md`. **Grafiki świata bierz z biblioteki NightBrand** (§2 przekazania). Następne wg autora: walka, oznaczenia, balans, oprawa graficzna.
 - Sterowanie: układ NightBrand (unik A, rozmowa Y, łuk B, pauza Start) — pełna lista w `godot/skrypty/sterowanie.gd` (`OPIS`).
 - Prototyp JS (`zrodlo/`) = archiwum.
 - **`main` = opublikowana wersja** (26.11.2026, stan gałęzi `mapy-runda-2`, przyjęty przez autora). Nowa runda: nowa gałąź od `main`.
-- Liczby do strojenia czekające na decyzję autora: wrogowie 34/44/50 na mapę, czas rajdu 15 min, skrzynie 40–80, nagrody kontraktów 40/60/150–400.
+- Liczby do strojenia czekające na decyzję autora: wrogowie 60/56/78/89 na mapę (Katakumby/Czarnobór/Podgrodzie/Krypta), czas rajdu 20 min (decyzja autora), nagrody kontraktów 40/60/150–400. Brak limitu wysyłki plików do autora (decyzja 26.11).
 - Otwarte tematy (z `FUNDAMENT.md`): ekonomia, lista broni v1, struktura mapy rajdu, liczby odblokowań biotopów i kary za śmierć; pilot grafiki Spalonej Osady.
 
 ## 4. Gdzie co jest

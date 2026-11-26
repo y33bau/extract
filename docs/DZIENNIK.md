@@ -17,6 +17,14 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 14:15 — konto 2, rola: agent główny — przekazanie i biblioteka grafik
+- Gałąź: `las-w-rajdzie`.
+- **Decyzje autora (14:02):** brak limitu wysyłki plików; przekazanie na nowe konto; nowy agent ma pracować na teksturach i modelach NightBrand; plan autora z nowym agentem: **walka, oznaczenia, balans, oprawa graficzna**.
+- Zrobione: pełna biblioteka grafik NightBrand pod czytelnymi nazwami (`narzedzia/magazyn_nightbrand.py`; 202 modele z teksturami i miniaturami, 91 tekstur, 118 obrazków 2D, 15 teł, podłoże lasu) → `NIGHTBRAND\WAROWNIA_GRAFIKA\Biblioteka_grafik_NightBrand.zip` (225 MB) + opis w repo `magazyn/nightbrand/BIBLIOTEKA_CZYTAJ.md`. Przekazanie przepisane: `docs/PRZEKAZANIE_2026-11-26.md` (także w projekcie Claude). `START_TUTAJ.md` §3 zaktualizowany.
+- Testy: kod gry bez zmian.
+- NIE sprawdzone: otwarcie zipa biblioteki na komputerze autora.
+- Następny krok: nowy agent — test Czarnoboru u autora, „publikuj”, potem walka/oznaczenia/balans/oprawa.
+
 ## 2026-11-26 13:40 — konto 2, rola: gamedev — las Czarnobór w rajdzie
 - Gałąź i commit: `las-w-rajdzie` (od `mapy-128`).
 - Prośba autora (12:32): „Tak” — podpięcie lasu do rajdu i wygląd 3D z magazynu NightBrand.
