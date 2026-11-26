@@ -17,6 +17,11 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 19:20 — nowe konto, rola: agent główny — publikacja mapy i walki
+- **Decyzja autora (19:16): „publikuj i bierz się za Osadę”.**
+- Opublikowano na main: łańcuch `mapa-mgla-i-wczytywanie` → `walka-i-czytelnosc` (commit w `git log main`).
+- Następny krok: pilot Spalonej Osady (generator + mapy z góry do akceptacji, potem 3D).
+
 ## 2026-11-26 19:20 — nowe konto, rola: gamedev — walka uczciwa i czytelność (punkty 5–14 listy mentora)
 - Gałąź: `walka-i-czytelnosc` (od `mapa-mgla-i-wczytywanie`, która czeka na „publikuj”).
 - **Zlecenie autora (18:19): „Rób od 5 do 14”** = zgoda na zmiany odczucia walki (5, 6) i na zastąpienie trójkąta „!” obrysem (7). Punkt 8 (ocena walki) należy do autora.
