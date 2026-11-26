@@ -16,7 +16,8 @@ Izometryczny dark fantasy extraction RPG w Godocie 4.7.2: walka Soulsborne + łu
 7. **Pierwsza wiadomość**: wzór w `docs/PROCES.md` §5.
 
 ## Najważniejsze zasady (pełne: `docs/ZASADY.md`)
-- Każda funkcja służy `docs/FUNDAMENT.md`. Zakres v1 zamknięty: 2 biotopy, pad wszędzie, bez kooperacji i fabuły.
+- Każda funkcja służy `docs/FUNDAMENT.md`. Zakres v1 zamknięty: 2 biotopy (Spalona Osada, Czarnobór), mapy 128×128 m, rajd 20 min, pad wszędzie, bez kooperacji i fabuły.
+- Grafika świata: biblioteka NightBrand (`magazyn/nightbrand/`, przekazanie §2) — najpierw ona, potem nowe grafiki.
 - Godot 4.7.2, GDScript z typami, **Forward+ (3D)**, offline. Wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`. Prototyp JS (`zrodlo/`) = archiwum.
 - Akcje sterowania tylko w `godot/skrypty/sterowanie.gd`. Reguły rajdu w `rajd.gd`. Dane w `godot/dane/*.json`.
 - Ziarno = ten sam loch (strumienie `rng_uklad/rng_lup/rng_wrogowie`).

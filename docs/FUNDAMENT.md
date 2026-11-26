@@ -24,7 +24,7 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 
 ## Rajd
 
-- Długość: ok. 10–15 minut.
+- Długość: ok. 20 minut (decyzja autora 26.11.2026: mapy 128×128 m, rajd 20 min).
 - Wczesne wyjście możliwe po kilku minutach. Gracz sam wybiera ryzyko: wyjść z małym łupem albo iść głębiej po więcej.
 
 ## Bohater
@@ -64,7 +64,7 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 
 ## Pierwsza wersja: co JEST
 
-- Dwa dopracowane biotopy: Spalona Osada i Dolne Miasto, każdy z własnym bossem.
+- Dwa dopracowane biotopy: Spalona Osada i Czarnobór, każdy z własnym bossem (decyzja 26.11.2026; Dolne Miasto później).
 - Sterowanie: mysz i klawiatura **oraz pad** (obowiązkowo od pierwszej wersji, także w menu i Warowni).
 - Platforma: PC.
 
@@ -72,7 +72,7 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 
 - Trybu kooperacji.
 - Zadań fabularnych.
-- Pozostałych trzech biotopów (Solne Nabrzeże, Czarnobór, Cytadela Wierzycieli) — dojdą później.
+- Pozostałych biotopów (Dolne Miasto, Solne Nabrzeże, Cytadela Wierzycieli) — dojdą później.
 
 ## Do ustalenia w kolejnych rozmowach
 

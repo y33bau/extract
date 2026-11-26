@@ -24,7 +24,7 @@ Decyzja autora, która zmienia kodeks albo fundament, musi zostać wpisana do od
 ## B. FUNDAMENT I ZAKRES
 
 **B1. Każda funkcja służy `FUNDAMENT.md`**: strach (o ekwipunek i życie), adrenalina (walka Soulsborne), dopamina (łup, ekstrakcja, postęp). Jeśli funkcja nie wzmacnia żadnego z trzech uczuć — nie wchodzi.
-**B2. Zakres pierwszej wersji jest zamknięty:** dwa biotopy (Spalona Osada, Dolne Miasto) z bossami, jeden bohater (Hadræn, broń = klasa), mysz+klawiatura ORAZ pad, PC. **Bez kooperacji, bez zadań fabularnych, bez pozostałych biotopów.** Poszerzenie zakresu tylko decyzją autora.
+**B2. Zakres pierwszej wersji jest zamknięty:** dwa biotopy (Spalona Osada, Czarnobór — decyzja autora 26.11.2026; Dolne Miasto później) z bossami; mapy 128×128 m, rajd 20 min, jeden bohater (Hadræn, broń = klasa), mysz+klawiatura ORAZ pad, PC. **Bez kooperacji, bez zadań fabularnych, bez pozostałych biotopów.** Poszerzenie zakresu tylko decyzją autora.
 **B3. Najpierw fundament, potem funkcje.** Nie dodajesz mechanik spoza fundamentu ani niezamówionych przez autora — nawet „małych”, nawet „przy okazji”. Pomysł zapisujesz w `KONCEPCJE.md` i pytasz.
 **B4. Balans i liczby ustalone z autorem są nietykalne** bez jego zgody. Nowe liczby (pierwsze przymiarki) oznaczasz w dzienniku jako „do strojenia”.
 **B5. Niezamówionych rzeczy nie ruszasz.** Usterkę poza zakresem zgłaszasz w meldunku i pytasz, czy naprawić.
