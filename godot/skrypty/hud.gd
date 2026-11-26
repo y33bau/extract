@@ -227,7 +227,7 @@ func _process(_dt: float) -> void:
 	else:
 		zb_txt.text = "BRAK PANCERZA"
 		zb_pasek.value = 0
-	mikstury.text = "[1/↑] Żar %d     [2/←] Tonik %d     [3/→] Maść %d" % [r.liczba_mikstur("heal"), r.liczba_mikstur("stamina"), r.liczba_mikstur("salve")]
+	mikstury.text = "1  Żar %d     2  Tonik %d     3  Maść %d" % [r.liczba_mikstur("heal"), r.liczba_mikstur("stamina"), r.liczba_mikstur("salve")]
 	bron.text = Dane.p(p.rynsztunek["weapon"]["id"])["name"] if p.rynsztunek["weapon"] else "Gołe pięści"
 	var tarcza: String = Dane.p(p.rynsztunek["shield"]["id"])["name"] if p.rynsztunek["shield"] else "Brak tarczy"
 	var obc: int = r.sakwa_obciazenie()

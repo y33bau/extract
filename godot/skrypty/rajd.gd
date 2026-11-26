@@ -54,6 +54,9 @@ var mysz_aktywna := false
 var blokada_wejscia := 0.0
 # Bufor wejścia (jak w Soulsborne): naciśnięcie w trakcie zamrożenia lub odnowienia nie przepada
 var bufor_ataku := 0.0
+var bufor_mocnego := 0.0
+## Mocny cios jak w NightBrand: przytrzymaj cios co najmniej tyle (s), puść = mocny cios (parametry ciężkiego ciosu z combo).
+const PROG_MOCNEGO := 0.35
 var bufor_uniku := 0.0
 
 var podloga: Node2D
@@ -571,7 +574,7 @@ func liczba_mikstur(rodzaj: String) -> int:
 
 
 # ---------------------------------------------------------------- WALKA GRACZA
-func atak_wrecz() -> void:
+func atak_wrecz(mocny := false) -> void:
 	var p := gracz
 	if okno_otwarte or p.atak_cd > 0.0 or p.unik_czas > 0.0 or p.martwy:
 		return
@@ -582,6 +585,8 @@ func atak_wrecz() -> void:
 	p.stamina = maxf(0.0, p.stamina - float(bron["stamina"]))
 	p.blok = false
 	p.combo = (p.combo + 1) % 3 if p.combo_reset > 0.0 else 0
+	if mocny:
+		p.combo = 2  # mocny cios = ciężki cios combo (te same obrażenia, postura, czas; bez nowych liczb)
 	p.combo_reset = 0.95
 	var ciezki := p.combo == 2
 	p.atak_dlugosc = 0.24 if ciezki else 0.18
@@ -1022,8 +1027,17 @@ func _process(dt_surowe: float) -> void:
 		efekty.aktualizuj(dt)
 		return
 	if not okno_otwarte:
+		# cios: krótkie kliknięcie = zwykły cios (combo), przytrzymanie >= PROG_MOCNEGO = mocny cios po puszczeniu
 		if Input.is_action_just_pressed("atak"):
-			bufor_ataku = 0.25
+			gracz.trzyma_atak = true
+			gracz.ladowanie = 0.0
+		if Input.is_action_just_released("atak") and gracz.trzyma_atak:
+			if gracz.ladowanie >= PROG_MOCNEGO:
+				bufor_mocnego = 0.25
+			else:
+				bufor_ataku = 0.25
+			gracz.trzyma_atak = false
+			gracz.ladowanie = 0.0
 		if Input.is_action_just_pressed("unik"):
 			bufor_uniku = 0.2
 	if hitstop > 0.0:
@@ -1068,7 +1082,21 @@ func _wejscie() -> void:
 	if bufor_uniku > 0.0 and p.unik_cd <= 0.0 and p.unik_czas <= 0.0:
 		bufor_uniku = 0.0
 		unik(Iso.ekran_na_swiat_kierunek(ruch))
-	if (Input.is_action_pressed("atak") or bufor_ataku > 0.0) and p.atak_cd <= 0.0 and p.unik_czas <= 0.0:
+	if p.trzyma_atak:
+		if Input.is_action_pressed("atak") and p.unik_czas <= 0.0 and not p.blok:
+			var przed := p.ladowanie
+			p.ladowanie += dt
+			if przed < PROG_MOCNEGO and p.ladowanie >= PROG_MOCNEGO:
+				Dzwiek.blysk(false)  # sygnał: mocny cios naładowany
+		else:
+			p.trzyma_atak = false  # unik, blok albo puszczenie poza grą przerywa ładowanie
+			p.ladowanie = 0.0
+	bufor_mocnego = maxf(0.0, bufor_mocnego - dt)
+	if bufor_mocnego > 0.0 and p.atak_cd <= 0.0 and p.unik_czas <= 0.0:
+		bufor_mocnego = 0.0
+		bufor_ataku = 0.0
+		atak_wrecz(true)
+	elif bufor_ataku > 0.0 and p.atak_cd <= 0.0 and p.unik_czas <= 0.0:
 		bufor_ataku = 0.0
 		atak_wrecz()
 	if Input.is_action_just_pressed("luk"):
@@ -1125,7 +1153,7 @@ func _aktualizuj(dt: float) -> void:
 		else:
 			var ruch := Iso.ekran_na_swiat_kierunek(Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol"))
 			if ruch != Vector2.ZERO:
-				var v := 1.9 if p.blok else (1.6 if p.atak_czas > 0.0 else 3.4)
+				var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (1.6 if p.atak_czas > 0.0 else 3.4)
 				przesun(p, ruch * v * dt)
 				p.w_ruchu = true
 				p.ruch_wektor = ruch * v

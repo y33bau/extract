@@ -17,6 +17,19 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 01:50 — konto 2, rola: gamedev
+- Gałąź `mocny-cios-sklep` (od `menu-i-pauza`). main nietknięty.
+- **Ocena autora (01:36):** menu i pauza „jak na betę jest OK, później dopracujemy”. Zlecenie: mocny cios, dopracować sklep, atak też na RB.
+- Zrobione:
+  - **Mocny cios (jak w NightBrand):** krótkie kliknięcie ciosu = zwykły cios (combo); przytrzymanie ≥ `rajd.PROG_MOCNEGO` = 0,35 s **(do strojenia)** ładuje mocny cios, puszczenie go wyprowadza. Mocny cios = ciężki cios combo (te same obrażenia ×1,35, postura ×1,9, czas, stamina — bez nowych liczb). W czasie ładowania: krok jak przy bloku (istniejąca prędkość 1,9), poza zamachu ciężkiego ciosu napina się, krąg pod bohaterem żarzy się i pulsuje, dźwięk przy pełnym naładowaniu; unik albo blok przerywa ładowanie. **Zmiana zachowania:** przytrzymanie ciosu nie powtarza już ciosów samo (teraz ładuje).
+  - **Atak na RB:** RB był już ciosem (zapasowo) — teraz jest na liście sterowania w pauzie (X / RT / RB).
+  - **Kram Margi** (zakładka Kupiec, `hub.gd`): tryby Kup / Sprzedaj łup, kategorie, karty z ikoną, nazwą w kolorze rzadkości i ceną; panel szczegółów z dużą ikoną, opisem, statystykami, porównaniem z założonym („obrażenia +8”) i ceną albo powodem blokady („wymaga Kuźni 2”, „brakuje 120 zł”). Zablokowane karty da się wybrać padem i przeczytać; kupno zablokowanego oręża odmawia (Kuźnia). Ceny bez zmian.
+  - HUD: mikstury bez strzałek (Cinzel ich nie ma).
+- Testy: 86/86 OK (nowe: ładowanie i wyprowadzenie mocnego ciosu, kram: karty, szczegóły z porównaniem, blokada Kuźni, zakup, tryb sprzedaży). Kontrola spakowanej gry Linux 86/86 OK.
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_MocnyCios.zip` (`TEST_MOCNY_CIOS.bat`).
+- NIE sprawdzone: wyczucie mocnego ciosu na żywo (próg 0,35 s), prawdziwy pad (RT jako oś przy przytrzymaniu), dźwięk.
+- Następny krok: ocena autora; propozycja: HUD rajdu jak w NightBrand (kule, pasek akcji, rama minimapy).
+
 ## 2026-11-26 01:35 — konto 2, rola: gamedev + grafik (jeden wykonawca)
 - Gałąź `menu-i-pauza` (od `walka-oprawa` `bcff8c7`). main nietknięty.
 - Zlecenie autora (01:02): menu i pauza („menu archaiczne, nieczytelne”), zasoby NightBrand, **Esc i Start na padzie = pauza**, sterowanie postaci (mysz i pad) jak w NightBrand, „podobnie skille”. Repo `y33bau/NightBrand-PC` podpięte TYLKO DO ODCZYTU (nic tam nie zmieniono).

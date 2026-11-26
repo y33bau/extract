@@ -386,6 +386,74 @@ func _zrzut(nazwa: String) -> void:
 	get_viewport().get_texture().get_image().save_png(_zrzuty.path_join(nazwa + ".png"))
 
 
+## Kram Margi: karty, szczegóły przy fokusie, porównanie z założonym, zablokowane nie do kupienia, zakup, tryb sprzedaży.
+func _test_kramu() -> void:
+	var kopia_profilu: Dictionary = Profil.d.duplicate(true)
+	hub.tryb_kupca = "kup"
+	hub.kategoria = "weapon"
+	hub.zakladki.current_tab = 2
+	hub.odswiez()
+	await _klatka()
+	var karty: Array = hub.t_kupiec.find_children("*", "Button", true, false).filter(func(b): return str(b.get_meta("klucz", "")).begins_with("kup_"))
+	_ok("kram: karty broni", karty.size() >= 3, "%d kart" % karty.size())
+	var stal = karty.filter(func(b): return b.get_meta("klucz") == "kup_steel_kordelas")
+	var cel: Button = stal[0] if stal.size() > 0 else karty[1]
+	cel.grab_focus()
+	await _klatka()
+	_ok("kram: fokus pokazuje szczegóły i porównanie z założonym", hub._sz_nazwa.text != "Wybierz przedmiot" and hub._sz_porown.text.begins_with("Założone"),
+		"%s / %s" % [hub._sz_nazwa.text, hub._sz_porown.text])
+	await _zrzut("1d_kram")
+	var zablok: Array = karty.filter(func(b): return int(Dane.p(str(b.get_meta("klucz")).substr(4)).get("forgeReq", 0)) > Profil.budynek("forge"))
+	if zablok.size() > 0:
+		var z0 := int(Profil.d["gold"])
+		Profil.d["gold"] = 99999
+		(zablok[0] as Button).pressed.emit()
+		_ok("kram: zablokowanego oręża nie kupisz (Kuźnia)", int(Profil.d["gold"]) == 99999)
+		Profil.d["gold"] = z0
+	var przed := int(Profil.d["gold"])
+	hub._kup("ember_flask")
+	_ok("kram: zakup zabiera złoto", int(Profil.d["gold"]) == przed - int(Dane.p("ember_flask")["price"]))
+	Profil.d["gold"] = przed
+	hub.tryb_kupca = "sprzedaj"
+	hub.odswiez()
+	await _klatka()
+	var sp: Array = hub.t_kupiec.find_children("*", "Button", true, false).filter(func(b): return str(b.get_meta("klucz", "")).begins_with("sp_"))
+	_ok("kram: tryb sprzedaży pokazuje łup", sp.size() > 0, "%d kart" % sp.size())
+	hub.tryb_kupca = "kup"
+	hub.kategoria = "all"
+	Profil.d = kopia_profilu  # test nie zmienia profilu (zakup był tylko sprawdzeniem)
+
+
+## Mocny cios (jak w NightBrand): przytrzymanie X ładuje (poza zamachu, wolniejszy krok), puszczenie = ciężki cios combo.
+func _test_mocnego_ciosu(p, en) -> void:
+	en.ogluszenie = 0.0
+	en.zamach = 0.0
+	en.atak_timer = 99.0
+	_ustaw_wroga_przed(en, 0.9)
+	p.stamina = p.stamina_max
+	p.atak_cd = 0.0
+	p.combo_reset = 0.0
+	p.combo = 0
+	rajd.bufor_ataku = 0.0
+	rajd.bufor_mocnego = 0.0
+	await _czekaj_az(func(): return p.zamach_anim <= 0.0, 3.0)
+	var post0: float = en.postura
+	_przycisk(JOY_BUTTON_X, true)
+	await _czekaj_az(func(): return p.ladowanie >= rajd.PROG_MOCNEGO + 0.15, 6.0)
+	await _klatka()
+	_ok("mocny cios: przytrzymanie ładuje (poza zamachu ciężkiego ciosu)", p.ladowanie >= rajd.PROG_MOCNEGO and p.biezaca_anim == "atak3" and p.zamach_anim <= 0.0,
+		"ładowanie %.2f s, animacja %s" % [p.ladowanie, p.biezaca_anim])
+	await _zrzut("7b_ladowanie_mocnego")
+	var licznik: int = p.atak_licznik
+	_przycisk(JOY_BUTTON_X, false)
+	await _czekaj_az(func(): return p.atak_licznik > licznik, 3.0)
+	_ok("mocny cios: puszczenie = ciężki cios (combo 3, łamie posturę mocniej)", p.atak_licznik > licznik and p.combo == 2 and (en.postura < post0 or en.ogluszenie > 0.0),
+		"combo %d, postura %.0f → %.0f" % [p.combo, post0, en.postura])
+	await _czekaj(0.5)
+	en.postura = en.postura_max
+	en.ogluszenie = 0.0
+
+
 ## Oprawa walki (runda walka-oprawa): mięso trafień, paski, napisy, pasek bossa. Tylko wygląd — reguły bez zmian.
 func _test_oprawy_walki(p, en) -> void:
 	var s3 = rajd.swiat3d
@@ -805,6 +873,7 @@ func _test() -> void:
 	await _pad(JOY_BUTTON_BACK)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Back otwiera całe menu Warowni", hub.is_visible_in_tree())
+	await _test_kramu()
 	hub.zakladki.current_tab = 0
 	await _czekaj(0.2)
 	# ustawienie jakości grafiki: przycisk przełącza i zapamiętuje
@@ -931,6 +1000,7 @@ func _test() -> void:
 			break
 	_ok("ciosy łamią posturę", pekla)
 	_ok("combo ma własne animacje ciosów", ciosy.has("atak1") and ciosy.has("atak2"), ", ".join(ciosy.keys()))
+	await _test_mocnego_ciosu(p, en)
 	await _test_oprawy_walki(p, en)
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true

@@ -378,15 +378,43 @@ func _ekwipunek() -> void:
 	prawa.add_child(gs)
 
 
-# ------------------------------------------------------------ KUPIEC
+# ------------------------------------------------------------ KUPIEC (kram jak w NightBrand)
+## Tryby: Kup / Sprzedaj. Karty przedmiotów (ikona, nazwa w kolorze rzadkości, cena); z prawej szczegóły i porównanie
+## z założonym. Zablokowane i za drogie karty da się wybrać (pad) i przeczytać, dlaczego nie można kupić.
+var tryb_kupca := "kup"
+var _sz_ikona: TextureRect
+var _sz_nazwa: Label
+var _sz_typ: Label
+var _sz_opis: Label
+var _sz_staty: Label
+var _sz_porown: Label
+var _sz_cena: Label
+
+
 func _kupiec() -> void:
 	_wyczysc(t_kupiec)
 	var d := Profil.d
 	var lewa := VBoxContainer.new()
 	lewa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lewa.size_flags_stretch_ratio = 1.4
+	lewa.add_theme_constant_override("separation", 8)
 	t_kupiec.add_child(lewa)
-	lewa.add_child(Ui.etykieta("WĘDROWNY KUPIEC „KOWAL POPIOŁU”  (lepszy oręż odblokowuje Kuźnia)", 14, Ui.ZLOTO))
+	var gora := HBoxContainer.new()
+	var tyt := Ui.etykieta("KRAM MARGI", 22, Color("efe2c8"))
+	tyt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gora.add_child(tyt)
+	gora.add_child(Ui.etykieta("Twoje złoto: %d zł" % int(d["gold"]), 18, Ui.ZLOTO))
+	lewa.add_child(gora)
+	lewa.add_child(Ui.etykieta("Lepszy oręż odblokowuje Kuźnia Warowni.", 14, Color("9d8f78")))
+	var tryby := HBoxContainer.new()
+	tryby.add_theme_constant_override("separation", 8)
+	for t in [["kup", "Kup"], ["sprzedaj", "Sprzedaj łup"]]:
+		var id: String = t[0]
+		var b := _przycisk(t[1], "tryb_" + id, func(): tryb_kupca = id; _kupiec())
+		b.custom_minimum_size = Vector2(180, 46)
+		if tryb_kupca == id:
+			_wybrany(b)
+		tryby.add_child(b)
+	lewa.add_child(tryby)
 	var ma_bron: bool = d["loadout"]["weapon"] != null
 	for it in d["stash"] + d["loadout"]["backpack"]:
 		if Dane.typ(it["id"]) == "weapon":
@@ -401,87 +429,182 @@ func _kupiec() -> void:
 				d["loadout"]["backpack"].append(Profil.nowy_przedmiot("ember_flask"))
 			_zmiana())
 		lewa.add_child(zestaw)
-	var kat := HBoxContainer.new()
-	for k in [["all", "Wszystko"], ["weapon", "Broń"], ["shield", "Tarcze"], ["bow", "Łuki"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]:
-		var id: String = k[0]
-		var b := _przycisk(k[1], "kat_" + id, func(): kategoria = id; _kupiec())
-		if kategoria == id:
-			_wybrany(b)
-		kat.add_child(b)
-	lewa.add_child(kat)
 	var g := GridContainer.new()
 	g.columns = 2
-	var kuznia := Profil.budynek("forge")
-	for id in Dane.przedmioty:
-		var def: Dictionary = Dane.przedmioty[id]
-		var t: String = def["type"]
-		if t == "material" or t == "valuable":
-			continue
-		if kategoria != "all" and not (t == kategoria or (kategoria == "bow" and t == "arrow")):
-			continue
-		var zablok := int(def.get("forgeReq", 0)) > kuznia
-		var cena := int(def["price"])
-		var napis := "%s — %d zł" % [def["name"], cena] if not zablok else "%s — wymaga Kuźni %d" % [def["name"], int(def["forgeReq"])]
-		var pid: String = id
-		var b := _przycisk(napis, "kup_" + id, func(): _kup(pid), "%s\n%s" % [def["desc"], Dane.opis_statystyk(Profil.nowy_przedmiot(pid))])
-		b.icon = Dane.ikona(id)
-		b.add_theme_constant_override("icon_max_width", 28)
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.custom_minimum_size = Vector2(250, 44)
-		b.add_theme_font_size_override("font_size", 14)
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD
-		b.disabled = zablok or d["gold"] < cena
-		g.add_child(b)
+	g.add_theme_constant_override("h_separation", 10)
+	g.add_theme_constant_override("v_separation", 8)
+	if tryb_kupca == "kup":
+		var kat := HBoxContainer.new()
+		kat.add_theme_constant_override("separation", 6)
+		for k in [["all", "Wszystko"], ["weapon", "Broń"], ["shield", "Tarcze"], ["bow", "Łuki"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]:
+			var id: String = k[0]
+			var b := _przycisk(k[1], "kat_" + id, func(): kategoria = id; _kupiec())
+			b.add_theme_font_size_override("font_size", 15)
+			if kategoria == id:
+				_wybrany(b)
+			kat.add_child(b)
+		lewa.add_child(kat)
+		var kuznia := Profil.budynek("forge")
+		for id in Dane.przedmioty:
+			var def: Dictionary = Dane.przedmioty[id]
+			var t: String = def["type"]
+			if t == "material" or t == "valuable":
+				continue
+			if kategoria != "all" and not (t == kategoria or (kategoria == "bow" and t == "arrow")):
+				continue
+			var zablok := int(def.get("forgeReq", 0)) > kuznia
+			var cena := int(def["price"])
+			var pid: String = id
+			var dol := "wymaga Kuźni %d" % int(def["forgeReq"]) if zablok else "%d zł" % cena
+			var b := _karta(pid, Profil.nowy_przedmiot(pid), dol, "kup_" + pid, func(): _kup(pid), zablok or d["gold"] < cena, cena)
+			g.add_child(b)
+	else:
+		var hs := HBoxContainer.new()
+		var ts := Ui.etykieta("Surowce (żelazo, popiół, relikty) lepiej zachować na rozbudowę.", 14, Color("9d8f78"))
+		ts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hs.add_child(ts)
+		hs.add_child(_przycisk("Sprzedaj kosztowności", "sprzedaj_kosztownosci", func():
+			var zysk := 0
+			for lista in [d["stash"], d["loadout"]["backpack"]]:
+				for i in range(lista.size() - 1, -1, -1):
+					if Dane.typ(lista[i]["id"]) == "valuable":
+						zysk += Dane.cena_skupu(lista[i]["id"])
+						lista.remove_at(i)
+			d["gold"] += zysk
+			opis.text = "Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż."
+			_zmiana()))
+		lewa.add_child(hs)
+		var wpisy: Array = []
+		for i in d["stash"].size():
+			wpisy.append(["stash", i])
+		for i in d["loadout"]["backpack"].size():
+			wpisy.append(["backpack", i])
+		if wpisy.is_empty():
+			lewa.add_child(Ui.etykieta("Nie masz nic na sprzedaż.", 15, Ui.SZARY))
+		for w in wpisy:
+			var lista: Array = d["stash"] if w[0] == "stash" else d["loadout"]["backpack"]
+			var it: Dictionary = lista[w[1]]
+			var cena := Dane.cena_skupu(it["id"])
+			var zrodlo: String = w[0]
+			var idx: int = w[1]
+			var b := _karta(it["id"], it, "+%d zł   ·   %s" % [cena, "Skrytka" if zrodlo == "stash" else "Sakwa"], "sp_%s%d" % [zrodlo, idx], func():
+				var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
+				ls.remove_at(idx)
+				d["gold"] += cena
+				Dzwiek.lup()
+				_zmiana(), false, -cena)
+			g.add_child(b)
 	lewa.add_child(g)
-	var prawa := VBoxContainer.new()
-	prawa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t_kupiec.add_child(prawa)
-	var hs := HBoxContainer.new()
-	var ts := Ui.etykieta("SPRZEDAŻ ŁUPU (surowce lepiej zachować!)", 14, Ui.ZAR)
-	ts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hs.add_child(ts)
-	hs.add_child(_przycisk("Sprzedaj kosztowności", "sprzedaj_kosztownosci", func():
-		var zysk := 0
-		for lista in [d["stash"], d["loadout"]["backpack"]]:
-			for i in range(lista.size() - 1, -1, -1):
-				if Dane.typ(lista[i]["id"]) == "valuable":
-					zysk += Dane.cena_skupu(lista[i]["id"])
-					lista.remove_at(i)
-		d["gold"] += zysk
-		opis.text = "Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż."
-		_zmiana()))
-	prawa.add_child(hs)
-	var wpisy: Array = []
-	for i in d["stash"].size():
-		wpisy.append(["stash", i])
-	for i in d["loadout"]["backpack"].size():
-		wpisy.append(["backpack", i])
-	if wpisy.is_empty():
-		prawa.add_child(Ui.etykieta("Brak przedmiotów na sprzedaż.", 13, Ui.SZARY))
-	for w in wpisy:
-		var lista: Array = d["stash"] if w[0] == "stash" else d["loadout"]["backpack"]
-		var it: Dictionary = lista[w[1]]
-		var cena := Dane.cena_skupu(it["id"])
-		var zrodlo: String = w[0]
-		var idx: int = w[1]
-		var b := _przycisk("%s (%s)  +%d zł" % [Dane.p(it["id"])["name"], "Skrytka" if zrodlo == "stash" else "Sakwa", cena], "sp_%s%d" % [zrodlo, idx], func():
-			var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
-			ls.remove_at(idx)
-			d["gold"] += cena
-			Dzwiek.lup()
-			_zmiana())
-		b.icon = Dane.ikona(it["id"])
-		b.add_theme_constant_override("icon_max_width", 22)
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.add_theme_font_size_override("font_size", 14)
-		b.clip_text = true
-		prawa.add_child(b)
+	t_kupiec.add_child(_panel_szczegolow())
+
+
+## Karta przedmiotu w kramie. przyciemniona = nie stać cię albo zablokowana (nadal do wybrania i przeczytania).
+func _karta(id: String, inst: Dictionary, dol: String, klucz: String, akcja: Callable, przyciemniona: bool, cena: int) -> Button:
+	var def := Dane.p(id)
+	var rz: Color = Dane.KOLORY_RZADKOSCI.get(def.get("rarity"), Color.GRAY)
+	var dop := " x%d" % int(inst.get("qty", 0)) if def.get("type") == "arrow" and cena < 0 else ""
+	var b := _przycisk("%s%s\n%s" % [def["name"], dop, dol], klucz, akcja)
+	b.icon = Dane.ikona(id)
+	b.expand_icon = false
+	b.add_theme_constant_override("icon_max_width", 40)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(300, 64)
+	b.add_theme_font_size_override("font_size", 15)
+	for st in ["normal", "hover", "focus", "pressed"]:
+		b.add_theme_stylebox_override(st, Ui.styl_slotu(rz, st != "normal"))
+	b.add_theme_color_override("font_color", Color(0.55, 0.5, 0.45) if przyciemniona else rz.lightened(0.45))
+	b.add_theme_color_override("font_focus_color", Color("fff1d6"))
+	b.add_theme_color_override("font_hover_color", Color("fff1d6"))
+	if przyciemniona:
+		b.modulate = Color(0.75, 0.72, 0.7)
+	var pokaz := func(): _pokaz_szczegoly(id, inst, cena)
+	b.focus_entered.connect(pokaz)
+	b.mouse_entered.connect(pokaz)
+	return b
+
+
+func _panel_szczegolow() -> Control:
+	var p := Ui.panel()
+	p.custom_minimum_size = Vector2(400, 0)
+	p.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	p.add_child(v)
+	_sz_ikona = TextureRect.new()
+	_sz_ikona.custom_minimum_size = Vector2(96, 96)
+	_sz_ikona.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_sz_ikona.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_sz_ikona.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	v.add_child(_sz_ikona)
+	_sz_nazwa = Ui.etykieta("Wybierz przedmiot", 22, Color("efe2c8"))
+	_sz_nazwa.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_sz_nazwa.autowrap_mode = TextServer.AUTOWRAP_WORD
+	v.add_child(_sz_nazwa)
+	_sz_typ = Ui.etykieta("", 15, Color("b9a27a"))
+	_sz_typ.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_sz_typ)
+	for l in ["_sz_opis", "_sz_staty", "_sz_porown"]:
+		var e := Ui.etykieta("", 15)
+		e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		e.custom_minimum_size = Vector2(360, 0)
+		set(l, e)
+		v.add_child(e)
+	_sz_opis.add_theme_color_override("font_color", Color("d6cbb6"))
+	_sz_staty.add_theme_color_override("font_color", Color("ede2cc"))
+	_sz_porown.add_theme_color_override("font_color", Color("9fb7a0"))
+	_sz_cena = Ui.etykieta("", 20, Ui.ZLOTO)
+	_sz_cena.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_sz_cena)
+	return p
+
+
+func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
+	if _sz_nazwa == null or not is_instance_valid(_sz_nazwa):
+		return
+	var def := Dane.p(id)
+	var rz: Color = Dane.KOLORY_RZADKOSCI.get(def.get("rarity"), Color.GRAY)
+	_sz_ikona.texture = Dane.ikona(id)
+	_sz_nazwa.text = str(def["name"])
+	_sz_nazwa.add_theme_color_override("font_color", rz.lightened(0.4))
+	_sz_typ.text = str(Dane.NAZWY_TYPOW.get(def.get("type"), ""))
+	_sz_opis.text = str(def.get("desc", ""))
+	var staty := Dane.opis_statystyk(inst)
+	_sz_staty.text = staty.substr(staty.find("\n") + 1) if staty.contains("\n") else ""
+	# porównanie z założonym przedmiotem tego samego rodzaju
+	var t := str(def.get("type", ""))
+	var zal = Profil.d["loadout"].get(t) if t in ["weapon", "shield", "bow", "armor"] else null
+	if zal != null:
+		var zd := Dane.p(zal["id"])
+		var por := "Założone: %s" % zd["name"]
+		if t in ["weapon", "bow"]:
+			por += "   (obrażenia %+d)" % (int(def["dmg"]) - int(zd["dmg"]))
+		elif t == "shield":
+			por += "   (blok %+d%%)" % roundi((float(def["blockRed"]) - float(zd["blockRed"])) * 100)
+		elif t == "armor":
+			por += "   (redukcja %+d%%)" % roundi((float(def["reduction"]) - float(zd["reduction"])) * 100)
+		_sz_porown.text = por
+	elif t in ["weapon", "shield", "bow", "armor"]:
+		_sz_porown.text = "Nie masz założonego przedmiotu tego rodzaju."
+	else:
+		_sz_porown.text = ""
+	var kuznia := Profil.budynek("forge")
+	if cena < 0:
+		_sz_cena.text = "Sprzedaj za %d zł" % -cena
+	elif int(def.get("forgeReq", 0)) > kuznia:
+		_sz_cena.text = "Wymaga Kuźni na poziomie %d" % int(def["forgeReq"])
+	elif int(Profil.d["gold"]) < cena:
+		_sz_cena.text = "%d zł   ·   brakuje %d zł" % [cena, cena - int(Profil.d["gold"])]
+	else:
+		_sz_cena.text = "Kup za %d zł" % cena
 
 
 func _kup(id: String) -> void:
 	var d := Profil.d
 	var def := Dane.p(id)
 	var cena := int(def["price"])
+	if int(def.get("forgeReq", 0)) > Profil.budynek("forge"):
+		opis.text = "Ten oręż wymaga Kuźni na poziomie %d." % int(def["forgeReq"])
+		return
 	if d["gold"] < cena:
 		opis.text = "Za mało złota!"
 		return

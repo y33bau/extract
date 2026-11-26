@@ -1,7 +1,7 @@
 extends Node
 ## Mapa sterowania: klawiatura + mysz ORAZ pad (układ Xbox; na PS odpowiednio).
 ## Wszystkie akcje w jednym miejscu. Układ jak w NightBrand (decyzja autora 26.11.2026):
-##   lewy drążek ruch, prawy drążek celowanie, X / RT cios (RB zapasowo), LB blok i parowanie, A unik,
+##   lewy drążek ruch, prawy drążek celowanie, X / RT / RB cios (przytrzymanie = mocny cios), LB blok i parowanie, A unik,
 ##   Y rozmowa i przeszukiwanie, B łuk, krzyżak: góra/lewo/prawo mikstury, dół pochodnia,
 ##   R3 zrzut sakwy, Widok (Back) sakwa, Start pauza, LB/RB w menu przełączają zakładki.
 ##   Klawiatura: WASD / strzałki, LPM / J cios, PPM / L blok, Spacja / Shift unik, E / Enter rozmowa,
@@ -11,7 +11,8 @@ extends Node
 const OPIS := [
 	["Ruch", "W A S D  /  strzałki", ["lewy drążek"]],
 	["Celowanie", "mysz", ["prawy drążek"]],
-	["Cios (combo, co trzeci silny)", "LPM  /  J", ["x", "rt"]],
+	["Cios (combo)", "LPM  /  J", ["x", "rt", "rb"]],
+	["Mocny cios: przytrzymaj cios i puść", "przytrzymaj LPM  /  J", ["x", "rt", "rb"]],
 	["Blok i parowanie", "PPM  /  L", ["lb"]],
 	["Unik (przewrót)", "Spacja  /  Shift", ["a"]],
 	["Rozmowa i przeszukiwanie", "E  /  Enter", ["y"]],

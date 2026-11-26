@@ -1312,6 +1312,11 @@ func _plan_animacji(p, styl: String) -> Array:
 	if p.unik_czas > 0.0:
 		# przewrót: klip 1,03 s, gra się od 4% do 80% w czasie uniku (0,3 s)
 		return ["przewrot", "przewrot", false, 0.76 * 1.03 / p.UNIK_DLUGOSC, 0.04, 0.05]
+	if p.ladowanie >= rajd.PROG_MOCNEGO and p.zamach_anim <= 0.0:
+		# ładowanie mocnego ciosu: zamach ciężkiego ciosu napina się powoli i zatrzymuje przed uderzeniem
+		var pl3: Array = ATAK_PLAN[styl][2]
+		var t3: float = clampf((p.ladowanie - rajd.PROG_MOCNEGO) / 0.6, 0.0, 1.0)
+		return ["atak3", "ladowanie", false, 0.0, maxf(0.01, pl3[0] * (0.25 + 0.5 * t3)), 0.12]
 	if p.zamach_anim > 0.0:
 		var plan: Array = ATAK_PLAN[styl][clampi(p.combo, 0, 2)]
 		var d: float = maxf(p.zamach_anim_max, 0.2)
@@ -1361,6 +1366,8 @@ func _aktualizuj_bohatera(dt: float) -> void:
 			if pl[4] > 0.0:
 				_ap_bohatera.seek(pl[4], false)
 		_ap_bohatera.speed_scale = pl[3]
+		if pl[1] == "ladowanie":
+			_ap_bohatera.seek(pl[4], true)
 	p.biezaca_anim = pl[0] if pl[0] not in ["bieg", "tyl", "lewo", "prawo"] else "chod"
 	for n in _bronie.keys():
 		var b: Node3D = _bronie[n]
@@ -1851,6 +1858,18 @@ func _aktualizuj_blysk_bohatera() -> void:
 	else:
 		_blysk_bohatera.albedo_color = Color(1.0, 0.2, 0.15, 0.6 * tr * tr)
 	if _krag_bohatera:
+		var lad: float = rajd.gracz.ladowanie
+		var km: ShaderMaterial = _krag_bohatera.material_override
+		if lad >= rajd.PROG_MOCNEGO:
+			var puls := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 16.0)
+			km.set_shader_parameter("kolor", Color(1.0, 0.55, 0.15))
+			km.set_shader_parameter("sila", 1.6 + 0.8 * puls)
+		elif lad > 0.05:
+			km.set_shader_parameter("kolor", Color(1.0, 0.65, 0.3))
+			km.set_shader_parameter("sila", 0.7 + 1.4 * lad / rajd.PROG_MOCNEGO)
+		else:
+			km.set_shader_parameter("kolor", Color(1.0, 0.75, 0.4))
+			km.set_shader_parameter("sila", 0.7)
 		_krag_bohatera.global_position = Vector3(bohater.position.x, 0.024, bohater.position.z)
 		_krag_bohatera.visible = not rajd.gracz.martwy and not lekki_krag
 
