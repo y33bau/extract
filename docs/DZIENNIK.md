@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 02:15 — konto 2, rola: agent główny (+ gamedev/grafik w rundzie HUD) — PRZEKAZANIE na inne konto
+- Gałąź **`hud-nightbrand`** (od `mocny-cios-sklep`) — najnowsza, od niej zaczynaj. main = `97c0c22`, nietknięty od publikacji 00:06.
+- Zlecenie autora (01:57): 1) HUD, 2) dopracować wskaźniki w walce; grafiki z `NIGHTBRAND\NightBrand_test_911\assets`.
+- Zrobione: HUD jak NightBrand (`hud.gd`): kula życia (lewy dół) z jasnym śladem utraty i pulsowaniem przy <30%, kula wytrzymałości (prawy dół), pasek akcji (mikstury 1-3, pochodnia, łuk ze strzałami | medalion postawy z tabliczką: GOTOWY / PAROWANIE! / MOCNY CIOS / BLOK / UNIK / POCHODNIA W RĘCE | broń, tarcza, pancerz, sakwa, relikwiarz; pasek wytrzymałości pancerza), podpowiedzi klawiszy albo ikony pada (wg ostatniego wejścia), zegar „do zmroku” w drewnianym kole (ostatnia minuta pulsuje), minimapa w okrągłej ramie NightBrand, pasek bossa pod zegarem, ostrzeżenie o ciężkiej sakwie. Wskaźniki walki: winiety trafienia/parowania tylko na krawędziach i krócej (zalewały ekran), krótsze napisy („PAROWANIE!” nad bohaterem, „RIPOSTA −77”, „POSTURA ZŁAMANA”), przy rombie riposty podpowiedź LPM / ikona X, klin łucznika kończy się za graczem (wyglądał jak snop światła).
+- Testy: 88/88 OK (nowe: elementy HUD, medalion postawy). Kontrola spakowanej gry Linux 88/88 OK. Podgląd `--podglad-walki` obejrzany w pełnej jakości.
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_HUD.zip` (`TEST_HUD.bat`).
+- NIE sprawdzone: prawdziwy pad (ikony pada w HUD, Start, RT), dźwięk, komputer autora, inne rozdzielczości.
+- **Pełny raport z całej sesji: `docs/PRZEKAZANIE_2026-11-26.md`.**
+- Następny krok: ocena autora; na „publikuj” scal `hud-nightbrand` (zawiera `walka-oprawa`, `menu-i-pauza`, `mocny-cios-sklep`) do main.
+
 ## 2026-11-26 01:50 — konto 2, rola: gamedev
 - Gałąź `mocny-cios-sklep` (od `menu-i-pauza`). main nietknięty.
 - **Ocena autora (01:36):** menu i pauza „jak na betę jest OK, później dopracujemy”. Zlecenie: mocny cios, dopracować sklep, atak też na RB.

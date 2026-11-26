@@ -893,6 +893,17 @@ func _test() -> void:
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)
 	await _test_pauzy("rajd", "9b_pauza_rajd")
+	# HUD jak w NightBrand: kule, pasek akcji, zegar, minimapa w ramie; medalion pokazuje postawę
+	_ok("HUD: kule życia i wytrzymałości, pasek akcji, zegar, minimapa", hud.kula_hp.is_visible_in_tree() and hud.kula_st.is_visible_in_tree()
+		and hud.pasek.is_visible_in_tree() and hud.zegar.is_visible_in_tree() and hud.minimapa.is_visible_in_tree())
+	var pp = rajd.gracz
+	pp.okno_parowania = 0.2
+	var st_par: String = hud.stan_postawy()[1]
+	pp.okno_parowania = 0.0
+	pp.ladowanie = rajd.PROG_MOCNEGO
+	var st_lad: String = hud.stan_postawy()[1]
+	pp.ladowanie = 0.0
+	_ok("HUD: medalion postawy (parowanie, mocny cios)", st_par == "PAROWANIE!" and st_lad == "MOCNY CIOS", "%s / %s" % [st_par, st_lad])
 	_test_mapy()
 	await _test_duzej_mapy()
 	var p = rajd.gracz

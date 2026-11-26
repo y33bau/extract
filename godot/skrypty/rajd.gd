@@ -629,7 +629,7 @@ func atak_wrecz(mocny := false) -> void:
 			if swiat3d != null:
 				swiat3d.efekt("riposta", en.w, 1.1, kat_do, 1.6, 0.4, 0.05)
 				swiat3d.krew(en.w, kat_do, true)
-			napis(en.w - Vector2(0.9, 0.9), "RIPOSTA -%d!" % roundi(obr), Color("ffd166"), 14)
+			napis(en.w - Vector2(0.9, 0.9), "RIPOSTA −%d" % roundi(obr), Color("ffd166"), 14)
 			xp("parry", 35)
 			p.riposta_niet = 0.5
 		else:
@@ -676,7 +676,7 @@ func postura(en: Wrog, ile: float) -> void:
 		przyblizenie = maxf(przyblizenie, 0.8)
 		Dzwiek.parowanie()
 		efekty.czastki_dodaj(en.w, 16, Color("ffd166"), 3.6, 0.5)
-		napis(en.w - Vector2(1.05, 1.05), "POSTURA ZŁAMANA!", Color("ffd166"), 13)
+		napis(en.w - Vector2(1.05, 1.05), "POSTURA ZŁAMANA", Color("ffd166"), 13)
 
 
 func strzal_z_luku() -> void:
@@ -860,7 +860,7 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 			efekty.czastki_dodaj((p.w + en.w) / 2.0, 22, Color("ffd166"), 4.5, 0.55)
 			if swiat3d != null:
 				swiat3d.efekt("parowanie", (p.w + en.w) / 2.0, 1.25, 0.0, 1.7, 0.42, 0.0)
-			napis(en.w - Vector2(0.95, 0.95), "PAROWANIE! [ATAK = RIPOSTA]", Color("ffd166"), 13)
+			napis(p.w - Vector2(0.75, 0.75), "PAROWANIE!", Color("ffd166"), 13)  # nad bohaterem: nie zasłania rombu riposty nad wrogiem
 			xp("parry", 30)
 			return
 	var obr := surowe

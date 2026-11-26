@@ -156,6 +156,24 @@ func _rysuj_nakladke() -> void:
 		nakladka.draw_colored_polygon(poswiata, Color(1.0, 0.75, 0.25, 0.22 + 0.18 * puls2))
 		nakladka.draw_colored_polygon(romb, Color("ffd166"))
 		nakladka.draw_polyline(romb + PackedVector2Array([romb[0]]), Color("fff4cf"), 1.0)
+		# podpowiedź: czym zadać ripostę (ikona pada albo LPM), jak w NightBrand
+		var pad_aktywny: bool = _rajd_pad()
+		if pad_aktywny:
+			if _tex_x == null:
+				_tex_x = load("res://zasoby/ui/pad_x.webp")
+			nakladka.draw_texture_rect(_tex_x, Rect2(c + Vector2(r + 5.0, -8.0), Vector2(16, 16)), false)
+		else:
+			var f := Ui.czcionka(700)
+			nakladka.draw_string_outline(f, c + Vector2(r + 5.0, 5.0), "LPM", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
+			nakladka.draw_string(f, c + Vector2(r + 5.0, 5.0), "LPM", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("ffd166"))
+
+
+static var _tex_x: Texture2D
+
+
+func _rajd_pad() -> bool:
+	var r = get_parent().get_parent() if get_parent() else null
+	return r != null and "mysz_aktywna" in r and not r.mysz_aktywna
 
 
 static var _font: Font

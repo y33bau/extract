@@ -1485,6 +1485,8 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 	znak.global_rotation = Vector3(0, -en.kat, 0)
 	zm.set_shader_parameter("postep", t)
 	zm.set_shader_parameter("sila", 1.0)
+	if en.rodzaj == "archer":
+		zm.set_shader_parameter("dlugosc", clampf((en.w.distance_to(rajd.gracz.w) + 1.0) / 12.0, 0.15, 1.0))
 	BLYSK_PRZED = rajd.dlugosc_okna_parowania()
 	var pr: MeshInstance3D = d["pierscien"]
 	var pm: ShaderMaterial = d["pierscien_mat"]
@@ -1571,6 +1573,7 @@ uniform float kat = 1.05;
 uniform float postep = 0.0;
 uniform float sila = 1.0;
 uniform float promien = 2.0;
+uniform float dlugosc = 1.0;
 varying vec2 lok;
 void vertex() {
 	lok = VERTEX.xz / promien;
@@ -1587,8 +1590,8 @@ void fragment() {
 	float brzeg = smoothstep(0.9, 0.975, r) * w_kole;
 	float boki = smoothstep(kat - 0.1, kat - 0.03, a) * w_kacie;
 	float m = obszar * (0.05 + 0.16 * wyp + 0.55 * front + 0.5 * brzeg + 0.35 * boki);
-	// wąski klin strzały: wygasa z odległością, żeby nie wyglądał jak snop światła
-	if (kat < 0.1) { m *= 1.0 - smoothstep(0.15, 0.85, r); }
+	// wąski klin strzały: kończy się tuż za graczem i wygasa ku końcowi (nie snop światła w mrok)
+	if (kat < 0.1) { m *= (1.0 - smoothstep(dlugosc * 0.55, dlugosc, r)) * 0.8; }
 	ALBEDO = kolor.rgb;
 	ALPHA = clamp(m * sila, 0.0, 1.0);
 }

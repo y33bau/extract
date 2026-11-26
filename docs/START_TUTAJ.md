@@ -22,6 +22,7 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 | `docs/SILNIK_GODOT.md` | architektura, konwencje, pułapki, „jak dodać”, testy, eksport, środowisko | gamedev, grafik |
 | `docs/GRAFIKA.md` | styl, formaty sprite'ów i kafli, kolory, proces produkcji | grafik |
 | `docs/NARZEDZIA.md` | narzędzia, skille i MCP: co używamy, co odłożone i dlaczego | przy pytaniu o narzędzia |
+| `docs/PRZEKAZANIE_2026-11-26.md` | raport ostatniej sesji (4 rundy, decyzje, pułapki) | nowy agent po 26.11 |
 | `docs/KONCEPCJE.md` | pomysły autora z ocenami (nie wszystko wchodzi do v1!) | koncepciarz, planowanie |
 | `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
@@ -29,8 +30,8 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 - **Silnik: Godot 4.7.2, renderer Forward+, prawdziwe 3D z kamerą izometryczną** (decyzje autora 25.11.2026). Gra w `godot/`; wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`.
 - Gra: Warownia-Przystań w 3D (swobodny ruch, NPC: Marga = kupiec, Chojrak = wyprawy i kontrakty, chłop = gawędziarz, przewoźnik z łodzią; obóz rosnący z poziomem), rajd na mapach 96×96 z ziarna (7 rodzajów komnat, 3–4 ekstrakcje, patrole, pościg), walka (combo, parowanie z pierścieniem rytmu, riposta, blok, przewrót, postura, pochodnia vs tarcza, zrzut sakwy), mgła wojny, minimapa, łup, śmierć (Relikwiarz, połowa doświadczenia), dźwięk, pad wszędzie, ustawienie jakości grafiki.
 - Postacie: Hadræn (płynny ruch i walka przyjęte przez autora), 6 typów wrogów i NPC z Meshy w pozie T — **autor 26.11.2026: „Postacie są super”**.
-- Testy: `testy.py godot` 86/86 (gałąź `mocny-cios-sklep`).
-- Rundy nieopublikowane: `walka-oprawa` (oprawa walki, przyjęta: „o wiele lepiej”) → `menu-i-pauza` (menu, pauza Esc/Start, sterowanie jak NightBrand; „OK jak na betę”) → **`mocny-cios-sklep`** (mocny cios przez przytrzymanie, Kram Margi; czeka na ocenę). Następne: HUD rajdu jak NightBrand, świat rajdu.
+- Testy: `testy.py godot` 88/88 (gałąź `hud-nightbrand`).
+- Rundy nieopublikowane: `walka-oprawa` (oprawa walki, przyjęta: „o wiele lepiej”) → `menu-i-pauza` (menu, pauza Esc/Start, sterowanie jak NightBrand; „OK jak na betę”) → `mocny-cios-sklep` (mocny cios przez przytrzymanie, Kram Margi) → **`hud-nightbrand`** (HUD jak NightBrand, wskaźniki walki; czeka na ocenę — ZACZYNAJ OD NIEJ). Raport sesji: `docs/PRZEKAZANIE_2026-11-26.md`. Następne: świat rajdu.
 - Sterowanie: układ NightBrand (unik A, rozmowa Y, łuk B, pauza Start) — pełna lista w `godot/skrypty/sterowanie.gd` (`OPIS`).
 - Prototyp JS (`zrodlo/`) = archiwum.
 - **`main` = opublikowana wersja** (26.11.2026, stan gałęzi `mapy-runda-2`, przyjęty przez autora). Nowa runda: nowa gałąź od `main`.

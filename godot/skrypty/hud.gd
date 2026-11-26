@@ -26,6 +26,26 @@ var toasty: VBoxContainer
 var winieta_trafienie: ColorRect
 var winieta_parowanie: ColorRect
 var pasek_bossa: Control
+var zegar: Control
+var kula_hp: Control
+var kula_st: Control
+var pasek: Control
+var stan_sakwy: Label
+const ROZMIAR_RAMY := 210.0
+const PROMIEN_OKNA := 0.39       # okrągłe okno w ramie minimapy (część boku)
+const ROZMIAR_KULI := 168.0
+const SKALA_PASKA := 0.82
+## Sloty paska akcji (piksele grafiki pasek_akcji.webp 724x241): środki x, środek y, rozmiar.
+const SLOTY_X := [72.5, 128.5, 182.5, 236.0, 290.0, 434.0, 488.5, 543.5, 597.5, 652.5]
+const SLOT_Y := 113.0
+const SLOT_ROZ := Vector2(46, 56)
+var _tex_kula_zycia: Texture2D = preload("res://zasoby/ui/kula_zycia.webp")
+var _tex_kula_many: Texture2D = preload("res://zasoby/ui/kula_many.webp")
+var _tex_kula_pusta: Texture2D = preload("res://zasoby/ui/kula_pusta.webp")
+var _tex_pasek: Texture2D = preload("res://zasoby/ui/pasek_akcji.webp")
+var _tex_zegar: Texture2D = preload("res://zasoby/ui/kula_drewno.webp")
+var _ikony_hud := {}
+var _hp_cien := -1.0
 var _boss = null
 var _boss_alfa := 0.0
 
@@ -46,39 +66,67 @@ func _ready() -> void:
 	korzen.add_child(winieta_parowanie)
 	# dół środek: pasek bossa (jak w Soulsach) — imię, życie z cieniem utraty, postura
 	pasek_bossa = Control.new()
-	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	pasek_bossa.offset_left = -280.0
 	pasek_bossa.offset_right = 280.0
-	pasek_bossa.offset_top = -150.0
-	pasek_bossa.offset_bottom = -86.0
+	pasek_bossa.offset_top = 112.0
+	pasek_bossa.offset_bottom = 176.0
 	pasek_bossa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pasek_bossa.draw.connect(_rysuj_pasek_bossa)
 	korzen.add_child(pasek_bossa)
 
-	# lewy górny: kraina, czas, wynik
-	var p1 := Ui.panel()
-	p1.position = Vector2(14, 14)
-	info = Ui.etykieta("", 14)
-	p1.add_child(info)
-	korzen.add_child(p1)
+	# lewy górny: kraina i wynik (bez panelu, cień pod tekstem)
+	info = Ui.etykieta("", 15, Color("e9dcc3"))
+	info.add_theme_constant_override("outline_size", 6)
+	info.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	korzen.add_child(info)
+	_rog(info, Control.PRESET_TOP_LEFT)
 
-	# prawy górny: minimapa i kierunki do kręgów
-	var p2 := Ui.panel()
+	# prawy górny: minimapa w drewnianej ramie NightBrand (okrągłe okno) + kierunki do kręgów
 	var v2 := VBoxContainer.new()
+	var ramka := Control.new()
+	ramka.custom_minimum_size = Vector2(ROZMIAR_RAMY, ROZMIAR_RAMY)
 	minimapa = Control.new()
-	minimapa.custom_minimum_size = Vector2(196, 196)
+	minimapa.position = Vector2(ROZMIAR_RAMY, ROZMIAR_RAMY) * (0.5 - PROMIEN_OKNA)
+	minimapa.size = Vector2(ROZMIAR_RAMY, ROZMIAR_RAMY) * PROMIEN_OKNA * 2.0
 	minimapa.draw.connect(_rysuj_minimape)
-	v2.add_child(minimapa)
-	kierunki = Ui.etykieta("", 12, Color("34d399"))
+	var maska := ShaderMaterial.new()
+	maska.shader = Shader.new()
+	maska.shader.code = """shader_type canvas_item;
+uniform float bok = 100.0;
+varying vec2 lok;
+void vertex() { lok = VERTEX; }
+void fragment() {
+	float r = length(lok - vec2(bok * 0.5)) / (bok * 0.5);
+	COLOR.a *= 1.0 - smoothstep(0.96, 1.0, r);
+}"""
+	maska.set_shader_parameter("bok", minimapa.size.x)
+	minimapa.material = maska
+	ramka.add_child(minimapa)
+	var rama_tex := TextureRect.new()
+	rama_tex.texture = load("res://zasoby/ui/rama_minimapy.webp")
+	rama_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rama_tex.size = Vector2(ROZMIAR_RAMY, ROZMIAR_RAMY)
+	rama_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ramka.add_child(rama_tex)
+	v2.add_child(ramka)
+	kierunki = Ui.etykieta("", 13, Color("8ee0b8"))
+	kierunki.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	kierunki.add_theme_constant_override("outline_size", 5)
+	kierunki.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	v2.add_child(kierunki)
-	p2.add_child(v2)
-	korzen.add_child(p2)
-	_rog(p2, Control.PRESET_TOP_RIGHT)
+	korzen.add_child(v2)
+	_rog(v2, Control.PRESET_TOP_RIGHT)
 
-	# środek góra: rytuał ekstrakcji i podpowiedź interakcji
+	# środek góra: zegar wyprawy w drewnianym kole; pod nim ekstrakcja, podpowiedź, komunikaty
 	var srodek := VBoxContainer.new()
 	srodek.custom_minimum_size = Vector2(420, 0)
 	srodek.alignment = BoxContainer.ALIGNMENT_CENTER
+	srodek.add_theme_constant_override("separation", 4)
+	zegar = Control.new()
+	zegar.custom_minimum_size = Vector2(420, 92)
+	zegar.draw.connect(_rysuj_zegar)
+	srodek.add_child(zegar)
 	baner = Ui.panel()
 	var vb := VBoxContainer.new()
 	vb.add_child(Ui.etykieta("RYTUAŁ EKSTRAKCJI", 14, Color("6ee7b7")))
@@ -90,8 +138,10 @@ func _ready() -> void:
 	baner.add_child(vb)
 	baner.visible = false
 	srodek.add_child(baner)
-	podpowiedz = Ui.etykieta("", 15, Color("f0cf85"))
+	podpowiedz = Ui.etykieta("", 16, Color("f0cf85"))
 	podpowiedz.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	podpowiedz.add_theme_constant_override("outline_size", 6)
+	podpowiedz.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	srodek.add_child(podpowiedz)
 	toasty = VBoxContainer.new()
 	toasty.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -99,40 +149,33 @@ func _ready() -> void:
 	korzen.add_child(srodek)
 	_rog(srodek, Control.PRESET_CENTER_TOP)
 
-	# lewy dół: życie, stamina, pancerz, mikstury
-	var p3 := Ui.panel()
-	p3.custom_minimum_size = Vector2(330, 0)
-	var v3 := VBoxContainer.new()
-	hp_txt = Ui.etykieta("", 13, Color("f87171"))
-	hp_pasek = Ui.pasek(Color("b52a33"), 12)
-	st_txt = Ui.etykieta("", 12, Color("6ee7b7"))
-	st_pasek = Ui.pasek(Color("3fa868"), 9)
-	zb_txt = Ui.etykieta("", 12, Color("7dd3fc"))
-	zb_pasek = Ui.pasek(Color("38bdf8"), 6)
-	mikstury = Ui.etykieta("", 13, Color("e6ba63"))
-	for c in [hp_txt, hp_pasek, st_txt, st_pasek, zb_txt, zb_pasek, mikstury]:
-		v3.add_child(c)
-	p3.add_child(v3)
-	korzen.add_child(p3)
-	_rog(p3, Control.PRESET_BOTTOM_LEFT)
-
-	# prawy dół: broń, tarcza/pochodnia, strzały, sakwa, postawa
-	var p4 := Ui.panel()
-	p4.custom_minimum_size = Vector2(326, 0)
-	var v4 := VBoxContainer.new()
-	var h4 := HBoxContainer.new()
-	bron = Ui.etykieta("", 15, Color("e6ba63"))
-	bron.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	postawa = Ui.etykieta("", 12)
-	h4.add_child(bron)
-	h4.add_child(postawa)
-	v4.add_child(h4)
-	sprzet = Ui.etykieta("", 12)
-	v4.add_child(sprzet)
-	v4.add_child(Ui.etykieta("F / krzyżak dół: pochodnia   ·   G / R3: zrzuć sakwę   ·   Tab / Widok: sakwa", 11, Ui.SZARY))
-	p4.add_child(v4)
-	korzen.add_child(p4)
-	_rog(p4, Control.PRESET_BOTTOM_RIGHT)
+	# dół: kula życia (lewo), kula wytrzymałości (prawo), pasek akcji (środek) — jak HUD NightBrand
+	kula_hp = Control.new()
+	kula_hp.custom_minimum_size = Vector2(ROZMIAR_KULI, ROZMIAR_KULI)
+	kula_hp.draw.connect(func(): _rysuj_kule(kula_hp, _tex_kula_zycia, "hp"))
+	korzen.add_child(kula_hp)
+	_rog(kula_hp, Control.PRESET_BOTTOM_LEFT)
+	kula_st = Control.new()
+	kula_st.custom_minimum_size = Vector2(ROZMIAR_KULI, ROZMIAR_KULI)
+	kula_st.draw.connect(func(): _rysuj_kule(kula_st, _tex_kula_many, "st"))
+	korzen.add_child(kula_st)
+	_rog(kula_st, Control.PRESET_BOTTOM_RIGHT)
+	pasek = Control.new()
+	pasek.custom_minimum_size = Vector2(724, 241) * SKALA_PASKA
+	pasek.draw.connect(_rysuj_pasek_akcji)
+	korzen.add_child(pasek)
+	pasek.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 0)
+	pasek.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	pasek.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	stan_sakwy = Ui.etykieta("", 13, Color("f0b35a"))
+	stan_sakwy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stan_sakwy.add_theme_constant_override("outline_size", 5)
+	stan_sakwy.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	korzen.add_child(stan_sakwy)
+	stan_sakwy.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 0)
+	stan_sakwy.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	stan_sakwy.offset_bottom = -SKALA_PASKA * 241.0 + 18.0
+	stan_sakwy.offset_top = stan_sakwy.offset_bottom - 22.0
 
 
 ## Przypina kontrolkę do rogu/krawędzi ekranu; rośnie do środka ekranu.
@@ -151,7 +194,8 @@ func _winieta(kolor: Color) -> ColorRect:
 	c.set_anchors_preset(Control.PRESET_FULL_RECT)
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sh := Shader.new()
-	sh.code = "shader_type canvas_item;\nuniform vec4 kolor;\nuniform float sila = 0.0;\nvoid fragment(){ vec2 d = UV - vec2(0.5); float v = smoothstep(0.25, 0.75, length(d) * 1.3); COLOR = vec4(kolor.rgb, v * sila * kolor.a); }"
+	# tylko krawędzie ekranu i krótko (nie zalewa obrazu walki)
+	sh.code = "shader_type canvas_item;\nuniform vec4 kolor;\nuniform float sila = 0.0;\nvoid fragment(){ vec2 d = (UV - vec2(0.5)) * vec2(1.25, 1.0); float v = smoothstep(0.42, 0.78, length(d)); COLOR = vec4(kolor.rgb, v * v * sila * sila * 0.75 * kolor.a); }"
 	var m := ShaderMaterial.new()
 	m.shader = sh
 	m.set_shader_parameter("kolor", kolor)
@@ -209,42 +253,17 @@ func _process(_dt: float) -> void:
 		return
 	var r = rajd
 	var p = r.gracz
-	var m := int(r.czas_pozostaly / 60.0)
-	var s := int(r.czas_pozostaly) % 60
-	info.text = "%s   •   ziarno %s\nCZAS %d:%02d    POKONANI %d    PAROWANIA %d" % [str(r.kraina["name"]).to_upper(), r.ziarno, m, s, r.zabici, r.parowania]
-	hp_txt.text = "ŻYWOTNOŚĆ  %d / %d%s" % [ceili(p.hp), int(p.hp_max), "   POPARZENIE!" if p.plonie else ""]
-	hp_pasek.max_value = p.hp_max
-	hp_pasek.value = p.hp
-	st_txt.text = "WYTRZYMAŁOŚĆ  %d / %d" % [ceili(p.stamina), int(p.stamina_max)]
-	st_pasek.max_value = p.stamina_max
-	st_pasek.value = p.stamina
-	var zb = p.rynsztunek["armor"]
-	if zb:
-		var d := Dane.p(zb["id"])
-		zb_txt.text = "PANCERZ (Kl.%d)  %d / %d" % [d["tier"], ceili(zb["durability"]), d["maxDurability"]]
-		zb_pasek.max_value = float(d["maxDurability"])
-		zb_pasek.value = float(zb["durability"])
+	info.text = "%s\nPokonani %d   ·   Parowania %d   ·   ziarno %s" % [str(r.kraina["name"]).to_upper(), r.zabici, r.parowania, r.ziarno]
+	if _hp_cien < 0.0 or p.hp > _hp_cien:
+		_hp_cien = p.hp
 	else:
-		zb_txt.text = "BRAK PANCERZA"
-		zb_pasek.value = 0
-	mikstury.text = "1  Żar %d     2  Tonik %d     3  Maść %d" % [r.liczba_mikstur("heal"), r.liczba_mikstur("stamina"), r.liczba_mikstur("salve")]
-	bron.text = Dane.p(p.rynsztunek["weapon"]["id"])["name"] if p.rynsztunek["weapon"] else "Gołe pięści"
-	var tarcza: String = Dane.p(p.rynsztunek["shield"]["id"])["name"] if p.rynsztunek["shield"] else "Brak tarczy"
+		_hp_cien = move_toward(_hp_cien, p.hp, p.hp_max * 0.6 * _dt)
 	var obc: int = r.sakwa_obciazenie()
-	sprzet.text = "%s   ·   %d strzał\nSakwa %d/12%s" % ["Pochodnia w ręce" if p.pochodnia_w_rece else "Tarcza: " + tarcza, r.liczba_strzal(),
-		p.rynsztunek["backpack"].size(), "  (odnowa staminy −%d%%)" % roundi(minf(45.0, obc * 3.5)) if obc > 0 else ""]
-	if p.okno_parowania > 0.0:
-		postawa.text = "PAROWANIE!"
-		postawa.add_theme_color_override("font_color", Color("fbbf24"))
-	elif p.blok:
-		postawa.text = "BLOK"
-		postawa.add_theme_color_override("font_color", Color("7dd3fc"))
-	elif p.unik_czas > 0.0:
-		postawa.text = "UNIK"
-		postawa.add_theme_color_override("font_color", Color("6ee7b7"))
-	else:
-		postawa.text = "GOTOWY"
-		postawa.add_theme_color_override("font_color", Ui.SZARY)
+	stan_sakwy.text = "Ciężka sakwa: odnowa staminy −%d%%" % roundi(minf(45.0, obc * 3.5)) if obc > 0 else ""
+	kula_hp.queue_redraw()
+	kula_st.queue_redraw()
+	pasek.queue_redraw()
+	zegar.queue_redraw()
 	baner.visible = r.w_ekstrakcji
 	if r.w_ekstrakcji:
 		baner_txt.text = "%.1f s" % r.ekstrakcja_czas
@@ -297,6 +316,164 @@ func _rysuj_pasek_bossa() -> void:
 		var kp := Color("f2c14e").lerp(Color("ff5a1f"), smoothstep(0.5, 1.0, zuzyte))
 		pasek_bossa.draw_rect(Rect2(szer * 0.2, 46, szer * 0.6, 3), Color(0.05, 0.035, 0.04, 0.8 * a))
 		pasek_bossa.draw_rect(Rect2(szer / 2.0 - sz / 2.0, 46, sz, 3), Color(kp, a))
+
+
+# ---------------------------------------------------------------- HUD NightBrand: kule, pasek akcji, zegar
+## Kula: ciemne szkło w obręczy, kolorowe szkło odsłaniane od dołu wg wartości; liczby na środku.
+func _rysuj_kule(c: Control, tex: Texture2D, co: String) -> void:
+	if rajd == null or rajd.gracz == null:
+		return
+	var p = rajd.gracz
+	var b := c.size.x
+	var wart: float = p.hp if co == "hp" else p.stamina
+	var maks: float = p.hp_max if co == "hp" else p.stamina_max
+	var u := clampf(wart / maxf(maks, 1.0), 0.0, 1.0)
+	c.draw_texture_rect(_tex_kula_pusta, Rect2(0, 0, b, b), false)
+	# pełne szkło: obszar szkła w grafice ~ od 14% do 86% wysokości
+	var gora := 0.14 + (1.0 - u) * 0.72
+	var ts := tex.get_size()
+	if u > 0.0:
+		c.draw_texture_rect_region(tex, Rect2(0, b * gora, b, b * (1.0 - gora)), Rect2(0, ts.y * gora, ts.x, ts.y * (1.0 - gora)))
+	if co == "hp" and _hp_cien > wart:
+		# jasny ślad utraconego życia
+		var g2 := 0.14 + (1.0 - clampf(_hp_cien / maks, 0.0, 1.0)) * 0.72
+		c.draw_rect(Rect2(b * 0.2, b * g2, b * 0.6, b * (gora - g2)), Color(1.0, 0.85, 0.6, 0.35))
+	if co == "hp" and u < 0.3:
+		var puls := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 7.0)
+		c.draw_circle(Vector2(b, b) * 0.5, b * 0.36, Color(1.0, 0.1, 0.05, 0.12 * puls))
+	var f := Ui.czcionka(700)
+	var txt := "%d / %d" % [ceili(wart), int(maks)]
+	c.draw_string_outline(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 19, 6, Color(0, 0, 0, 0.9))
+	c.draw_string(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 19, Color("f6ead2"))
+	var podpis := "ŻYCIE" if co == "hp" else "WYTRZYMAŁOŚĆ"
+	if co == "hp" and p.plonie:
+		podpis = "PŁONIESZ!"
+	c.draw_string_outline(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, 11, 4, Color(0, 0, 0, 0.9))
+	c.draw_string(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, 11, Color("ffb070") if p.plonie and co == "hp" else Color("d8c8aa"))
+
+
+func _ikona_hud(n: String) -> Texture2D:
+	if not _ikony_hud.has(n):
+		_ikony_hud[n] = load("res://zasoby/ui/hud/%s.webp" % n)
+	return _ikony_hud[n]
+
+
+func _pad_tex(n: String) -> Texture2D:
+	if not _ikony_hud.has("pad_" + n):
+		_ikony_hud["pad_" + n] = load("res://zasoby/ui/pad_%s.webp" % n)
+	return _ikony_hud["pad_" + n]
+
+
+## Pasek akcji: mikstury 1-3, pochodnia, łuk | medalion postawy | broń, tarcza, pancerz, sakwa, relikwiarz.
+## Podpowiedzi: klawisze przy myszy/klawiaturze, ikony pada przy grze padem (rajd.mysz_aktywna).
+func _rysuj_pasek_akcji() -> void:
+	if rajd == null or rajd.gracz == null:
+		return
+	var r = rajd
+	var p = r.gracz
+	var k := SKALA_PASKA
+	pasek.draw_texture_rect(_tex_pasek, Rect2(Vector2.ZERO, Vector2(724, 241) * k), false)
+	var f := Ui.czcionka(700)
+	var pad: bool = not r.mysz_aktywna
+	var z = p.rynsztunek
+	var wpisy := [
+		["ikona:ember_flask", r.liczba_mikstur("heal"), "1", "krzyzak"],
+		["ikona:stamina_tonic", r.liczba_mikstur("stamina"), "2", "krzyzak"],
+		["ikona:ash_salve", r.liczba_mikstur("salve"), "3", "krzyzak"],
+		["hud:pochodnia", -1, "F", "krzyzak"],
+		["ikona:" + (str(z["bow"]["id"]) if z["bow"] else ""), r.liczba_strzal(), "Q", "b"],
+		["ikona:" + (str(z["weapon"]["id"]) if z["weapon"] else ""), -1, "LPM", "x"],
+		["ikona:" + (str(z["shield"]["id"]) if z["shield"] else ""), -1, "PPM", "lb"],
+		["ikona:" + (str(z["armor"]["id"]) if z["armor"] else ""), -1, "", ""],
+		["hud:sakwa", z["backpack"].size(), "Tab", "widok"],
+		["hud:relikwiarz", z["reliquary"].size(), "", ""],
+	]
+	for i in wpisy.size():
+		var w: Array = wpisy[i]
+		var srodek := Vector2(SLOTY_X[i], SLOT_Y) * k
+		var roz := SLOT_ROZ * k
+		var tex: Texture2D = null
+		var nazwa: String = w[0]
+		if nazwa.begins_with("ikona:") and nazwa.length() > 6:
+			tex = Dane.ikona(nazwa.substr(6))
+		elif nazwa.begins_with("hud:"):
+			tex = _ikona_hud(nazwa.substr(4))
+		var ile: int = w[1]
+		var pusty := tex == null or (ile == 0 and i < 3)
+		# podświetlenia stanu: pochodnia w ręce, tarcza przy bloku/parowaniu
+		if (i == 3 and p.pochodnia_w_rece) or (i == 6 and p.blok):
+			pasek.draw_rect(Rect2(srodek - roz * 0.5, roz), Color(1.0, 0.6, 0.2, 0.22))
+		if tex:
+			var bok := minf(roz.x, roz.y) * 0.82
+			var mod := Color(1, 1, 1, 0.3) if pusty else Color.WHITE
+			pasek.draw_texture_rect(tex, Rect2(srodek - Vector2(bok, bok) * 0.5, Vector2(bok, bok)), false, mod)
+		if ile >= 0:
+			var t := str(ile)
+			pasek.draw_string_outline(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, 13, 4, Color(0, 0, 0, 0.95))
+			pasek.draw_string(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, 13, Color("f6ead2") if not pusty else Color(0.6, 0.55, 0.5))
+		# podpowiedź klawisza / przycisku pada nad slotem
+		if pad and str(w[3]) != "":
+			var pt := _pad_tex(str(w[3]))
+			var pb := Vector2(20, 20) * (1.4 if str(w[3]) in ["lb", "rb"] else 1.0)
+			pb.x = pb.y * (pt.get_size().x / pt.get_size().y)
+			pasek.draw_texture_rect(pt, Rect2(srodek + Vector2(-pb.x * 0.5, -roz.y * 0.5 - pb.y - 1), pb), false)
+		elif str(w[2]) != "":
+			pasek.draw_string_outline(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, 12, 4, Color(0, 0, 0, 0.95))
+			pasek.draw_string(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, 12, Color("e6ba63"))
+	# medalion postawy (środek) + tabliczka z nazwą stanu
+	var sp := stan_postawy()
+	var stan: String = sp[0]
+	var napis: String = sp[1]
+	var kol: Color = sp[2]
+	var m := Vector2(361.5, 113.0) * k
+	var mb := 52.0 * k
+	if stan != "gotowy":
+		pasek.draw_circle(m, mb * 0.75, Color(kol, 0.25))
+	pasek.draw_texture_rect(_ikona_hud("postawa_" + stan), Rect2(m - Vector2(mb, mb) * 0.5, Vector2(mb, mb)), false, Color(1, 1, 1, 0.95))
+	pasek.draw_string_outline(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, 13, 4, Color(0, 0, 0, 0.95))
+	pasek.draw_string(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, 13, kol)
+	# dolny pasek: wytrzymałość pancerza
+	if z["armor"]:
+		var d := Dane.p(z["armor"]["id"])
+		var u := clampf(float(z["armor"]["durability"]) / float(d["maxDurability"]), 0.0, 1.0)
+		var x0 := 60.0 * k
+		var szer := (662.0 - 60.0) * k
+		pasek.draw_rect(Rect2(x0, 171.0 * k, szer * u, 4.0 * k), Color(0.45, 0.7, 0.9, 0.85))
+
+
+## Stan na medalionie paska akcji: [ikona, napis, kolor].
+func stan_postawy() -> Array:
+	var p = rajd.gracz
+	if p.okno_parowania > 0.0:
+		return ["parowanie", "PAROWANIE!", Color("ffd166")]
+	if p.ladowanie >= rajd.PROG_MOCNEGO:
+		return ["ladowanie", "MOCNY CIOS", Color("ff9a3c")]
+	if p.blok:
+		return ["blok", "BLOK", Color("9fd3f2")]
+	if p.unik_czas > 0.0:
+		return ["unik", "UNIK", Color("8fe3b8")]
+	if p.pochodnia_w_rece:
+		return ["gotowy", "POCHODNIA W RĘCE", Color("f0b35a")]
+	return ["gotowy", "GOTOWY", Color("d8c8aa")]
+
+
+## Zegar wyprawy: drewniane koło z pozostałym czasem; ostatnia minuta pulsuje czerwienią.
+func _rysuj_zegar() -> void:
+	if rajd == null:
+		return
+	var b := 92.0
+	var x := (zegar.size.x - b) * 0.5
+	zegar.draw_texture_rect(_tex_zegar, Rect2(x, 0, b, b), false)
+	var f := Ui.czcionka(700)
+	var t: float = rajd.czas_pozostaly
+	var kol := Color("f6ead2")
+	if t < 60.0:
+		kol = Color(1.0, 0.45 + 0.3 * sin(Time.get_ticks_msec() / 1000.0 * 6.0), 0.35)
+	var txt := "%d:%02d" % [int(t / 60.0), int(t) % 60]
+	zegar.draw_string_outline(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 21, 6, Color(0, 0, 0, 0.9))
+	zegar.draw_string(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 21, kol)
+	zegar.draw_string_outline(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 9, 3, Color(0, 0, 0, 0.9))
+	zegar.draw_string(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 9, Color("c9b898"))
 
 
 ## Minimapa: obraz N×N aktualizowany tylko w polach, które zmieniły stan mgły; widać okno wokół gracza.
@@ -360,4 +537,4 @@ func _rysuj_minimape() -> void:
 			minimapa.draw_rect(Rect2(pw.x - 1.5, pw.y - 1.5, 4 if en.boss else 3, 4 if en.boss else 3), Color("f97316") if en.boss else Color("ef4444"))
 	var pg: Vector2 = (r.gracz.w - o) * s
 	minimapa.draw_rect(Rect2(pg.x - 2, pg.y - 2, 4, 4), Color("e6ba63"))
-	minimapa.draw_rect(Rect2(0, 0, bok, bok), Color("6b5a3e"), false, 1.0)
+
