@@ -60,15 +60,20 @@ func _ready() -> void:
 	# W oknach: Y = do Relikwiarza, X = wyrzuć, LB/RB = zakładki
 	_akcja("okno_relikwiarz", [_pr(JOY_BUTTON_Y)])
 	_akcja("okno_wyrzuc", [_pr(JOY_BUTTON_X)])
-	_akcja("zakladka_lewo", [_pr(JOY_BUTTON_LEFT_SHOULDER)])
-	_akcja("zakladka_prawo", [_pr(JOY_BUTTON_RIGHT_SHOULDER)])
+	# zakładki menu: LB / RB na padzie, Q / E na klawiaturze (jak w NightBrand); w rajdzie tylko w oknach
+	_akcja("zakladka_lewo", [_pr(JOY_BUTTON_LEFT_SHOULDER), _klaw(KEY_Q)])
+	_akcja("zakladka_prawo", [_pr(JOY_BUTTON_RIGHT_SHOULDER), _klaw(KEY_E)])
 
 
 func _input(e: InputEvent) -> void:
 	if e is InputEventJoypadButton or (e is InputEventJoypadMotion and absf(e.axis_value) > 0.4):
-		pad_aktywny = true
+		if not pad_aktywny:
+			pad_aktywny = true
+			Input.mouse_mode = Input.MOUSE_MODE_HIDDEN  # gra padem: kursor znika i nie kradnie fokusu
 	elif e is InputEventKey or e is InputEventMouseButton or (e is InputEventMouseMotion and e.relative.length() > 2.0):
-		pad_aktywny = false
+		if pad_aktywny:
+			pad_aktywny = false
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _akcja(nazwa: String, zdarzenia: Array) -> void:

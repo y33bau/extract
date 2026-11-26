@@ -1260,9 +1260,17 @@ func _test() -> void:
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Przystań: Y przy Mardze otwiera Kupca", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1b_marga_kupiec")
-	# przejście zakładek padem (RB)
+	# przejście zakładek padem (RB): w Kramie najpierw Kup → Sprzedaj, za skrajną zakładką — Warownia
+	_ok("Kram Margi na szablonie NightBrand (stary układ schowany)", hub.kram.visible and not hub.uklad.visible and hub.kram.tytul.text == "KRAM MARGI")
+	hub.tryb_kupca = "kup"
+	hub.odswiez()
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
-	_ok("RB przełącza zakładkę", hub.zakladki.current_tab == 3)
+	_ok("Kram: RB przełącza Kup → Sprzedaj łup", hub.tryb_kupca == "sprzedaj" and hub.zakladki.current_tab == 2 and hub.kram.aktywna == 1)
+	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+	_ok("RB przełącza zakładkę (z Kramu do Warowni)", hub.zakladki.current_tab == 3 and hub.uklad.visible and not hub.kram.visible)
+	await _pad(JOY_BUTTON_LEFT_SHOULDER)
+	_ok("LB wraca do Kramu", hub.zakladki.current_tab == 2 and hub.kram.visible)
+	hub.tryb_kupca = "kup"
 	hub.zakladki.current_tab = 1
 	await _zrzut("2_ekwipunek")
 	await _pad(JOY_BUTTON_B)
@@ -1296,9 +1304,10 @@ func _test() -> void:
 	await _czekaj(0.2)
 	# ustawienie jakości grafiki: przycisk przełącza i zapamiętuje
 	var j0: int = Profil.jakosc()
-	hub.przycisk_grafiki.pressed.emit()
+	pauza._napisy_ustawien()
+	pauza._grafika.pressed.emit()  # Grafika i Dźwięk są w pauzie → Opcje (etap 1 przebudowy menu)
 	var j1: int = Profil.jakosc()
-	_ok("przycisk Grafika zmienia i zapamiętuje jakość", j1 == (j0 + 1) % 4 and hub.przycisk_grafiki.text.ends_with(Profil.JAKOSCI[j1]), "%s → %s" % [Profil.JAKOSCI[j0], Profil.JAKOSCI[j1]])
+	_ok("Opcje: przycisk Grafika zmienia i zapamiętuje jakość", j1 == (j0 + 1) % 4 and pauza._grafika.text.ends_with(Profil.JAKOSCI[j1]), "%s → %s" % [Profil.JAKOSCI[j0], Profil.JAKOSCI[j1]])
 	Profil.ustaw_jakosc(j0)
 
 	# kontrakt Chojraka do sprawdzenia przy ekstrakcji

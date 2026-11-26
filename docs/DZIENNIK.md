@@ -17,6 +17,17 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 15:55 — nowe konto, rola: gamedev — przebudowa menu, etap 1 i 2 (Kram Margi na szablonie NightBrand)
+- Gałąź: `menu-etap2` (od `szlif-menu-ui`; łańcuch: `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).
+- Zlecenie autora (15:37): przeczytać `INSTRUKCJA_PRZEBUDOWY_MENU_WAROWNIA_2026-11-26.md`, rozpakować `PAKIET_MENU_NIGHTBRAND.zip`, zrobić etap 1 i 2, pokazać Kram Margi obok wzoru.
+- Etap 1 (reszta po `szlif-menu-ui`): Dźwięk i Grafika zniknęły z górnego paska Warowni (są w pauzie → Opcje); kursor myszy znika przy grze padem i wraca przy ruchu myszą (`Sterowanie._input`); Q / E = zakładki w menu (`zakladka_lewo/prawo`).
+- Etap 2: motyw i klocki w `ui.gd` (paleta NightBrand, czcionka szeryfowa do czytania, wiersz listy, belka sekcji, tabela par, klawisz, zakładka, przyciski), szablon `ekran_menu.gd`, zasoby `zasoby/ui/menu/` (`narzedzia/menu_zasoby.py`). **Kram Margi w całości na szablonie** (`hub.gd`: `kram`, `_kupiec`, `_pokaz_szczegoly`): zakładki Kup / Sprzedaj łup, sekcje Broń biała / Tarcze / Łuki i strzały / Pancerze / Mikstury (zamiast przycisków kategorii), zablokowane „Wymaga Kuźni N”, szczegóły z ilustracją, dużą ikoną, tabelą, porównaniem ▲/▼, przyciskiem „Kup za …” i komunikatem. W Kramie LB/RB (Q/E) przełączają Kup / Sprzedaj, a za skrajną zakładką przechodzą do Ekwipunku / Warowni. Ceny i reguły kupna bez zmian.
+- Testy: `testy.py godot` OK **122/122** (nowe: Kram na szablonie i stary układ schowany, RB Kup → Sprzedaj, RB do Warowni, LB z powrotem; test Grafiki przeniesiony do pauzy → Opcje). Kontrola spakowanej gry OK 122/122.
+- Dostarczone: `Kram_Margi_przed_po_wzor.png` (po / wzór / przed) i gra w częściach: `Warownia_MenuKram.zip.001` + `.002` + `ZLOZ_Warownia_MenuKram.bat` (pierwsza paczka w częściach; sklejenie sprawdzone `cmp`).
+- NIE sprawdzone: Georgia u autora (zrzuty z Liberation Serif), prawdziwy pad i chowanie kursora na Windows, `ZLOZ_*.bat` na komputerze autora, ekrany inne niż 16:9. Pozostałe ekrany Warowni mają już szeryfowy tekst, ale stary układ (etap 3).
+- Uwaga dla autora: instrukcja NightBrand §7 mówi „nie dodawaj ikon-ostrzeżeń nad wrogami (ostrzeżenie = podświetlenie wroga)”, a runda `walka-i-oznaczenia` dodała trójkąt „!” nad głową oprócz podświetlenia sylwetki — decyzja autora, czy trójkąt zostaje.
+- Następny krok: ocena Kramu przez autora → etap 3 (Wyprawa, Ekwipunek, Warownia, Umiejętności na szablonie) + prompty ilustracji (kram, krainy).
+
 ## 2026-11-26 15:30 — nowe konto, rola: gamedev — paczki do 3 GB
 - **Decyzja autora (15:26): „400 MB zwiększ na 3 GB”.** Limit 400 MB na plik jest w narzędziu przesyłania (nie da się go zmienić), więc duże paczki idą w częściach.
 - Zrobione: `narzedzia/paczka_czesci.py` — dzieli zip na części po 350 MB i tworzy `ZLOZ_<nazwa>.bat` (skleja `copy /b`, rozpakowuje `Expand-Archive`). Sprawdzone: sklejone części = plik identyczny z oryginałem (`cmp`). Opis w `SILNIK_GODOT.md` §7.

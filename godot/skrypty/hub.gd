@@ -6,6 +6,7 @@ signal start_rajdu(kraina: String, ziarno: String)
 signal zamknij  # powrót do Przystani (B / Esc / przycisk)
 
 const Ui = preload("res://skrypty/ui.gd")
+const EkranMenu = preload("res://skrypty/ekran_menu.gd")
 
 var wybrana_kraina := "catacombs"
 var ziarno := ""
@@ -15,14 +16,13 @@ var zakladki: TabContainer
 var opis: Label
 var t_wyprawa: VBoxContainer
 var t_ekw: HBoxContainer
-var t_kupiec: HBoxContainer
+var t_kupiec: Control  # lista Kramu Margi (szablon menu)
+var uklad: MarginContainer  # stary układ zakładek (Wyprawa, Ekwipunek, Warownia, Umiejętności)
 var t_warownia: VBoxContainer
 var t_umiej: VBoxContainer
 var panel_opisu: PanelContainer
 var _komunikat_kupca := ""  # w Kupcu komunikaty (kupiono, brak złota) idą do prawego panelu
 var _znaczki: Control  # LB / RB przy zakładkach (pad)
-var przycisk_dzwieku: Button
-var przycisk_grafiki: Button
 var _fokus_klucz := ""
 
 
@@ -35,6 +35,7 @@ func _ready() -> void:
 	add_child(tlo)
 	tlo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var marg := MarginContainer.new()
+	uklad = marg
 	add_child(marg)
 	marg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for k in ["left", "right", "top", "bottom"]:
@@ -50,20 +51,7 @@ func _ready() -> void:
 	odst.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gora.add_child(odst)
 	naglowek = Ui.etykieta("", 15, Color("d9c7a4"))
-	przycisk_dzwieku = Button.new()
-	przycisk_dzwieku.text = "Dźwięk: wł."
-	przycisk_dzwieku.pressed.connect(func():
-		Dzwiek.wyciszony = not Dzwiek.wyciszony
-		przycisk_dzwieku.text = "Dźwięk: wył." if Dzwiek.wyciszony else "Dźwięk: wł.")
-	gora.add_child(przycisk_dzwieku)
-	przycisk_grafiki = Button.new()
-	przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()]
-	przycisk_grafiki.tooltip_text = "Jakość grafiki rajdu (cienie, odbicia, mgła). Niższa = płynniej."
-	przycisk_grafiki.pressed.connect(func():
-		Profil.ustaw_jakosc((Profil.jakosc() + 1) % Profil.JAKOSCI.size())
-		Dzwiek.ui()
-		przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()])
-	gora.add_child(przycisk_grafiki)
+	# Dźwięk i Grafika: w pauzie → Opcje (instrukcja przebudowy menu, etap 1)
 	var wroc := Button.new()
 	wroc.text = "Przystań"
 	wroc.tooltip_text = "Wróć do Przystani (B / Esc)"
@@ -77,7 +65,7 @@ func _ready() -> void:
 	v.add_child(zakladki)
 	t_wyprawa = _zakladka("Wyprawa", VBoxContainer.new())
 	t_ekw = _zakladka("Ekwipunek", HBoxContainer.new())
-	t_kupiec = _zakladka("Kupiec", HBoxContainer.new())
+	_zakladka("Kupiec", HBoxContainer.new())  # pusta: Kram Margi rysuje się na szablonie (kram)
 	t_warownia = _zakladka("Warownia", VBoxContainer.new())
 	t_umiej = _zakladka("Umiejętności", VBoxContainer.new())
 	# miejsce na znaczek LB przed pierwszą zakładką
@@ -95,6 +83,8 @@ func _ready() -> void:
 	add_child(_znaczki)
 	_znaczki.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_znaczki.draw.connect(func(): Ui.rysuj_znaczki_zakladek(_znaczki, zakladki))
+	_zbuduj_kram()
+	t_kupiec = kram.lista
 	Profil.awans.connect(func(u, lv): _info("Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv]))
 	odswiez()
 
@@ -132,6 +122,17 @@ func _unhandled_input(e: InputEvent) -> void:
 		zamknij.emit()
 		get_viewport().set_input_as_handled()
 		return
+	if kram.visible and (e.is_action_pressed("zakladka_lewo") or e.is_action_pressed("zakladka_prawo")):
+		# w Kramie LB/RB (Q/E) przełączają Kup / Sprzedaj; za skrajną zakładką — sąsiedni ekran Warowni
+		var lewo := e.is_action_pressed("zakladka_lewo")
+		if lewo and tryb_kupca == "sprzedaj":
+			_kram_tryb("kup")
+		elif not lewo and tryb_kupca == "kup":
+			_kram_tryb("sprzedaj")
+		else:
+			zakladki.current_tab = 1 if lewo else 3
+		get_viewport().set_input_as_handled()
+		return
 	if e.is_action_pressed("zakladka_lewo"):
 		zakladki.current_tab = (zakladki.current_tab + zakladki.get_tab_count() - 1) % zakladki.get_tab_count()
 		get_viewport().set_input_as_handled()
@@ -158,6 +159,9 @@ func odswiez() -> void:
 	naglowek.text = "Złoto %d   ·   Żelazo %d   ·   Popiół %d   ·   Relikty %d   ·   Wyprawy %d (przeżyte %d)   " % [
 		d["gold"], Profil.licz_surowiec("iron"), Profil.licz_surowiec("ash"), Profil.licz_surowiec("relic"), d["stats"]["raids"], d["stats"]["survived"]]
 	panel_opisu.visible = zakladki.current_tab != 2  # Kupiec ma własny panel szczegółów po prawej
+	# Kram Margi na nowym szablonie zasłania cały ekran (stary i nowy styl nie stoją obok siebie)
+	kram.visible = zakladki.current_tab == 2
+	uklad.visible = not kram.visible
 	match zakladki.current_tab:
 		0: _wyprawa()
 		1: _ekwipunek()
@@ -168,7 +172,7 @@ func odswiez() -> void:
 
 
 func _przywroc_fokus() -> void:
-	var kontener := zakladki.get_current_tab_control()
+	var kontener: Control = kram.lista if kram.visible else zakladki.get_current_tab_control()
 	var pierwszy: Control = null
 	for c in kontener.find_children("*", "Button", true, false):
 		if c.is_queued_for_deletion() or not c.is_visible_in_tree() or c.disabled:
@@ -401,93 +405,106 @@ func _ekwipunek() -> void:
 	prawa.add_child(gs)
 
 
-# ------------------------------------------------------------ KUPIEC (kram jak w NightBrand)
-## Tryby: Kup / Sprzedaj. Karty przedmiotów (ikona, nazwa w kolorze rzadkości, cena); z prawej szczegóły i porównanie
-## z założonym. Zablokowane i za drogie karty da się wybrać (pad) i przeczytać, dlaczego nie można kupić.
+# ------------------------------------------------------------ KUPIEC: KRAM MARGI (szablon menu NightBrand, etap 2)
+## Ekran na szablonie `ekran_menu.gd`: zakładki Kup / Sprzedaj łup, lista z belkami sekcji po lewej,
+## szczegóły z ilustracją, tabelą par i przyciskiem akcji po prawej. Ceny i reguły kupna bez zmian.
+## Zablokowane i za drogie towary da się wybrać i przeczytać, dlaczego nie można kupić.
 var tryb_kupca := "kup"
-var _sz_ikona: TextureRect
+var kram: EkranMenu
 var _sz_nazwa: Label
 var _sz_typ: Label
-var _sz_opis: Label
-var _sz_staty: Label
 var _sz_porown: Label
-var _sz_cena: Label
 var _sz_kom: Label
+var _sz_akcja: Button
+var _kram_akcja := Callable()
+var _kram_ostatni: Button
+
+const SEKCJE_KRAMU := [["weapon", "Broń biała"], ["shield", "Tarcze"], ["bow", "Łuki i strzały"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]
+
+
+func _zbuduj_kram() -> void:
+	kram = EkranMenu.new()
+	add_child(kram)
+	kram.visible = false
+	kram.wroc_wcisniety.connect(func(): zamknij.emit())
+	kram.zakladka_wybrana.connect(func(i: int): _kram_tryb("kup" if i == 0 else "sprzedaj"))
+
+
+func _kram_tryb(t: String) -> void:
+	if tryb_kupca == t:
+		return
+	tryb_kupca = t
+	_komunikat_kupca = ""
+	_fokus_klucz = ""
+	Dzwiek.ui()
+	odswiez()
 
 
 func _kupiec() -> void:
-	_wyczysc(t_kupiec)
 	var d := Profil.d
-	var lewa := VBoxContainer.new()
-	lewa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lewa.add_theme_constant_override("separation", 8)
-	t_kupiec.add_child(lewa)
-	var gora := HBoxContainer.new()
-	var tyt := Ui.etykieta("KRAM MARGI", 22, Color("efe2c8"))
-	tyt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gora.add_child(tyt)
-	gora.add_child(Ui.etykieta("Twoje złoto: %d zł" % int(d["gold"]), 18, Ui.ZLOTO))
-	lewa.add_child(gora)
-	lewa.add_child(Ui.etykieta("Lepszy oręż odblokowuje Kuźnia Warowni.", 14, Color("9d8f78")))
-	var tryby := HBoxContainer.new()
-	tryby.add_theme_constant_override("separation", 8)
-	for t in [["kup", "Kup"], ["sprzedaj", "Sprzedaj łup"]]:
-		var id: String = t[0]
-		var b := _przycisk(t[1], "tryb_" + id, func(): tryb_kupca = id; _kupiec())
-		b.custom_minimum_size = Vector2(180, 46)
-		if tryb_kupca == id:
-			_wybrany(b)
-		tryby.add_child(b)
-	lewa.add_child(tryby)
-	var ma_bron: bool = d["loadout"]["weapon"] != null
-	for it in d["stash"] + d["loadout"]["backpack"]:
-		if Dane.typ(it["id"]) == "weapon":
-			ma_bron = true
-	if not ma_bron and d["gold"] < 200:
-		var zestaw := Ui.przycisk_akcji("Zestaw Wygnańca (0 zł)")
-		zestaw.set_meta("klucz", "zestaw")
-		zestaw.pressed.connect(func():
-			d["loadout"]["weapon"] = Profil.nowy_przedmiot("rusty_sword")
-			d["loadout"]["shield"] = Profil.nowy_przedmiot("wood_buckler")
-			if d["loadout"]["backpack"].size() < Profil.SAKWA_MAX:
-				d["loadout"]["backpack"].append(Profil.nowy_przedmiot("ember_flask"))
-			_zmiana())
-		lewa.add_child(zestaw)
-	var g := GridContainer.new()
-	g.columns = 2
-	g.add_theme_constant_override("h_separation", 10)
-	g.add_theme_constant_override("v_separation", 8)
+	kram.wyczysc()
+	kram.tytul.text = "KRAM MARGI"
+	kram.podtytul.text = "PRZYSTAŃ  ·  WAROWNIA POPIOŁÓW"
+	kram.licznik.text = "%d zł" % int(d["gold"])
+	kram.ustaw_zakladki(["Kup", "Sprzedaj łup"], 0 if tryb_kupca == "kup" else 1)
+	kram.ustaw_stopke([["lb/rb", "Q / E", "Zakładki"], ["a", "Enter", "Kup" if tryb_kupca == "kup" else "Sprzedaj"], ["b", "Esc", "Wróć"]])
+	var kuznia := Profil.budynek("forge")
+	kram.stopka_listy.text = "Kuźnia Warowni: poziom %d  ·  lepszy oręż odblokowuje Kuźnia" % kuznia
+	_kram_ostatni = null
 	if tryb_kupca == "kup":
-		var kat := HBoxContainer.new()
-		kat.add_theme_constant_override("separation", 6)
-		for k in [["all", "Wszystko"], ["weapon", "Broń"], ["shield", "Tarcze"], ["bow", "Łuki"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]:
-			var id: String = k[0]
-			var b := _przycisk(k[1], "kat_" + id, func(): kategoria = id; _kupiec())
-			b.add_theme_font_size_override("font_size", 15)
-			if kategoria == id:
-				_wybrany(b)
-			kat.add_child(b)
-		lewa.add_child(kat)
-		var kuznia := Profil.budynek("forge")
-		for id in Dane.przedmioty:
-			var def: Dictionary = Dane.przedmioty[id]
-			var t: String = def["type"]
-			if t == "material" or t == "valuable":
+		var ma_bron: bool = d["loadout"]["weapon"] != null
+		for it in d["stash"] + d["loadout"]["backpack"]:
+			if Dane.typ(it["id"]) == "weapon":
+				ma_bron = true
+		if not ma_bron and d["gold"] < 200:
+			kram.lista.add_child(Ui.belka_sekcji("Dar Margi"))
+			var z := Ui.wiersz_listy(Dane.ikona("rusty_sword"), "Zestaw Wygnańca", "Miecz, puklerz i Flaszka Żaru", "0 zł")
+			z.set_meta("klucz", "zestaw")
+			z.pressed.connect(func():
+				_fokus_klucz = "zestaw"
+				d["loadout"]["weapon"] = Profil.nowy_przedmiot("rusty_sword")
+				d["loadout"]["shield"] = Profil.nowy_przedmiot("wood_buckler")
+				if d["loadout"]["backpack"].size() < Profil.SAKWA_MAX:
+					d["loadout"]["backpack"].append(Profil.nowy_przedmiot("ember_flask"))
+				_zmiana())
+			_kram_wiersz(z, func(): _kram_pokaz_tekst("Zestaw Wygnańca", "DAR MARGI", "Dla tych, którzy wracają z niczym: zardzewiały miecz, drewniany puklerz i jedna Flaszka Żaru. Za darmo, raz na biedę.", "Weź zestaw", func(): z.pressed.emit()))
+		for sek in SEKCJE_KRAMU:
+			var typy: Array = ["bow", "arrow"] if sek[0] == "bow" else [sek[0]]
+			var ids: Array = []
+			for id in Dane.przedmioty:
+				var def: Dictionary = Dane.przedmioty[id]
+				if str(def["type"]) in typy:
+					ids.append(id)
+			if ids.is_empty():
 				continue
-			if kategoria != "all" and not (t == kategoria or (kategoria == "bow" and t == "arrow")):
-				continue
-			var zablok := int(def.get("forgeReq", 0)) > kuznia
-			var cena := int(def["price"])
-			var pid: String = id
-			var dol := "wymaga Kuźni %d" % int(def["forgeReq"]) if zablok else "%d zł" % cena
-			var b := _karta(pid, Profil.nowy_przedmiot(pid), dol, "kup_" + pid, func(): _kup(pid), zablok or d["gold"] < cena, cena)
-			g.add_child(b)
+			kram.lista.add_child(Ui.belka_sekcji(sek[1]))
+			for id in ids:
+				var pid: String = id
+				var def: Dictionary = Dane.przedmioty[pid]
+				var cena := int(def["price"])
+				var zablok := int(def.get("forgeReq", 0)) > kuznia
+				var podpis := "Wymaga Kuźni %d" % int(def["forgeReq"]) if zablok else _krotkie_staty(Profil.nowy_przedmiot(pid))
+				var w := Ui.wiersz_listy(Dane.ikona(pid), str(def["name"]), podpis, "%d zł" % cena, zablok, Ui.M_ZLOTO if d["gold"] >= cena else Ui.M_OSTRZ)
+				w.set_meta("klucz", "kup_" + pid)
+				w.pressed.connect(func(): _fokus_klucz = "kup_" + pid; _kup(pid))
+				var inst := Profil.nowy_przedmiot(pid)
+				_kram_wiersz(w, func(): _pokaz_szczegoly(pid, inst, cena))
 	else:
-		var hs := HBoxContainer.new()
-		var ts := Ui.etykieta("Surowce (żelazo, popiół, relikty) lepiej zachować na rozbudowę.", 14, Color("9d8f78"))
-		ts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hs.add_child(ts)
-		hs.add_child(_przycisk("Sprzedaj kosztowności", "sprzedaj_kosztownosci", func():
+		var wpisy: Array = []
+		for i in d["stash"].size():
+			wpisy.append(["stash", i])
+		for i in d["loadout"]["backpack"].size():
+			wpisy.append(["backpack", i])
+		var suma := 0
+		for w0 in wpisy:
+			var ls0: Array = d["stash"] if w0[0] == "stash" else d["loadout"]["backpack"]
+			if Dane.typ(ls0[w0[1]]["id"]) == "valuable":
+				suma += Dane.cena_skupu(ls0[w0[1]]["id"])
+		kram.lista.add_child(Ui.belka_sekcji("Kosztowności"))
+		var wk := Ui.wiersz_listy(_ikona_lub(Dane.ikona("gold_ring"), "hud:sakwa"), "Sprzedaj wszystkie kosztowności", "Surowce zostają na rozbudowę Warowni", "+%d zł" % suma, suma == 0)
+		wk.set_meta("klucz", "sprzedaj_kosztownosci")
+		wk.pressed.connect(func():
+			_fokus_klucz = "sprzedaj_kosztownosci"
 			var zysk := 0
 			for lista in [d["stash"], d["loadout"]["backpack"]]:
 				for i in range(lista.size() - 1, -1, -1):
@@ -496,135 +513,178 @@ func _kupiec() -> void:
 						lista.remove_at(i)
 			d["gold"] += zysk
 			_info("Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż.")
-			_zmiana()))
-		lewa.add_child(hs)
-		var wpisy: Array = []
-		for i in d["stash"].size():
-			wpisy.append(["stash", i])
-		for i in d["loadout"]["backpack"].size():
-			wpisy.append(["backpack", i])
+			_zmiana())
+		_kram_wiersz(wk, func(): _kram_pokaz_tekst("Kosztowności", "SKUP", "Pierścienie, kielichy i inne błyskotki z wypraw. Marga płaci od ręki; żelazo, popiół i relikty lepiej zachować na rozbudowę.", "Sprzedaj za %d zł" % suma, func(): wk.pressed.emit()))
+		for zrodlo_nazwa in [["stash", "Skrytka"], ["backpack", "Sakwa"]]:
+			var lista_z: Array = d["stash"] if zrodlo_nazwa[0] == "stash" else d["loadout"]["backpack"]
+			if lista_z.is_empty():
+				continue
+			kram.lista.add_child(Ui.belka_sekcji("%s  %d" % [zrodlo_nazwa[1], lista_z.size()]))
+			for idx in lista_z.size():
+				var it: Dictionary = lista_z[idx]
+				var cena := Dane.cena_skupu(it["id"])
+				var zrodlo: String = zrodlo_nazwa[0]
+				var nr: int = idx
+				var def := Dane.p(it["id"])
+				var dop := " ×%d" % int(it.get("qty", 0)) if def.get("type") == "arrow" else ""
+				var w := Ui.wiersz_listy(Dane.ikona(it["id"]), str(def["name"]) + dop, str(Dane.NAZWY_TYPOW.get(def.get("type"), "")), "+%d zł" % cena)
+				w.set_meta("klucz", "sp_%s%d" % [zrodlo, nr])
+				w.pressed.connect(func():
+					_fokus_klucz = "sp_%s%d" % [zrodlo, nr]
+					var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
+					ls.remove_at(nr)
+					d["gold"] += cena
+					Dzwiek.lup()
+					_zmiana())
+				var itk := it
+				_kram_wiersz(w, func(): _pokaz_szczegoly(itk["id"], itk, -cena))
 		if wpisy.is_empty():
-			lewa.add_child(Ui.etykieta("Nie masz nic na sprzedaż.", 15, Ui.SZARY))
-		for w in wpisy:
-			var lista: Array = d["stash"] if w[0] == "stash" else d["loadout"]["backpack"]
-			var it: Dictionary = lista[w[1]]
-			var cena := Dane.cena_skupu(it["id"])
-			var zrodlo: String = w[0]
-			var idx: int = w[1]
-			var b := _karta(it["id"], it, "+%d zł   ·   %s" % [cena, "Skrytka" if zrodlo == "stash" else "Sakwa"], "sp_%s%d" % [zrodlo, idx], func():
-				var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
-				ls.remove_at(idx)
-				d["gold"] += cena
-				Dzwiek.lup()
-				_zmiana(), false, -cena)
-			g.add_child(b)
-	lewa.add_child(g)
-	t_kupiec.add_child(_panel_szczegolow())
+			kram.lista.add_child(Ui.tekst_menu("Nie masz nic na sprzedaż.", 15, Ui.M_DRUGI))
+	_kram_pokaz_tekst("Kram Margi", "PRZYSTAŃ", "Marga sprzedaje oręż, tarcze, łuki i mikstury, a skupuje łup z wypraw. Lepszy oręż odblokowuje Kuźnia Warowni. Wybierz towar z listy.", "", Callable())
 
 
-## Karta przedmiotu w kramie. przyciemniona = nie stać cię albo zablokowana (nadal do wybrania i przeczytania).
-func _karta(id: String, inst: Dictionary, dol: String, klucz: String, akcja: Callable, przyciemniona: bool, cena: int) -> Button:
-	var def := Dane.p(id)
-	var rz: Color = Dane.KOLORY_RZADKOSCI.get(def.get("rarity"), Color.GRAY)
-	var dop := " x%d" % int(inst.get("qty", 0)) if def.get("type") == "arrow" and cena < 0 else ""
-	var b := _przycisk("%s%s\n%s" % [def["name"], dop, dol], klucz, akcja)
-	b.icon = Dane.ikona(id)
-	b.expand_icon = false
-	b.add_theme_constant_override("icon_max_width", 40)
-	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(300, 64)
-	b.add_theme_font_size_override("font_size", 15)
-	for st in ["normal", "hover", "focus", "pressed"]:
-		b.add_theme_stylebox_override(st, Ui.styl_slotu(rz, st != "normal"))
-	b.add_theme_color_override("font_color", Color(0.55, 0.5, 0.45) if przyciemniona else rz.lightened(0.45))
-	b.add_theme_color_override("font_focus_color", Color("fff1d6"))
-	b.add_theme_color_override("font_hover_color", Color("fff1d6"))
-	if przyciemniona:
-		b.modulate = Color(0.75, 0.72, 0.7)
-	var pokaz := func(): _pokaz_szczegoly(id, inst, cena)
-	b.focus_entered.connect(pokaz)
-	b.mouse_entered.connect(pokaz)
-	return b
+func _ikona_lub(t: Texture2D, zapas: String) -> Texture2D:
+	return t if t != null else _ikona_hud_menu(zapas.substr(4))
 
 
-func _panel_szczegolow() -> Control:
-	var p := Ui.panel()
-	p.custom_minimum_size = Vector2(400, 0)
-	p.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	p.add_child(v)
-	_sz_ikona = TextureRect.new()
-	_sz_ikona.custom_minimum_size = Vector2(96, 96)
-	_sz_ikona.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_sz_ikona.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_sz_ikona.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	v.add_child(_sz_ikona)
-	_sz_nazwa = Ui.etykieta("Wybierz przedmiot", 22, Color("efe2c8"))
-	_sz_nazwa.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_sz_nazwa.autowrap_mode = TextServer.AUTOWRAP_WORD
-	v.add_child(_sz_nazwa)
-	_sz_typ = Ui.etykieta("", 15, Color("b9a27a"))
-	_sz_typ.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(_sz_typ)
-	for l in ["_sz_opis", "_sz_staty", "_sz_porown"]:
-		var e := Ui.etykieta("", 15)
-		e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		e.custom_minimum_size = Vector2(360, 0)
-		set(l, e)
-		v.add_child(e)
-	_sz_opis.add_theme_color_override("font_color", Color("d6cbb6"))
-	_sz_staty.add_theme_color_override("font_color", Color("ede2cc"))
-	_sz_porown.add_theme_color_override("font_color", Color("9fb7a0"))
-	_sz_cena = Ui.etykieta("", 20, Ui.ZLOTO)
-	_sz_cena.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(_sz_cena)
-	_sz_kom = Ui.etykieta(_komunikat_kupca, 15, Color("f0cf85"))
-	_sz_kom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_sz_kom.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_sz_kom.custom_minimum_size = Vector2(360, 0)
-	v.add_child(_sz_kom)
-	return p
+func _ikona_hud_menu(n: String) -> Texture2D:
+	var sc := "res://zasoby/ui/hud/%s.webp" % n
+	return load(sc) if ResourceLoader.exists(sc) else null
 
 
+## Wiersz do listy + linia; fokus i najechanie pokazują szczegóły; prawo z listy = przycisk akcji.
+func _kram_wiersz(w: Button, pokaz: Callable) -> void:
+	kram.lista.add_child(w)
+	kram.lista.add_child(Ui.linia())
+	w.focus_entered.connect(func(): _kram_ostatni = w; pokaz.call())
+	w.mouse_entered.connect(func(): _kram_ostatni = w; pokaz.call())
+
+
+## Krótki podpis pod nazwą w liście (szeryf 12).
+func _krotkie_staty(inst: Dictionary) -> String:
+	var d := Dane.p(inst["id"])
+	match str(d.get("type", "")):
+		"weapon":
+			return "Obrażenia %d  ·  Stamina %d" % [d["dmg"], d["stamina"]]
+		"shield":
+			return "Blok %d%%  ·  Parowanie +%d ms" % [roundi(d["blockRed"] * 100), roundi(d["parryBonus"] * 1000)]
+		"bow":
+			return "Obrażenia %d  ·  Zasięg %d m" % [d["dmg"], roundi(float(d["range"]))]
+		"armor":
+			return "Redukcja %d%%  ·  Klasa %d" % [roundi(d["reduction"] * 100), int(d["tier"])]
+		"arrow":
+			return "%d szt." % int(inst.get("qty", 0))
+	return str(Dane.NAZWY_TYPOW.get(d.get("type"), ""))
+
+
+## Szczegóły bez towaru (opis ekranu albo pozycji specjalnej): ilustracja + tekst + opcjonalny przycisk.
+func _kram_pokaz_tekst(nazwa: String, etykieta: String, opis_t: String, akcja_t: String, akcja: Callable) -> void:
+	for c in kram.szczegoly.get_children():
+		kram.szczegoly.remove_child(c)
+		c.queue_free()
+	kram.ilustracja.texture = load("res://zasoby/ui/menu/tlo_menu_1.webp")
+	kram.duza_ikona.texture = null
+	kram.szczegoly.add_child(Ui.naglowek_menu(etykieta, 11, Ui.M_ZAR, 3))
+	_sz_nazwa = Ui.naglowek_menu(nazwa, 26, Ui.M_JASNY)
+	_sz_nazwa.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kram.szczegoly.add_child(_sz_nazwa)
+	var o := Ui.tekst_menu(opis_t, 14, Ui.M_TEKST)
+	o.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kram.szczegoly.add_child(o)
+	_sz_typ = null
+	_sz_porown = Ui.tekst_menu("", 14, Ui.M_DRUGI)
+	_kram_dol(akcja_t, akcja, true)
+
+
+## Szczegóły towaru: etykieta rodzaju, nazwa, opis, tabela par, porównanie z założonym, przycisk akcji, komunikat.
 func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
-	if _sz_nazwa == null or not is_instance_valid(_sz_nazwa):
+	if kram == null:
 		return
+	for c in kram.szczegoly.get_children():
+		kram.szczegoly.remove_child(c)
+		c.queue_free()
+	var d := Profil.d
 	var def := Dane.p(id)
 	var rz: Color = Dane.KOLORY_RZADKOSCI.get(def.get("rarity"), Color.GRAY)
-	_sz_ikona.texture = Dane.ikona(id)
-	_sz_nazwa.text = str(def["name"])
-	_sz_nazwa.add_theme_color_override("font_color", rz.lightened(0.4))
-	_sz_typ.text = str(Dane.NAZWY_TYPOW.get(def.get("type"), ""))
-	_sz_opis.text = str(def.get("desc", ""))
-	var staty := Dane.opis_statystyk(inst)
-	_sz_staty.text = staty.substr(staty.find("\n") + 1) if staty.contains("\n") else ""
-	# porównanie z założonym przedmiotem tego samego rodzaju
+	kram.ilustracja.texture = load("res://zasoby/ui/menu/tlo_menu_1.webp")
+	kram.duza_ikona.texture = Dane.ikona(id)
 	var t := str(def.get("type", ""))
-	var zal = Profil.d["loadout"].get(t) if t in ["weapon", "shield", "bow", "armor"] else null
+	_sz_typ = Ui.naglowek_menu(str(Dane.NAZWY_TYPOW.get(def.get("type"), "")).to_upper(), 11, Ui.M_ZAR, 3)
+	kram.szczegoly.add_child(_sz_typ)
+	_sz_nazwa = Ui.naglowek_menu(str(def["name"]), 26, rz.lightened(0.45))
+	_sz_nazwa.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kram.szczegoly.add_child(_sz_nazwa)
+	var o := Ui.tekst_menu(str(def.get("desc", "")), 14, Ui.M_TEKST)
+	o.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kram.szczegoly.add_child(o)
+	# tabela par (te same liczby co dotąd, tylko czytelniej)
+	match t:
+		"weapon":
+			kram.szczegoly.add_child(Ui.para("Obrażenia", "%d" % int(def["dmg"])))
+			kram.szczegoly.add_child(Ui.para("Stamina za cios", "%d" % int(def["stamina"])))
+		"shield":
+			kram.szczegoly.add_child(Ui.para("Blok", "%d%%" % roundi(def["blockRed"] * 100)))
+			kram.szczegoly.add_child(Ui.para("Parowanie", "+%d ms" % roundi(def["parryBonus"] * 1000)))
+		"bow":
+			kram.szczegoly.add_child(Ui.para("Obrażenia", "%d" % int(def["dmg"])))
+		"armor":
+			kram.szczegoly.add_child(Ui.para("Redukcja", "%d%%  (Kl. %d)" % [roundi(def["reduction"] * 100), int(def["tier"])]))
+			kram.szczegoly.add_child(Ui.para("Wytrzymałość", "%d" % int(def["maxDurability"])))
+		"arrow":
+			kram.szczegoly.add_child(Ui.para("Ilość", "%d szt." % int(inst.get("qty", 0))))
+	# porównanie z założonym tego samego rodzaju: zielone ▲ lepsze, czerwone ▼ gorsze
+	var zal = d["loadout"].get(t) if t in ["weapon", "shield", "bow", "armor"] else null
+	_sz_porown = Ui.tekst_menu("", 14, Ui.M_DRUGI)
 	if zal != null:
 		var zd := Dane.p(zal["id"])
-		var por := "Założone: %s" % zd["name"]
+		var roznica := 0
+		var co := ""
 		if t in ["weapon", "bow"]:
-			por += "   (obrażenia %+d)" % (int(def["dmg"]) - int(zd["dmg"]))
+			roznica = int(def["dmg"]) - int(zd["dmg"])
+			co = "obrażenia %+d" % roznica
 		elif t == "shield":
-			por += "   (blok %+d%%)" % roundi((float(def["blockRed"]) - float(zd["blockRed"])) * 100)
+			roznica = roundi((float(def["blockRed"]) - float(zd["blockRed"])) * 100)
+			co = "blok %+d%%" % roznica
 		elif t == "armor":
-			por += "   (redukcja %+d%%)" % roundi((float(def["reduction"]) - float(zd["reduction"])) * 100)
-		_sz_porown.text = por
+			roznica = roundi((float(def["reduction"]) - float(zd["reduction"])) * 100)
+			co = "redukcja %+d%%" % roznica
+		_sz_porown.text = "Założone: %s   %s %s" % [zd["name"], "▲" if roznica > 0 else ("▼" if roznica < 0 else "="), co]
+		_sz_porown.add_theme_color_override("font_color", Ui.M_ZIELONY if roznica > 0 else (Ui.M_OSTRZ if roznica < 0 else Ui.M_DRUGI))
 	elif t in ["weapon", "shield", "bow", "armor"]:
 		_sz_porown.text = "Nie masz założonego przedmiotu tego rodzaju."
-	else:
-		_sz_porown.text = ""
+	kram.szczegoly.add_child(_sz_porown)
 	var kuznia := Profil.budynek("forge")
 	if cena < 0:
-		_sz_cena.text = "Sprzedaj za %d zł" % -cena
+		_kram_dol("Sprzedaj za %d zł" % -cena, func(): if _kram_ostatni: _kram_ostatni.pressed.emit(), false)
 	elif int(def.get("forgeReq", 0)) > kuznia:
-		_sz_cena.text = "Wymaga Kuźni na poziomie %d" % int(def["forgeReq"])
-	elif int(Profil.d["gold"]) < cena:
-		_sz_cena.text = "%d zł   ·   brakuje %d zł" % [cena, cena - int(Profil.d["gold"])]
+		_kram_dol("Kup za %d zł" % cena, Callable(), false, "Wymaga Kuźni na poziomie %d." % int(def["forgeReq"]))
+	elif int(d["gold"]) < cena:
+		_kram_dol("Kup za %d zł" % cena, Callable(), false, "Brakuje %d zł." % (cena - int(d["gold"])))
 	else:
-		_sz_cena.text = "Kup za %d zł" % cena
+		_kram_dol("Kup za %d zł" % cena, func(): _kup(id), false)
+
+
+## Dół szczegółów: przycisk akcji (przycisk główny NightBrand) i komunikat pod nim.
+func _kram_dol(tekst: String, akcja: Callable, tylko_gdy_akcja: bool, ostrzezenie := "") -> void:
+	_kram_akcja = akcja
+	var odst := Control.new()
+	odst.custom_minimum_size = Vector2(0, 4)
+	kram.szczegoly.add_child(odst)
+	_sz_akcja = null
+	if tekst != "" and not (tylko_gdy_akcja and not akcja.is_valid()):
+		_sz_akcja = Ui.przycisk_menu(tekst, true)
+		_sz_akcja.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_sz_akcja.disabled = not akcja.is_valid()
+		_sz_akcja.set_meta("klucz", "akcja_kramu")
+		_sz_akcja.pressed.connect(func(): if _kram_akcja.is_valid(): _kram_akcja.call())
+		kram.szczegoly.add_child(_sz_akcja)
+		# pad: prawo z listy = przycisk akcji, lewo = z powrotem na wiersz
+		if _kram_ostatni != null and is_instance_valid(_kram_ostatni):
+			_kram_ostatni.focus_neighbor_right = _kram_ostatni.get_path_to(_sz_akcja)
+			_sz_akcja.focus_neighbor_left = _sz_akcja.get_path_to(_kram_ostatni)
+	_sz_kom = Ui.tekst_menu(ostrzezenie if ostrzezenie != "" else _komunikat_kupca, 14, Ui.M_OSTRZ if ostrzezenie != "" else Ui.M_ZLOTO2)
+	_sz_kom.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kram.szczegoly.add_child(_sz_kom)
 
 
 func _kup(id: String) -> void:

@@ -104,3 +104,11 @@ Rzadkość: zwykły `#78736d`, niepospolity `#4ca676`, rzadki `#4d88c7`, epicki 
 4. **Podgląd w grze:** test `godot`, zrzuty ekranu, porównanie przed/po (obraz dla autora).
 5. Decyzja autora → commit na gałęzi grafiki → dziennik.
 6. Zasoby źródłowe w pełnej rozdzielczości zostają w folderze autora; do repo trafiają tylko wersje do gry.
+
+## 6. Menu na wzór NightBrand (od 26.11.2026, etap 2 przebudowy menu)
+- Instrukcja: `NIGHTBRAND\WAROWNIA_POPIOLOW\INSTRUKCJA_PRZEBUDOWY_MENU_WAROWNIA_2026-11-26.md` (mentor NightBrand); wzór: Kaplica NightBrand (`3_kaplica_lista_i_szczegoly.png` w `PAKIET_MENU_NIGHTBRAND.zip`).
+- Zasoby: `godot/zasoby/ui/menu/` — z pakietu NightBrand (autor gry), przeskalowane skryptem `narzedzia/menu_zasoby.py` (ramki 9-slice: róg ok. 17–20 px przy 720p; tła 1280×720).
+- Szablon ekranu: `godot/skrypty/ekran_menu.gd` (tło, nagłówek z separatorem, zakładki z LB/RB lub Q/E, panel listy 44% + szczegóły 56%, stopka). Klocki w `ui.gd`: `wiersz_listy`, `belka_sekcji`, `para`, `klawisz`, `zakladka_menu`, `przycisk_menu`, `styl_panelu_menu`, `styl_fokusu_wiersza`, paleta `M_*`.
+- Czcionki: Cinzel tylko w tytułach, zakładkach, przyciskach, belkach i nazwie w szczegółach; tekst czytany szeryfem (`Ui.czcionka_tekstu()`: Georgia u autora, Liberation/DejaVu Serif w chmurze). Domyślna czcionka motywu = szeryf; `Ui.etykieta` z tekstem WIELKIMI literami = Cinzel.
+- Jedno podświetlenie fokusu: bursztynowy gradient + złota ramka 1 px (wiersze) / jaśniejszy żar (zakładki, przyciski). „Wybrane” = ◆ i jaśniejszy tekst, nigdy biała ramka.
+- Na szablonie: **Kram Margi**. Reszta ekranów Warowni — etap 3 (po ocenie autora).
