@@ -58,7 +58,8 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 - Otwierają się po kolei, jak drabina. Każdy kolejny jest trudniejszy; najtrudniejsze dopiero w późnej grze.
 - Odblokowanie następnego biotopu na dwa sposoby: **pokonaj bossa i wróć żywy** albo **osiągnij wymagany poziom postaci**.
 - Zasada: nagradzamy odwagę i nagradzamy wytrwałość.
-- **Decyzja autora 26.11.2026: biotopy przede wszystkim OTWARTE** — lasy, kaniony, knieje, doliny. Nie koncentrujemy się na wnętrzach, katakumbach i lochach (mogą być fragmentem, nie podstawą). Lista biotopów v1 do potwierdzenia (propozycja w dzienniku 26.11, 10:55).
+- **Decyzja autora 26.11.2026: biotopy przede wszystkim OTWARTE** — lasy, kaniony, knieje, doliny. Nie koncentrujemy się na wnętrzach, katakumbach i lochach (mogą być fragmentem, nie podstawą). Biotopy v1: **Spalona Osada + Czarnobór** (knieja); Dolne Miasto później (przyjęte 26.11, 10:48 — „dokładnie takie coś miałbym na myśli”).
+- **Budowa mapy (decyzja autora 26.11.2026): wyznaczone ścieżki jak w Dragon's Dogma** — natura i przyroda, ale gracz porusza się siecią wymuszonych ścieżek: nie za wąskich, nie za szerokich; tak, by docenić świat, a walka nie była ani za łatwa, ani za trudna. Generator z ziarna idzie w tym kierunku (bez metroidvanii — to gra ekstrakcyjna).
 
 ## Pierwsza wersja: co JEST
 

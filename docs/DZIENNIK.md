@@ -17,6 +17,11 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 11:00 — konto 2, rola: agent główny — decyzje o biotopach i mapach
+- **Decyzja autora:** biotopy = natura i przyroda; mapa zbudowana z **wyznaczonych, wymuszonych ścieżek jak w Dragon's Dogma** („nie za wąskie, nie za szerokie — żeby docenić budowanie świata, a walka nie była za łatwa ani za trudna”). Metroidvania odpada (gra ekstrakcyjna), ale generowanie w tym kierunku tak.
+- Przyjęte (odpowiedź na propozycję): v1 = Spalona Osada + Czarnobór; Dolne Miasto później. Zapisane w `FUNDAMENT.md`.
+- Propozycja agenta (do zgody): generator „sieć ścieżek” — polany i kotwice połączone ścieżkami 4–6 m, ściany z natury (gęsty las, skały, urwiska), 2–3 pętle, ślepe odnogi z łupem, głębokość = groźniej i bogaciej, wyjścia na końcach. Pilot najpierw jako obrazy map z góry (szybkie poprawki z autorem), potem 3D.
+
 ## 2026-11-26 10:55 — konto 2, rola: agent główny — burza mózgów i plan
 - Autor podzielił pracę na sekcje: bohater, postacie, walka, potwory, świat, mapy, grafika, biotopy, menu, UI, ekwipunek, balans; agent dołożył **pętlę i ekonomię** (rajd, ekstrakcja, śmierć, za co się płaci w Warowni) — autor przyjął.
 - Agent przedstawił plan dla każdej sekcji (w rozmowie). Autor zgadza się z większością.
