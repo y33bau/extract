@@ -10,6 +10,7 @@ signal obszar(nazwa: String, opis: String)  # wejście do nowej komnaty (tytuł 
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
 const MapgenLas = preload("res://skrypty/mapgen_las.gd")
+const MapgenOsada = preload("res://skrypty/mapgen_osada.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
 const Wrog = preload("res://skrypty/wrog.gd")
 const Efekty = preload("res://skrypty/efekty.gd")
@@ -23,7 +24,7 @@ const ZOOM_3D := 1.45      # bliższa kamera dla modeli 3D (tylko wygląd)
 
 var kraina: Dictionary
 var ziarno := ""
-var mapa  # Mapgen (loch) albo MapgenLas (las) — ten sam interfejs logiki
+var mapa  # Mapgen (loch), MapgenLas (las) albo MapgenOsada (osada) — ten sam interfejs logiki
 var gracz: Bohater
 var wrogowie: Array = []
 var zwloki: Array = []     # {w, rodzaj, kat, nazwa, boss, sakwa, przedmioty, wezel}
@@ -104,7 +105,10 @@ var swiat3d: Swiat3D
 func start(id_krainy: String, ziarno_mapy: String) -> void:
 	kraina = Dane.kraina(id_krainy)
 	ziarno = ziarno_mapy
-	mapa = MapgenLas.new() if kraina.get("typ", "") == "las" else Mapgen.new()
+	match String(kraina.get("typ", "")):
+		"las": mapa = MapgenLas.new()
+		"osada": mapa = MapgenOsada.new()
+		_: mapa = Mapgen.new()
 	mapa.generuj(kraina, ziarno, Profil.poziom("scavenger"))
 	widok.resize(N * N)
 	widok.fill(0)
@@ -135,6 +139,14 @@ const NAZWY_OBSZAROW := {
 	"kapliczka_lesna": ["Leśna Kapliczka", "Ktoś tu zostawił chleb. Las go nie ruszył."],
 	"kurhan": ["Kurhan", "Stare kamienie. Pod nimi starsze kości."],
 	"laka": ["Wilcza Łąka", "Otwarte niebo. Za otwarte."],
+	"plac": ["Plac ze Studnią", "Studnia jeszcze ma wodę. Nikt jej nie pilnuje. Na razie."],
+	"zagroda": ["Zagroda", "Płot stoi, choć nie ma już czego pilnować."],
+	"kuznia": ["Kuźnia", "Palenisko wystygło dopiero co. Ktoś tu kuł."],
+	"stodola": ["Spalona Stodoła", "Siano spłonęło, ale zapach dymu został."],
+	"sad": ["Spalony Sad", "Czarne pnie, ani jednego liścia. Dobra kryjówka. Dla nich też."],
+	"cmentarz": ["Cmentarz", "Groby są stare. Ślady przy nich nie."],
+	"piwnica": ["Zapadnięta Piwnica", "Dom spłonął, piwnica przetrwała. Razem z tym, co w niej schowano."],
+	"kosciol": ["Spalony Kościół", "Dzwonnica runęła. Coś w nawie wciąż oddycha."],
 }
 var komnata_pola := PackedInt32Array()
 var _komnata_gracza := -1
@@ -266,10 +278,11 @@ func _postaw_wrogow() -> void:
 	var tabela: Array = {
 		"catacombs": [["scout", 0.5], ["warden", 0.3], ["archer", 0.2]],
 		"czarnobor": [["scout", 0.35], ["archer", 0.3], ["warden", 0.2], ["brute", 0.15]],
+		"spalona_osada": [["scout", 0.35], ["warden", 0.25], ["archer", 0.25], ["brute", 0.15]],  # do strojenia (moby osady w rundzie „moby”)
 		"outskirts": [["scout", 0.25], ["warden", 0.25], ["archer", 0.2], ["knight", 0.2], ["brute", 0.1]],
 		"crypt": [["scout", 0.15], ["warden", 0.2], ["archer", 0.15], ["knight", 0.25], ["brute", 0.25]],
 	}[kraina["id"]]
-	var ciezcy: Array = {"catacombs": ["warden", "warden", "archer"], "czarnobor": ["brute", "warden", "archer"], "outskirts": ["knight", "brute", "warden"],
+	var ciezcy: Array = {"catacombs": ["warden", "warden", "archer"], "czarnobor": ["brute", "warden", "archer"], "spalona_osada": ["brute", "warden", "warden"], "outskirts": ["knight", "brute", "warden"],
 		"crypt": ["knight", "brute", "brute"]}[kraina["id"]]
 	var limit := int(kraina["enemyCount"])
 	# Komnaty dają miejsca: legowiska i skarbce strzeżone, zwykłe komnaty po 0-2, korytarze — patrole.
@@ -281,16 +294,16 @@ func _postaw_wrogow() -> void:
 		var ile := 0
 		var straz := false
 		match typ:
-			"legowisko":
+			"legowisko", "kosciol":
 				ile = 3 + r.randi_range(0, 1)
 				straz = true
-			"skarbiec", "kurhan":
+			"skarbiec", "kurhan", "cmentarz", "piwnica":
 				ile = 2
 				straz = true
 			"oboz":
 				ile = 3
 				straz = true
-			"laka", "polana":
+			"laka", "polana", "plac", "sad":
 				ile = 2 + r.randi_range(0, 1)
 			"sala_filarow", "dziedziniec":
 				ile = 2 + r.randi_range(0, 1)
@@ -306,6 +319,15 @@ func _postaw_wrogow() -> void:
 					continue
 				plan.append([p, ciezcy[r.randi_range(0, ciezcy.size() - 1)] if straz and n < 2 else ""])
 				break
+	# osada: co trzecia spalona chata ma lokatora (zasadzka w ślepej izbie; do strojenia)
+	if "domy" in mapa:
+		for dom in mapa.domy:
+			if r.randf() > 0.34:
+				continue
+			var rc: Rect2i = dom["r"]
+			var p3 := Vector2(rc.get_center()) + Vector2(0.5, 0.5)
+			if not Mapgen.blokuje_ruch(mapa.kafel(int(p3.x), int(p3.y))) and p3.distance_to(gracz.w) > 12.0:
+				plan.append([p3, ""])
 	# patrole w korytarzach (ok. 1/5 limitu)
 	for n in limit / 5:
 		if mapa.korytarze.is_empty():

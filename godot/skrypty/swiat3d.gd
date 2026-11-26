@@ -9,6 +9,8 @@ const Mapgen = preload("res://skrypty/mapgen.gd")
 const K = Mapgen.K
 const MapgenLas = preload("res://skrypty/mapgen_las.gd")
 const T = MapgenLas.T
+const MapgenOsada = preload("res://skrypty/mapgen_osada.gd")
+const TO = MapgenOsada.T
 const N := Mapgen.ROZMIAR
 const PX_NA_M := 45.254834  # 32 * sqrt(2): pole świata -> piksele ekranu (zgodnie z Iso)
 const WYS_MURU := 1.7
@@ -62,7 +64,8 @@ var _dekor := []         # [Node3D, idx kafla] - rekwizyty widoczne wg mgły woj
 var _skala_rek := {}     # nazwa -> [skala, przesunięcie y]
 var lekki := false  # tryb testowy albo jakość Niska: bez cieni i efektów ekranowych
 var jakosc := 2      # 0 Niska, 1 Średnia, 2 Wysoka, 3 Ultra (Profil.jakosc)
-var las := false     # biotop otwarty (Czarnobór): drzewa zamiast murów, strumień, runo
+var las := false     # biotop otwarty (Czarnobór, Spalona Osada): ściana z natury zamiast murów lochu
+var osada := false   # Spalona Osada: palisady, spalone chaty, martwe drzewa, żar (las == true)
 var _teren := PackedByteArray()
 var _odl_przejscia := PackedByteArray()  # las: odległość (w polach, do 6) od najbliższego pola przechodniego
 var _kotwica := PackedInt32Array()        # las: najbliższe pole przechodnie — od niego zależy widoczność drzewa (mgła wojny)
@@ -96,7 +99,9 @@ func zbuduj(r) -> void:
 		vp.msaa_3d = Viewport.MSAA_DISABLED
 		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 		vp.scaling_3d_scale = 0.5
-	las = rajd.kraina.get("typ", "") == "las"
+	var typ_krainy := String(rajd.kraina.get("typ", ""))
+	las = typ_krainy in ["las", "osada"]
+	osada = typ_krainy == "osada"
 	if las:
 		_teren = rajd.mapa.teren
 		_licz_odl_przejscia()
@@ -178,6 +183,18 @@ const WYGLAD := {
 		"otoczenie": Color(0.26, 0.34, 0.3), "otoczenie_sila": 0.5, "mgla": Color(0.34, 0.44, 0.42, 0.5), "ksiezyc": Color(0.55, 0.68, 0.9), "ksiezyc_sila": 0.95,
 		"tlo": Color(0.004, 0.009, 0.006), "nasycenie": 1.05, "kontrast": 1.1, "pochodnie": Color(1.0, 0.66, 0.38), "swiatla": 1.15, "mur_jasnosc": 1.1,
 		"sciezka_jasn": 1.55, "sciezka_czysta": 0.85,  # autor 26.11: widoczna, wydeptana ścieżka (do strojenia)
+	},
+	"spalona_osada": {
+		"a": "os_popiol", "a_skala": 0.22, "b": "os_ziemia", "b_skala": 0.24, "c": "os_wegiel", "c_skala": 0.26,
+		"b_ilosc": 0.3, "c_ilosc": 0.2, "c_przy_murach": 0.85, "sciezka_b": 1.0, "kaluze": 0.05, "zar": 1.1,
+		"ton": Color(0.96, 0.9, 0.85), "jasnosc": 1.12,
+		"mur": "os_palisada", "mur_skala": 0.5, "akcent": "os_wegiel", "wys_akcentu": 0.45, "sila_akcentu": 0.85, "mur_ton": Color(0.95, 0.88, 0.82), "mur_zar": 0.5,
+		"otoczenie": Color(0.36, 0.32, 0.32), "otoczenie_sila": 0.45, "mgla": Color(0.27, 0.26, 0.29, 0.42), "ksiezyc": Color(0.62, 0.64, 0.78), "ksiezyc_sila": 0.7,
+		"tlo": Color(0.012, 0.008, 0.006), "nasycenie": 1.05, "kontrast": 1.12, "pochodnie": Color(1.0, 0.6, 0.3), "swiatla": 1.25, "mur_jasnosc": 1.2,
+		"sciezka_jasn": 1.35, "sciezka_czysta": 0.7,
+		"wierzch": "os_popiol", "wierzch_ton": Color(0.17, 0.15, 0.14),  # zgliszcza z góry: szary popiół, wyraźnie ciemniejszy od podłogi
+		# podłoga chat i mury chat (zwęglone bale z żarem w szczelinach) — do strojenia
+		"chata": "os_deski", "chata_skala": 0.5, "mur_chaty": "os_bale", "mur_chaty_skala": 0.5, "mur_chaty_zar": 0.9,
 	},
 	"crypt": {
 		"a": "kry_plyty", "a_skala": 0.36, "b": "kry_popiol", "b_skala": 0.2, "c": "kry_lawa", "c_skala": 0.3,
@@ -302,6 +319,24 @@ func _materialy() -> void:
 	_mat["zelazo"] = _mat_prosty(Color(0.1, 0.095, 0.09), 0.85, 0.5)
 	_mat["ekstrakcja"] = _mat_prosty(Color(0.05, 0.25, 0.18), 0.0, 0.4, Color(0.25, 1.0, 0.7), 3.2)
 	_mat["zar"] = _mat_prosty(Color(0.06, 0.02, 0.0), 0.0, 0.95, Color(1.0, 0.35, 0.08), 1.4)
+	if osada:
+		var ch: ShaderMaterial = t.duplicate()
+		ch.set_shader_parameter("a_alb", _tsw(w["chata"], "alb"))
+		ch.set_shader_parameter("a_nrm", _tsw(w["chata"], "normal"))
+		ch.set_shader_parameter("a_rh", _tsw(w["chata"], "rh"))
+		ch.set_shader_parameter("a_skala", w["chata_skala"])
+		ch.set_shader_parameter("b_ilosc", 0.2)
+		ch.set_shader_parameter("c_ilosc", 0.12)
+		ch.set_shader_parameter("zar", 0.4)
+		ch.set_shader_parameter("sciezka_jasn", 1.0)
+		_mat["chata"] = ch
+		var mc: ShaderMaterial = m.duplicate()
+		mc.set_shader_parameter("m_alb", _tsw(w["mur_chaty"], "alb"))
+		mc.set_shader_parameter("m_nrm", _tsw(w["mur_chaty"], "normal"))
+		mc.set_shader_parameter("m_rh", _tsw(w["mur_chaty"], "rh"))
+		mc.set_shader_parameter("skala", w["mur_chaty_skala"])
+		mc.set_shader_parameter("zar", w["mur_chaty_zar"])
+		_mat["mur_chaty"] = mc
 	if las:
 		for war in [["woda", Color(0.035, 0.08, 0.085), 0.6], ["brod", Color(0.12, 0.18, 0.16), 0.35]]:
 			var wm := ShaderMaterial.new()
@@ -414,6 +449,9 @@ func _mapa() -> void:
 				podl = "sciezka"
 			elif t == K.EKSTRAKCJA:
 				podl = "ekstrakcja"
+			if osada:
+				_pole_osady(x, y, i, t, listy, siatki)
+				continue
 			if las:
 				_pole_lasu(x, y, i, t, listy, siatki)
 				continue
@@ -491,8 +529,10 @@ func _mapa() -> void:
 		if "@" in k:
 			var kw: PackedStringArray = k.get_slice("@", 1).split("_")
 			mmi.custom_aabb = AABB(Vector3(int(kw[0]) * KWADRAT - 4, -1.0, int(kw[1]) * KWADRAT - 4), Vector3(KWADRAT + 8, 10.0, KWADRAT + 8))
-		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga", "cokol": "mur"}.get(k, k)
-		if k.begins_with("mur"):
+		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga", "cokol": "mur", "cokol_ch": "mur_chaty"}.get(k, k)
+		if k.begins_with("murch"):
+			mk = "mur_chaty"
+		elif k.begins_with("mur"):
 			mk = "mur"
 		elif k.begins_with("wierzch"):
 			mk = "wierzch"
@@ -886,7 +926,7 @@ func _atmosfera() -> void:
 	# cząstki w powietrzu wokół gracza
 	_pyl = GPUParticles3D.new()
 	var id: String = rajd.kraina["id"]
-	var zar: bool = id == "crypt"
+	var zar: bool = id == "crypt" or osada
 	_pyl.amount = 60 if lekki else (150 if zar else 180)
 	_pyl.lifetime = 7.0
 	_pyl.preprocess = 7.0
@@ -1361,6 +1401,186 @@ func _wystroj_lasu() -> void:
 				nd.add_child(l)
 
 
+# ---------------------------------------------------------------- SPALONA OSADA
+## Martwe drzewa osady (sad, zgliszcza): [model, wysokość]. Wszystkie z biblioteki NightBrand.
+const DRZEWA_OSADY := [["p1_dead_tree", 3.4], ["p4_dead_oak", 3.6], ["p4_dead_spruce", 4.2], ["p1_dead_tree", 3.0]]
+## Osłony na placach i podwórzach (K.GRUZ, T.WOZ): [model, wymiar, po długości?].
+const OSLONY_OSADY := [["p1_barrel", 0.95, false], ["p8_beczki_lina", 1.1, false], ["p1_burnt_hay", 1.5, true], ["p8_stos", 1.2, false],
+	["p8_worki_zboze", 0.9, false], ["p1_wheel", 1.1, false]]
+
+
+## Pole mapy w osadzie: podłoże (ziemia, ulica, deski chat), palisady i zgliszcza zamiast ścian lochu,
+## mury chat ze zwęglonych bali, płoty, groby, martwe drzewa, wozy i beczki.
+func _pole_osady(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dictionary) -> void:
+	var tt: int = _teren[i]
+	var d: int = _odl_przejscia[i]
+	var h := _hash(x * 7 + 11, y * 13 + 5)
+	if not listy.has("chata"):
+		listy["chata"] = []
+		siatki["chata"] = _plyta()
+		listy["cokol_ch"] = []
+		siatki["cokol_ch"] = _box(Vector3(1.0, WYS_COKOLU, 1.0))
+	if t != K.MUR:
+		var podl := "sciezka" if t == K.SCIEZKA else ("ekstrakcja" if t == K.EKSTRAKCJA else ("chata" if tt == TO.CHATA else "podloga"))
+		var kp := _kotw(i)
+		listy[podl].append([kp, Basis(), 0.0, _przes(i, kp)])
+	match t:
+		K.MUR:
+			if tt == TO.ZGLISZCZA:
+				# mur spalonej chaty: niższy, nierówny (bale się obsypały), żar w szczelinach
+				var hc := 0.72 + float(_hash(x * 5, y * 3) % 9) * 0.035
+				var maska_c := _maska_muru(x, y)
+				var klucz_c := "murch_%d_%d" % [maska_c, _hash(y * 3, x * 5) % 3]
+				if not listy.has(klucz_c):
+					listy[klucz_c] = []
+					siatki[klucz_c] = _mesh_muru(maska_c, _hash(y * 3, x * 5) % 3)
+				listy[klucz_c].append([i, Basis().scaled(Vector3(1.0, hc, 1.0)), WYS_MURU * 0.5 * hc])
+				listy["cokol_ch"].append([i, Basis(), WYS_COKOLU * 0.5])
+				return
+			# zabudowa: osmalona palisada na brzegu, w głębi zgliszcza (płaski wierzch z węgla) i sterczące martwe drzewa
+			if _wnetrze_skaly(x, y):
+				_wierzch(i, WYS_MURU * 0.98, listy, siatki, "wierzch")
+				if d >= 2 and d <= 5 and h % 11 == 0:
+					var dr: Array = DRZEWA_OSADY[(h / 11) % DRZEWA_OSADY.size()]
+					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, 2)
+				return
+			var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
+			var hh := (1.2 if brzeg else 1.0) + float(_hash(x, y) % 9 - 4) * 0.05
+			var maska := _maska_muru(x, y)
+			var wariant := _hash(y * 3, x * 5) % 3
+			var klucz := "mur_%d_%d" % [maska, wariant]
+			if not listy.has(klucz):
+				listy[klucz] = []
+				siatki[klucz] = _mesh_muru(maska, wariant)
+			listy[klucz].append([i, Basis().scaled(Vector3(1.0, hh, 1.0)), WYS_MURU * 0.5 * hh])
+			if not listy.has("cokol"):
+				listy["cokol"] = []
+				siatki["cokol"] = _box(Vector3(1.0, WYS_COKOLU, 1.0))
+			listy["cokol"].append([i, Basis(), WYS_COKOLU * 0.5])
+		K.FILAR:
+			if tt == TO.DRZEWO:
+				var dr2: Array = DRZEWA_OSADY[h % DRZEWA_OSADY.size()]
+				_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.85, i, h, listy, siatki, 0.1)
+			# studnia (2×2) stoi jako rekwizyt w _wystroj_osady
+		K.GRUZ:
+			if tt == TO.PLOT:
+				# płot wzdłuż linii płotu (sąsiedni płot wyznacza kierunek)
+				var wzdluz_x := _teren_os(x - 1, y) == TO.PLOT or _teren_os(x + 1, y) == TO.PLOT
+				_model_os("las_os_plot", "p8_plot_zlamany", 1.15, i, 0.0 if wzdluz_x else PI * 0.5, listy, siatki, h)
+			elif tt == TO.GROB:
+				_model_os("las_os_grob" + str(h % 2), ["p1_tombstone", "p1_grave_cross"][h % 2], [0.9, 1.0][h % 2], i, PI * 0.25 + float(h % 3 - 1) * 0.2, listy, siatki, h)
+			else:
+				# w chacie: zwalona belka i gruz; na podwórzu: beczki, siano, koła, worki
+				var w_chacie := false
+				for s4 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					if _teren_os(x + s4.x, y + s4.y) == TO.CHATA:
+						w_chacie = true
+				var o: Array = ["p8_stos", 1.0, false] if w_chacie else OSLONY_OSADY[h % OSLONY_OSADY.size()]
+				_model_os("las_os_" + String(o[0]), o[0], o[1], i, float(h % 628) / 100.0, listy, siatki, h, o[2])
+
+
+func _teren_os(x: int, y: int) -> int:
+	if x < 0 or y < 0 or x >= N or y >= N:
+		return TO.ZABUDOWA
+	return _teren[y * N + x]
+
+
+## Model osady w MultiMesh z podanym obrotem (płot wzdłuż linii, groby rzędem). Wymiar = wysokość albo długość.
+func _model_os(klucz: String, nazwa: String, wymiar: float, i: int, obrot: float, listy: Dictionary, siatki: Dictionary, h: int, po_dlugosci := false) -> void:
+	var dane := _siatka_las(nazwa, 1)
+	var ab: AABB = dane[1]
+	klucz += _kwadrat(_kotw(i))
+	if not listy.has(klucz):
+		listy[klucz] = []
+		siatki[klucz] = dane[0]
+		_mat[klucz] = _mat_las(nazwa)
+	var miara := maxf(ab.size.x, ab.size.z) if po_dlugosci else ab.size.y
+	var s := wymiar / maxf(miara, 0.01) * (0.92 + float(h % 17) / 100.0)
+	var b := Basis(Vector3.UP, obrot).scaled(Vector3.ONE * s) * (dane[2] as Transform3D).basis
+	var k := _kotw(i)
+	listy[klucz].append([k, b, -ab.position.y * s, _przes(i, k)])
+
+
+## Wystrój miejsc osady wg rodzaju (tylko wygląd, nie blokuje ruchu; duże rzeczy na skraju).
+func _wystroj_osady() -> void:
+	var mapa = rajd.mapa
+	var zajete := {}
+	for sk in mapa.skrzynie:
+		zajete[mapa.idx(sk["tx"], sk["ty"])] = true
+	for k in mapa.kosze:
+		zajete[mapa.idx(int(k.x), int(k.y))] = true
+	for p in mapa.polany:
+		var c: Vector2 = p["c"]
+		var rad: float = p["r"]
+		var typ := String(p["typ"])
+		if typ == "plac":
+			# studnia na polach T.STUDNIA (2×2 od środka placu)
+			var ci := Vector2i(int(c.x), int(c.y))
+			var st := _rekwizyt("las/p1_well", 2.1)
+			st.position = Vector3(ci.x + 1.0, float(st.get_meta("y0")), ci.y + 1.0)
+			st.visible = false
+			_dekor.append([st, mapa.idx(ci.x, ci.y)])
+		var skraj: Array = []
+		var srodek: Array = []
+		for y in range(int(c.y - rad) - 1, int(c.y + rad) + 2):
+			for x in range(int(c.x - rad) - 1, int(c.x + rad) + 2):
+				if mapa.kafel(x, y) != K.PODLOGA or zajete.has(mapa.idx(x, y)) or _teren_os(x, y) != TO.PLAC:
+					continue
+				if Vector2(x + 0.5, y + 0.5).distance_to(c) > rad + 1.0:
+					continue
+				var sciana := Vector2.ZERO
+				for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					if mapa.kafel(x + s.x, y + s.y) == K.MUR:
+						sciana = Vector2(s)
+				if sciana != Vector2.ZERO:
+					skraj.append([x, y, sciana])
+				elif Vector2(x + 0.5, y + 0.5).distance_to(c) > 3.0:
+					srodek.append([x, y])
+		var h0 := _hash(int(c.x) * 31, int(c.y) * 17)
+		var plan: Array = []  # [nazwa, wymiar, na skraju?, po długości?]
+		match typ:
+			"plac":
+				plan = [["p1_stocks", 1.6, true], ["p1_order_banner", 2.4, true], ["p1_crow_post", 2.2, true]]
+			"zagroda":
+				var pula := [["p1_wheel", 1.1, true], ["p8_strach_na_wroble", 1.9, false], ["p1_dead_horse", 2.2, true, true], ["p1_barrel", 0.95, true], ["p1_burnt_hay", 1.6, true, true]]
+				for n in 2:
+					plan.append(pula[(h0 / (n + 1) + n * 2) % pula.size()])
+			"kuznia":
+				plan = [["p8_beczki_lina", 1.1, true], ["p1_wheel", 1.1, true], ["p1_barrel", 0.95, true]]
+			"stodola":
+				plan = [["p1_burnt_hay", 1.8, true, true], ["p1_burnt_hay", 1.5, true, true], ["p8_worki_zboze", 0.9, true]]
+			"sad":
+				plan = [["p8_strach_na_wroble", 1.9, false], ["p1_crow_post", 2.2, true]]
+			"cmentarz":
+				plan = [["p1_crow_post", 2.2, true], ["p1_grave_cross", 1.0, true]]
+			"piwnica":
+				plan = [["p8_beczki_lina", 1.1, true], ["p8_worki_zboze", 0.9, true], ["p1_barrel", 0.95, true]]
+			"kosciol":
+				plan = [["p1_gallows", 3.0, true], ["p3_gibbet", 2.6, true], ["p1_order_banner", 2.4, true], ["p1_crow_post", 2.2, true]]
+			"ekstrakcja":
+				plan = [["p8_menhir_runy", 2.4, true], ["p8_menhir_runy", 2.2, true]]
+			"start":
+				plan = [["p4_cz_wagon", 3.2, true, true], ["p1_barrel", 0.95, true]]
+		for n in plan.size():
+			var e: Array = plan[n]
+			var lista: Array = skraj if (e[2] or srodek.is_empty()) else srodek
+			if lista.is_empty():
+				continue
+			var w: Array = lista[(h0 / (n + 2) + n * 7) % lista.size()]
+			lista.erase(w)
+			var i: int = mapa.idx(w[0], w[1])
+			var obr := float(_hash(w[0] * 3, w[1] * 5) % 628) / 100.0
+			if w.size() > 2 and w[2] != Vector2.ZERO:
+				obr = atan2(-(w[2] as Vector2).x, -(w[2] as Vector2).y)
+			var nd := _rekwizyt("las/" + e[0], e[1], e.size() > 3 and e[3])
+			nd.position = Vector3(w[0] + 0.5, float(nd.get_meta("y0")), w[1] + 0.5)
+			if w.size() > 2:
+				nd.position += Vector3((w[2] as Vector2).x, 0, (w[2] as Vector2).y) * 0.3
+			nd.rotation.y = obr
+			nd.visible = false
+			_dekor.append([nd, i])
+
+
 ## Mgła wojny: 0 nieznane (ukryte), 1 widziane (przygaszone), 2 widoczne. Mury przy graczu od strony kamery przezroczyste.
 func odswiez_widok() -> void:
 	var widok: PackedByteArray = rajd.widok
@@ -1405,7 +1625,7 @@ func odswiez_widok() -> void:
 			if v == 0:
 				b = Basis().scaled(Vector3.ZERO)
 			# mur między kamerą a graczem obniżony do cokołu (jak w grach izometrycznych AAA)
-			elif rodzaj == "cokol":
+			elif rodzaj == "cokol" or rodzaj == "cokol_ch":
 				if not przezr:
 					b = Basis().scaled(Vector3.ZERO)
 			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "naroznik"):
@@ -1519,7 +1739,7 @@ func _rekwizyty() -> void:
 		var w: Vector2 = k
 		var kosz := Node3D.new()
 		kosz.position = Vector3(w.x, 0, w.y)
-		var misa := _rekwizyt("las/p8_ognisko_krag", 1.6, true) if las else _rekwizyt("misa_zar", 1.05)
+		var misa := _rekwizyt("las/p8_ognisko_gruz", 1.5, true) if osada else (_rekwizyt("las/p8_ognisko_krag", 1.6, true) if las else _rekwizyt("misa_zar", 1.05))
 		remove_child(misa)
 		misa.position.y = float(misa.get_meta("y0"))
 		kosz.add_child(misa)
@@ -1568,7 +1788,9 @@ func _rekwizyty() -> void:
 		add_child(n)
 		sk["wezel3d"] = n
 		_skrzynie.append(sk)
-	if las:
+	if osada:
+		_wystroj_osady()
+	elif las:
 		_wystroj_lasu()
 	else:
 		_wystroj()
@@ -2525,13 +2747,13 @@ func _otoczenie_materialy() -> void:
 	for rodz in ["wierzch", "korona"]:
 		var m := ShaderMaterial.new()
 		m.shader = SHADER_OTOCZENIA
-		var tex: String = w["c"] if rodz == "korona" else w["mur"]
+		var tex: String = w["c"] if rodz == "korona" else String(w.get("wierzch", w["mur"]))
 		m.set_shader_parameter("alb", _tsw(tex, "alb"))
 		m.set_shader_parameter("szum", _szum)
 		m.set_shader_parameter("skala", 0.22 if rodz == "korona" else float(w["mur_skala"]) * 0.6)
 		var ton_muru: Color = w["mur_ton"]
 		# jasność wierzchu: ciemniejszy od oświetlonej podłogi, ale z czytelną fakturą (unshaded w shaderze)
-		m.set_shader_parameter("ton", Color(0.3, 0.4, 0.27) if rodz == "korona" else Color(0.4 * ton_muru.r, 0.38 * ton_muru.g, 0.4 * ton_muru.b))
+		m.set_shader_parameter("ton", Color(0.3, 0.4, 0.27) if rodz == "korona" else w.get("wierzch_ton", Color(0.4 * ton_muru.r, 0.38 * ton_muru.g, 0.4 * ton_muru.b)))
 		m.set_shader_parameter("rozmiar_mapy", float(N))
 		_mgla_do(m)
 		_mat[rodz] = m
@@ -2550,7 +2772,7 @@ func _mgla_do(m: ShaderMaterial) -> void:
 
 
 func _otoczenie() -> void:
-	var zew: ShaderMaterial = (_mat["korona"] if las else _mat["wierzch"]).duplicate()
+	var zew: ShaderMaterial = (_mat["korona"] if las and not osada else _mat["wierzch"]).duplicate()
 	zew.set_shader_parameter("poza_mapa", 1.0)
 	var plaszcz := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
@@ -2559,7 +2781,7 @@ func _otoczenie() -> void:
 	plaszcz.mesh = pm
 	plaszcz.material_override = zew
 	plaszcz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	plaszcz.position = Vector3(N * 0.5, 3.1 if las else WYS_MURU * 1.15, N * 0.5)
+	plaszcz.position = Vector3(N * 0.5, 3.1 if las and not osada else WYS_MURU * 1.15, N * 0.5)
 	add_child(plaszcz)
 	_plaszczyzna_otoczenia = plaszcz
 

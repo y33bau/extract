@@ -164,7 +164,7 @@ func ustaw_jakosc(j: int) -> void:
 ## Kontrakt liczy się tylko po udanej ekstrakcji (śmierć = nic, jak w Tarkovie). Nagrody: DO STROJENIA przez autora.
 const NAGRODA_ZA_WROGA := 40
 const NAGRODA_ZA_PAROWANIE := 60
-const NAGRODA_EKSTRAKCJA := {"catacombs": 150, "czarnobor": 250, "outskirts": 250, "crypt": 400}
+const NAGRODA_EKSTRAKCJA := {"catacombs": 150, "czarnobor": 250, "spalona_osada": 250, "outskirts": 250, "crypt": 400}
 
 
 func nowy_kontrakt() -> Dictionary:

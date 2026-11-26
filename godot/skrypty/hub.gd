@@ -13,7 +13,7 @@ const EkranMenu = preload("res://skrypty/ekran_menu.gd")
 const SEKCJE := ["Wyprawa", "Ekwipunek", "Kupiec", "Warownia", "Umiejętności"]
 const TYTULY := ["STÓŁ CHOJRAKA", "RYNSZTUNEK", "KRAM MARGI", "ROZBUDOWA WAROWNI", "BIEGŁOŚCI"]
 ## Ilustracje krain (z NightBrand; docelowo własne — prompty w docs/PROMPTY_MENU.md)
-const ILUSTRACJE_KRAIN := {"catacombs": "rozdzial_5", "czarnobor": "rozdzial_4", "outskirts": "rozdzial_1", "crypt": "rozdzial_2"}
+const ILUSTRACJE_KRAIN := {"catacombs": "rozdzial_5", "czarnobor": "rozdzial_4", "spalona_osada": "rozdzial_1", "outskirts": "rozdzial_1", "crypt": "rozdzial_2"}
 
 var wybrana_kraina := "catacombs"
 var ziarno := ""

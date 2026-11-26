@@ -39,6 +39,26 @@
   "desc": "Gęsty las z ziarna: polany połączone krętymi ścieżkami, strumień z brodami, obozy kłusowników. Ślepe odnogi kuszą łupem."
  },
  {
+  "id": "spalona_osada",
+  "typ": "osada",
+  "name": "Spalona Osada",
+  "subtitle": "Zgliszcza, zagrody i spalony kościół",
+  "diff": "ŚREDNIA",
+  "diffColor": "text-[#e6ba63]",
+  "lootStars": "★★★☆",
+  "enemyCount": 56,
+  "hasBoss": false,
+  "palette": {
+   "floor1": "#35302b",
+   "floor2": "#3d3731",
+   "moss": "#3a2f26",
+   "wallTop": "#2a2420",
+   "wallL": "#211c19",
+   "wallR": "#171310"
+  },
+  "desc": "Wieś spalona do gołej ziemi, z ziarna: ulice między zgliszczami, plac ze studnią, zagrody i cmentarz. W chatach coś jeszcze zostało, a w spalonym kościele ktoś czeka."
+ },
+ {
   "id": "outskirts",
   "name": "Kamienne Podgrodzie",
   "subtitle": "Zawalony dziedziniec i mury strażnicze",

@@ -12,7 +12,7 @@ signal zresetowano  # usunięto zapis (Opcje → Dane zapisu)
 const Ui = preload("res://skrypty/ui.gd")
 const ZAKLADKI := ["Sterowanie", "Umiejętności", "Opcje"]
 ## Malowane tła biotopów (z NightBrand; docelowo własne — docs/PROMPTY_MENU.md)
-const TLA := {"catacombs": "rozdzial_5", "czarnobor": "rozdzial_4", "outskirts": "rozdzial_1", "crypt": "rozdzial_2", "": "tlo_menu_1"}
+const TLA := {"catacombs": "rozdzial_5", "czarnobor": "rozdzial_4", "spalona_osada": "rozdzial_1", "outskirts": "rozdzial_1", "crypt": "rozdzial_2", "": "tlo_menu_1"}
 
 var zakladki: TabContainer   # zawartość zakładek (pasek zakładek rysujemy sami)
 var wroc: Button

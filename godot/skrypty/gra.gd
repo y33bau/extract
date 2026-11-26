@@ -77,6 +77,8 @@ func _ready() -> void:
 			_podglad_lasu.call_deferred(a.substr(15))
 		if a.begins_with("--podglad-osady="):
 			_podglad_osady.call_deferred(a.substr(16))
+		if a.begins_with("--podglad-krainy="):
+			_podglad_krainy.call_deferred(a.substr(17))
 
 
 ## Podgląd oprawy walki dla agenta: --podglad-walki=katalog[,kraina]. Seria zrzutów klatka po klatce
@@ -193,6 +195,40 @@ func _podglad_lasu(arg: String) -> void:
 		f.store_string(JSON.stringify(m.do_slownika()))
 		f.close()
 		print("LAS ", z, ": polan ", m.polany.size(), ", ścieżek ", m.sciezki.size(), ", skrzyń ", m.skrzynie.size(), ", wrogów ", m.spawny.size())
+	get_tree().quit(0)
+
+
+## Podgląd krainy dla agenta: --podglad-krainy=katalog,kraina[,ziarno]. Zrzuty z bohaterem w kilku miejscach
+## mapy (start, każdy rodzaj miejsca, wnętrze chaty w osadzie). Wrogowie uśpieni. Bez asercji.
+func _podglad_krainy(arg: String) -> void:
+	var cz := arg.split(",")
+	_zrzuty = cz[0]
+	DirAccess.make_dir_recursive_absolute(_zrzuty)
+	Profil.resetuj()
+	rozpocznij_rajd(cz[1], cz[2] if cz.size() > 2 else "OSADA01")
+	for en in rajd.wrogowie:
+		en.uspiony = true
+	await _czekaj(1.5)
+	var m = rajd.mapa
+	var miejsca: Array = [["start", m.start]]
+	var byly := {}
+	for p in m.polany:
+		var typ := String(p["typ"])
+		if not byly.has(typ):
+			byly[typ] = true
+			miejsca.append([typ, (p["c"] as Vector2) + Vector2(-2.5, -2.5)])
+	if "domy" in m and not m.domy.is_empty():
+		var rc: Rect2i = m.domy[0]["r"]
+		miejsca.append(["chata", Vector2(rc.get_center()) + Vector2(0.5, 0.5)])
+	for n in miejsca.size():
+		var w: Vector2 = miejsca[n][1]
+		if Mapgen.blokuje_ruch(m.kafel(int(w.x), int(w.y))):
+			w = Vector2(int(w.x) + 2.5, int(w.y) + 2.5)
+		rajd.gracz.w = w
+		rajd._licz_widok()
+		rajd.swiat3d.odswiez_widok()
+		await _czekaj(1.6)
+		await _zrzut("%02d_%s" % [n, miejsca[n][0]])
 	get_tree().quit(0)
 
 
@@ -1370,6 +1406,58 @@ func _test_osady() -> void:
 	_ok("osada (pilot): ziarno, osiągalność, przejścia ≥3 m, 3 wyjścia w głębi, odnogi, chaty z wejściem, kościół", zle.is_empty(), ", ".join(zle.slice(0, 4)))
 
 
+## Spalona Osada w rajdzie: generator osady, wyjścia, wrogowie, oprawa 3D z biblioteki NightBrand
+## (palisady, mury chat z bali, deski w chatach, martwe drzewa, płoty, studnia), przekrój muru chaty.
+func _test_osady_w_rajdzie() -> void:
+	rozpocznij_rajd("spalona_osada", "OSADA01")
+	await _czekaj(0.5)
+	var m = rajd.mapa
+	_ok("Osada: rajd w osadzie (generator osady 128×128)", m is MapgenOsada and m.siatka.size() == 128 * 128 and m.domy.size() >= 20, "%d miejsc, %d chat" % [m.komnaty.size(), m.domy.size()])
+	var d: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
+	var eks := 0
+	for e in m.ekstrakcje:
+		if d[m.idx(int(e["w"].x), int(e["w"].y))] >= 0:
+			eks += 1
+	var limit := int(rajd.kraina["enemyCount"])
+	_ok("Osada: 3 wyjścia osiągalne, wrogowie wg krainy", eks == 3 and rajd.wrogowie.size() >= int(limit * 0.8) and rajd.wrogowie.size() <= limit + 8, "%d wyjść, %d/%d wrogów" % [eks, rajd.wrogowie.size(), limit])
+	var s3 = rajd.swiat3d
+	var ile := {"murch": 0, "chata": 0, "drz": 0, "las_os_plot": 0, "mur_": 0}
+	for k in s3._mm:
+		for pre in ile:
+			if String(k).begins_with(pre):
+				ile[pre] += s3._mm[k].multimesh.instance_count
+	var studnia := false
+	for e in s3._dekor:
+		if is_instance_valid(e[0]) and String(e[0].scene_file_path).ends_with("p1_well.glb"):
+			studnia = true
+	_ok("Osada: oprawa z biblioteki (palisady, chaty z bali i desek, martwe drzewa, płoty, studnia)", s3.osada and ile["murch"] > 300 and ile["chata"] > 300 and ile["drz"] > 20 and ile["las_os_plot"] > 10 and ile["mur_"] > 1000 and studnia, str(ile) + (" studnia" if studnia else " brak studni"))
+	# przekrój: mur chaty między kamerą a bohaterem obniża się do cokołu
+	var cel := []
+	for i in s3._indeks:
+		for wpis in s3._indeks[i]:
+			if String(wpis[0]).begins_with("murch") and cel.is_empty():
+				var p3: Vector3 = wpis[2]
+				var stan := Vector2(p3.x - 2.0, p3.z - 2.0)
+				if not Mapgen.blokuje_ruch(m.kafel(int(stan.x), int(stan.y))) and d[m.idx(int(stan.x), int(stan.y))] >= 0:
+					cel = [stan, wpis]
+	var obnizony := false
+	if not cel.is_empty():
+		rajd.gracz.w = cel[0]
+		rajd._licz_widok()
+		s3.odswiez_widok()
+		var tr: Transform3D = s3._mm[cel[1][0]].multimesh.get_instance_transform(cel[1][1])
+		obnizony = tr.basis.get_scale().length() < 0.01
+	_ok("Osada: mur chaty między kamerą a bohaterem znika (zostaje cokół)", obnizony, "brak takiego miejsca" if cel.is_empty() else "")
+	# zrzut: bohater na placu ze studnią
+	for p in m.polany:
+		if p["typ"] == "plac":
+			rajd.gracz.w = (p["c"] as Vector2) + Vector2(-3.0, -3.0)
+	rajd._licz_widok()
+	s3.odswiez_widok()
+	await _czekaj(1.2)
+	await _zrzut("9d_osada")
+
+
 ## Oprawa mapy: materiały krainy z tekstur NightBrand, maska murów, pochodnie nie wiszą w powietrzu.
 ## Duże mapy (wersja 2 generatora): rozmiar, osiągalność, rodzaje komnat, ziarno, wrogowie, pościg po korytarzach.
 func _test_duzej_mapy() -> void:
@@ -1985,6 +2073,8 @@ func _test() -> void:
 
 	# trzeci rajd: Czarnobór (las z ziarna, biotop otwarty)
 	await _test_czarnoboru()
+	# czwarty rajd: Spalona Osada (wieś z ziarna, biotop otwarty)
+	await _test_osady_w_rajdzie()
 
 	var zle := _wyniki.count(false)
 	print("\nWYNIK (godot): ", "OK" if zle == 0 else "BŁĘDY: %d" % zle, "  (%d/%d)" % [_wyniki.size() - zle, _wyniki.size()])
