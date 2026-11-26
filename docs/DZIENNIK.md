@@ -17,6 +17,14 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 10:55 — konto 2, rola: agent główny — burza mózgów i plan
+- Autor podzielił pracę na sekcje: bohater, postacie, walka, potwory, świat, mapy, grafika, biotopy, menu, UI, ekwipunek, balans; agent dołożył **pętlę i ekonomię** (rajd, ekstrakcja, śmierć, za co się płaci w Warowni) — autor przyjął.
+- Agent przedstawił plan dla każdej sekcji (w rozmowie). Autor zgadza się z większością.
+- **Decyzja autora: kolejność — najpierw biotopy, bohater, potwory (moby) i balans.**
+- **Decyzja autora: biotopy przede wszystkim otwarte** — lasy, kaniony, knieje, doliny; nie wyłącznie wnętrza, katakumby i lochy. Zapisane w `FUNDAMENT.md`.
+- Propozycja agenta (do potwierdzenia): biotopy v1 = Spalona Osada (otwarta: spalone domy, pola, skraj lasu) + Czarnobór (knieja: gęsty las, polany, strumień, wąwozy; nazwa z lore NightBrand) zamiast Dolnego Miasta; kanion (np. Popielny Wąwóz) jako kolejny. Technicznie: nowy generator terenu otwartego na tej samej siatce i z tym samym ziarnem (przeszkody = zwarte drzewa, skały, urwiska zamiast ścian komnat), drugi wygląd w `swiat3d.gd`; walka Soulsborne chroniona przez naturalne przewężenia (wąwozy, gęstwiny), żeby otwarty teren nie zamieniał się w otaczanie przez wrogów.
+- Następny krok: decyzja autora o liście biotopów v1 (czy Dolne Miasto zostaje), potem pilot jednego biotopu otwartego.
+
 ## 2026-11-26 10:45 — konto 2, rola: gamedev — runda `namierzanie` ZAMKNIĘTA
 - Gałąź **`namierzanie`** — najnowsza. main nietknięty (`97c0c22`).
 - Wpis 02:40 („W TOKU”) zawierał błąd składni w `rajd.gd` (wstawiona linia rozbiła `if/elif` — rajd by nie ruszył). Testy z nocy przerwało wyłączenie sesji, więc commit `024413a` poszedł bez potwierdzenia. **Naprawione**; wniosek: commitu „w toku” nie traktować jako sprawdzonego.
