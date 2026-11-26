@@ -17,6 +17,12 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 17:15 — nowe konto, rola: agent główny — publikacja menu i nowe zlecenia
+- **Decyzja autora (17:11):** nowe menu „jak na obecny etap świetne”. **(17:14) „tak”** na plan mentora (`NIGHTBRAND\WAROWNIA_POPIOLOW\CO_DALEJ_WAROWNIA_2026-11-26.md`): publikacja + runda „mgła i wczytywanie”, potem Spalona Osada.
+- **Opublikowano na main: `e93aa0e`** (łańcuch `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).
+- **Nowe prośby autora (17:14):** szersze korytarze w grze; mapa mniej zaśmiecona przedmiotami; poza mapą głębia albo tekstura zamiast czarnego tła („odcina się brzydko”).
+- Następny krok: runda gamedev `mapa-mgla-i-wczytywanie` (mgła w shaderze, rozgrzewka, lżejsza paczka + trzy prośby powyżej).
+
 ## 2026-11-26 16:30 — nowe konto, rola: gamedev — przebudowa menu, etapy 3–5 (całe menu na szablonie NightBrand)
 - Gałąź: `menu-etap2` (ciąg dalszy, łańcuch: `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).
 - **Decyzja autora (16:13): „Rób wszystkie kolejne etapy menu”** = zgoda także na etap 5 (ekran tytułowy), który instrukcja kazała najpierw uzgodnić.
