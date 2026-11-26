@@ -763,13 +763,13 @@ func _ruch(dt: float) -> void:
 	var anim := "postoj"
 	var tempo := 1.0
 	if w.length() > 0.05:
-		var v := 3.4 * minf(1.0, wej.length())
+		var v := 4.3 * minf(1.0, wej.length())  # 26.11.2026 autor: chód w Warowni był za wolny (3,4)
 		kat = atan2(w.y, w.x)
 		var nowa := poz + w.normalized() * v * dt
 		nowa = _dozwolona(nowa)
 		poz = nowa
 		anim = "bieg" if v > 2.4 else "chod"
-		tempo = clampf(v / (4.0 if _styl == "dwureczny" else 3.8), 0.8, 1.4)
+		tempo = clampf(v / (4.0 if _styl == "dwureczny" else 3.8), 0.8, 1.45)
 	var r := angle_difference(_kat_wiz, kat)
 	_kat_wiz += clampf(r * (1.0 - exp(-dt * 14.0)), -12.0 * dt, 12.0 * dt)
 	bohater.position = Vector3(poz.x, 0.0, poz.y)

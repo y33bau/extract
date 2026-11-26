@@ -1217,8 +1217,9 @@ func _wejscie() -> void:
 	elif cel.length() > 0.3:
 		var c := Iso.ekran_na_swiat_kierunek(cel)
 		p.kat = atan2(c.y, c.x)
+	p.celuje_drazkiem = cel.length() > 0.3
 	elif ruch.length() > 0.3 and p.atak_czas <= 0.0:
-		var c2 := Iso.ekran_na_swiat_kierunek(ruch)
+		var c2 := p.predkosc if p.predkosc.length() > 0.3 else Iso.ekran_na_swiat_kierunek(ruch)
 		p.kat = atan2(c2.y, c2.x)
 	if Input.is_action_just_pressed("parowanie"):
 		parowanie_start()
@@ -1301,11 +1302,15 @@ func _aktualizuj(dt: float) -> void:
 			p.krok_anim += dt * 14.0
 		else:
 			var ruch := Iso.ekran_na_swiat_kierunek(Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol"))
-			if ruch != Vector2.ZERO:
-				var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (0.5 if p.atak_czas > 0.0 else (1.6 if p.zamach_anim > 0.0 else 3.4))
-				przesun(p, ruch * v * dt)
+			var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (0.5 if p.atak_czas > 0.0 else (1.6 if p.zamach_anim > 0.0 else 3.4))
+			# płynny ruch: rozpędzanie, hamowanie i łuk przy zmianie kierunku (pełna prędkość w ~0,15 s)
+			p.predkosc = p.predkosc.move_toward(ruch * v, (26.0 if ruch != Vector2.ZERO else 30.0) * dt)
+			if p.predkosc.length() > 0.15:
+				przesun(p, p.predkosc * dt)
 				p.w_ruchu = true
-				p.ruch_wektor = ruch * v
+				p.ruch_wektor = p.predkosc
+				ruch = p.predkosc.normalized()
+				v = p.predkosc.length()
 				p.krok_anim += dt * (5.0 if p.blok else 8.0)
 				p.krok_dzwiek -= dt
 				if p.krok_dzwiek <= 0.0:

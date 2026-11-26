@@ -20,6 +20,8 @@ var plon_tik := 0.0
 var krok_anim := 0.0
 var krok_dzwiek := 0.0
 var w_ruchu := false
+var celuje_drazkiem := false  # prawy drążek wskazuje kierunek (wtedy kroki w bok/tył mają sens)
+var predkosc := Vector2.ZERO  # wygładzona prędkość (m/s): płynne ruszanie, hamowanie i skręt
 var ruch_wektor := Vector2.ZERO  # świat: kierunek * prędkość z wejścia (do animacji chodu/biegu/uników bocznych)
 var atak_licznik := 0  # rośnie z każdym zamachem (animacja startuje od nowa, także przy powtórzeniu tego samego ciosu)
 # walka

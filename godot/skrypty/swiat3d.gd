@@ -1325,11 +1325,14 @@ func _plan_animacji(p, styl: String) -> Array:
 		return ["atak%d" % (p.combo + 1), "atak%d_%d" % [p.combo, p.atak_licznik], false, (plan[1] - ts) / d, ts, 0.07]
 	if p.blok:
 		if p.okno_parowania > 0.0 and p.blok_czas < 0.35:
-			return ["parowanie", "parowanie", false, clampf(_dl_klipu(styl + "_parowanie") / 0.4, 1.0, 2.2), 0.0, 0.05]
-		return ["blok", "blok", true, 1.0, 0.0, BLEND_PETLA]
+			return ["parowanie", "parowanie", false, clampf(_dl_klipu(styl + "_parowanie") / 0.55, 1.0, 1.6), 0.0, 0.1]
+		return ["blok", "blok", true, 1.0, 0.0, 0.22]
 	if p.w_ruchu and p.ruch_wektor != Vector2.ZERO:
 		var v: float = p.ruch_wektor.length()
 		var rel := angle_difference(_kat_wiz, atan2(p.ruch_wektor.y, p.ruch_wektor.x))
+		var swobodny: bool = rajd.cel_namierzony == null and not p.blok and p.ladowanie <= 0.0 and p.zamach_anim <= 0.0 and not p.celuje_drazkiem
+		if swobodny:
+			rel = 0.0  # twarz podąża za ruchem: bez kroków w bok i w tył przy skręcie
 		if absf(rel) > 2.36:
 			return ["tyl", "tyl", true, clampf(v / REF_TYL[styl], 0.8, 1.5), 0.0, BLEND_PETLA]
 		if absf(rel) > 0.79:
@@ -1353,7 +1356,11 @@ func _aktualizuj_bohatera(dt: float) -> void:
 		_kat_start = true
 		_kat_wiz = p.kat
 	var szybki: bool = p.zamach_anim > 0.0 or p.unik_czas > 0.0
-	_kat_wiz = _obracaj(_kat_wiz, _kat_celu(p), 26.0 if szybki else 15.0, dt)
+	if szybki or p.blok or rajd.cel_namierzony != null or p.celuje_drazkiem:
+		_kat_wiz = _obracaj(_kat_wiz, _kat_celu(p), 26.0 if szybki else 15.0, dt)
+	else:
+		var rk := angle_difference(_kat_wiz, _kat_celu(p))
+		_kat_wiz += clampf(rk * (1.0 - exp(-dt * 12.0)), -11.0 * dt, 11.0 * dt)
 	var o := _offset(p, dt)
 	bohater.position = Vector3(p.w.x + o.x, 0.0, p.w.y + o.y)
 	bohater.rotation.y = _obrot(_kat_wiz)
@@ -1433,7 +1440,7 @@ func _wrog3d(en) -> Dictionary:
 	gw.shaded = false
 	gw.no_depth_test = true
 	gw.render_priority = 10
-	gw.pixel_size = 0.0045
+	gw.pixel_size = 0.003
 	gw.modulate = Color(1.0, 0.45, 0.3) if en.ciezki else Color(1.0, 0.93, 0.6)
 	gw.top_level = true
 	gw.visible = false
@@ -1441,7 +1448,7 @@ func _wrog3d(en) -> Dictionary:
 	# pierścień rytmu: zwęża się do koła wewnętrznego w chwili ciosu; jasny = paruj teraz
 	var pr := MeshInstance3D.new()
 	var pp := PlaneMesh.new()
-	pp.size = Vector2(3.2, 3.2) * s
+	pp.size = Vector2(2.0, 2.0) * s  # pierścień rytmu: mniejszy, nie przykrywa postaci
 	pr.mesh = pp
 	var prm := ShaderMaterial.new()
 	prm.shader = _shader_pierscienia()
@@ -1484,7 +1491,7 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 	znak.global_position = Vector3(en.w.x, 0.03, en.w.y)
 	znak.global_rotation = Vector3(0, -en.kat, 0)
 	zm.set_shader_parameter("postep", t)
-	zm.set_shader_parameter("sila", 1.0)
+	zm.set_shader_parameter("sila", 0.6)
 	if en.rodzaj == "archer":
 		zm.set_shader_parameter("dlugosc", clampf((en.w.distance_to(rajd.gracz.w) + 1.0) / 12.0, 0.15, 1.0))
 	BLYSK_PRZED = rajd.dlugosc_okna_parowania()
@@ -1510,7 +1517,7 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 		var gdzie: Vector3 = (bron.global_position if bron else d["wezel"].global_position + Vector3(0, 1.6, 0)) + Vector3(0, 0.25, 0)
 		gw.global_position = gdzie
 		gw.visible = widac
-		gw.scale = Vector3.ONE * (0.6 + 1.4 * sin(f * PI) + 0.2)
+		gw.scale = Vector3.ONE * (0.5 + 0.8 * sin(f * PI) + 0.15)
 		gw.rotation.z = f * 1.6
 	else:
 		gw.visible = false

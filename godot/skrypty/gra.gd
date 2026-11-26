@@ -42,6 +42,8 @@ func _ready() -> void:
 			_podglad_przystani.call_deferred(a.substr(19))
 		if a.begins_with("--podglad-walki="):
 			_podglad_walki.call_deferred(a.substr(16))
+		if a.begins_with("--podglad-ruchu="):
+			_podglad_ruchu.call_deferred(a.substr(16))
 
 
 ## Podgląd oprawy walki dla agenta: --podglad-walki=katalog[,kraina]. Seria zrzutów klatka po klatce
@@ -118,6 +120,36 @@ func _podglad_walki(arg: String) -> void:
 		rajd.atak_wrecz()
 		await seria.call("w7_smierc", 10)
 	print("PODGLAD WALKI gotowy")
+	get_tree().quit(0)
+
+
+## Podgląd ruchu Hadræna dla agenta (zbliżenie): bieg z zakrętem i nawrotem, zatrzymanie, blok/parowanie. Co 2 klatki zrzut.
+func _podglad_ruchu(katalog: String) -> void:
+	_zrzuty = katalog
+	DirAccess.make_dir_recursive_absolute(katalog)
+	Profil.resetuj()
+	rozpocznij_rajd("catacombs", "WALKA1")
+	await _czekaj(0.3)
+	for en in rajd.wrogowie:
+		en.uspiony = true
+		en.w = Vector2(2.5, 2.5)
+	rajd.gracz.pochodnia_w_rece = false
+	hud.visible = false
+	rajd.kamera.zoom = Vector2(3.0, 3.0)
+	var kroki := [[Vector2(1, 0), 14, "bieg"], [Vector2(0, 1), 14, "zakret"], [Vector2(-1, 0), 14, "nawrot"], [Vector2.ZERO, 8, "stop"]]
+	for k in kroki:
+		_os(JOY_AXIS_LEFT_X, k[0].x)
+		_os(JOY_AXIS_LEFT_Y, k[0].y)
+		for i in k[1]:
+			await _klatka()
+			if i % 2 == 0:
+				await _zrzut("r_%s_%02d" % [k[2], i])
+	_przycisk(JOY_BUTTON_LEFT_SHOULDER, true)
+	for i in 16:
+		await _klatka()
+		await _zrzut("r_parowanie_%02d" % i)
+	_przycisk(JOY_BUTTON_LEFT_SHOULDER, false)
+	print("PODGLAD RUCHU gotowy")
 	get_tree().quit(0)
 
 

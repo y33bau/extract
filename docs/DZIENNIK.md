@@ -17,6 +17,14 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 02:40 — konto 2, rola: gamedev — W TOKU (autor wyłącza komputer)
+- Gałąź **`namierzanie`** (od `hud-nightbrand`) — najnowsza, od niej zaczynaj.
+- Zlecenia autora (02:12–02:24): 1) namierzanie wroga, postać „pływa” przy ciosach i uderza w ścianę; 2) kursor nie może obracać postaci — ruch klawiaturą, klik na wroga = atak na niego; 3) riposta w najbliższego wroga; 4) opcja namierzania; 5) poprawić animacje parowania i ruchu w walce („dziwne, nienaturalne”), w Warowni chód „sensowny, trochę za wolny”; 6) płynny kierunek chodu i zmiana kierunku; 7) mniejsze znaczniki parowania na wrogach.
+- Zrobione (commit `namierzanie`, testy 94/94): kursor nie obraca postaci (twarz = kierunek ruchu / prawy drążek / cel); klik LPM na wroga = cios w niego (`wrog_pod_kursorem`), klik w puste miejsce = cios w stronę kliknięcia; cel ciosu: ogłuszony najbliższy (riposta) > namierzony > kliknięty > najbliższy przed postacią (`cel_ciosu`); łuk celuje w namierzonego / najbliższego w stożku (`cel_strzalu`); doskok tylko do celu i tylko by domknąć dystans (bez celu brak doskoku — koniec wjeżdżania w ściany); w oknie trafienia ruch 0,5 m/s, w wybrzmieniu 1,6 (**do strojenia**); **namierzanie R / środkowy przycisk myszy / R3** (złote narożniki wokół paska i złoty krąg pod celem, przeskok na najbliższego po śmierci celu); zrzut sakwy przeniesiony na **L3**.
+- W TOKU (ostatni commit, testy uruchomione, wynik niepotwierdzony w chwili zapisu): płynny ruch (rozpędzanie/hamowanie, `bohater.predkosc`), bez kroków w bok/tył przy swobodnym ruchu (są przy namierzaniu, bloku, ładowaniu i celowaniu prawym drążkiem), płynny obrót jak w Przystani, parowanie z przejściem 0,1 s i miękkim przejściem do bloku (0,22 s), Warownia: chód 3,4 → 4,3 m/s, mniejsze znaczniki zapowiedzi na wrogach (pierścień 3,2 → 2,0 m, błysk mniejszy, klin słabszy). Narzędzie: `--podglad-ruchu=/tmp/katalog` (zbliżenie biegu, zakrętu, nawrotu, parowania).
+- NIE sprawdzone: wyczucie na żywo, prawdziwy pad, paczka Windows dla autora tej rundy jeszcze NIE zrobiona.
+- Następny krok: `python3 narzedzia/testy.py godot` (oczekiwane 94/94), kontrola Linux, eksport Windows → `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Namierzanie.zip` + `TEST_NAMIERZANIE.bat`, gdy komputer autora wróci; ocena autora.
+
 ## 2026-11-26 02:15 — konto 2, rola: agent główny (+ gamedev/grafik w rundzie HUD) — PRZEKAZANIE na inne konto
 - Gałąź **`hud-nightbrand`** (od `mocny-cios-sklep`) — najnowsza, od niej zaczynaj. main = `97c0c22`, nietknięty od publikacji 00:06.
 - Zlecenie autora (01:57): 1) HUD, 2) dopracować wskaźniki w walce; grafiki z `NIGHTBRAND\NightBrand_test_911\assets`.

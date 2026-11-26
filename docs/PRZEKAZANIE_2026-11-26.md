@@ -7,7 +7,7 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 ## 1. Stan w jednym akapicie
 
 `main` = `97c0c22` (opublikowano 26.11 o 00:06 całą linię do `mapy-runda-2`). Od tego czasu powstały **4 nieopublikowane rundy na gałęziach, każda zawiera poprzednią**:
-`walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → **`hud-nightbrand` (najnowsza, od niej zaczynaj)**. Testy na `hud-nightbrand`: **88/88 OK**, kontrola spakowanej gry Linux 88/88 OK. Ostatnia paczka dla autora: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_HUD.zip` (`TEST_HUD.bat`). Autor nie powiedział jeszcze „publikuj” dla żadnej z 4 rund — na „publikuj” scal `hud-nightbrand` do main (`--ff-only`; zawiera wszystkie poprzednie).
+`walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → `hud-nightbrand` → **`namierzanie` (najnowsza, W TOKU — od niej zaczynaj; szczegóły: wpis dziennika 02:40)**. Testy na `hud-nightbrand`: **88/88 OK**, kontrola spakowanej gry Linux 88/88 OK. Ostatnia paczka dla autora: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_HUD.zip` (`TEST_HUD.bat`). Autor nie powiedział jeszcze „publikuj” dla żadnej z 4 rund — na „publikuj” scal `hud-nightbrand` do main (`--ff-only`; zawiera wszystkie poprzednie).
 
 ## 2. Co zrobiono (chronologicznie)
 
@@ -19,6 +19,7 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 | 01:00 | `walka-oprawa` | Kamera Warowni (Przystań) dalej: `przystan.gd` ZOOM 1,85 → 1,35 | decyzja autora: w Warowni dalej, w misjach bez zmian |
 | 01:02–01:35 | `menu-i-pauza` | **Pauza** (`pauza.gd`, Esc / P / pad Start), **sterowanie jak NightBrand**, **menu w grafikach NightBrand** + Cinzel, bez emoji | „jak na betę jest OK, później dopracujemy”; czcionka: **Cinzel** |
 | 01:36–01:50 | `mocny-cios-sklep` | **Mocny cios** (przytrzymaj cios ≥ 0,35 s, puść), **Kram Margi** (kup/sprzedaj, karty, szczegóły z porównaniem), RB na liście sterowania | zlecenie autora; oceny jeszcze brak |
+| 02:12–02:40 | `namierzanie` | **Namierzanie** (R / środkowy / R3), klik na wroga = cios w niego, riposta w najbliższego ogłuszonego, kursor nie obraca postaci, doskok tylko do celu, płynny ruch i parowanie, Warownia szybciej, mniejsze znaczniki | W TOKU (autor wyłączył komputer); paczki Windows brak |
 | 01:57–02:10 | `hud-nightbrand` | **HUD jak NightBrand** (kule życia i wytrzymałości, pasek akcji, zegar, minimapa w ramie) + **dopracowane wskaźniki walki** | zlecenie autora; oceny jeszcze brak |
 
 ## 3. Decyzje autora z tej sesji (obowiązują)
@@ -44,7 +45,8 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 | Rozmowa i przeszukiwanie | E, Enter | **Y** (było A) |
 | Łuk | Q | **B** (było Y) |
 | Mikstury / pochodnia | 1-2-3 / F | krzyżak góra-lewo-prawo / dół |
-| Zrzuć sakwę / sakwa | G / Tab, I | R3 / Widok |
+| Zrzuć sakwę / sakwa | G / Tab, I | **L3** / Widok |
+| Namierzanie (wł./wył.) | R, środkowy przycisk myszy | **R3** |
 | Pauza | Esc, P | Start |
 W menu: A zatwierdza, B wraca, LB/RB zakładki.
 
