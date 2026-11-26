@@ -17,6 +17,34 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 20:20 — nowe konto, rola: gamedev — Spalona Osada w rajdzie
+- **Decyzja autora (19:39): pilot osady „pasuje”** → osada w rajdzie.
+- Gałąź: `osada-w-rajdzie` (od `pilot-spalona-osada`).
+- Zrobione:
+  - **Nowa kraina** `spalona_osada` (`typ: osada`) w `krainy.json`. Rajd wybiera `MapgenOsada`.
+  - **Nazwy obszarów** osady w `rajd.gd`.
+  - **Wrogowie:** w kościele straż; na cmentarzu i w piwnicy jak w kurhanie. Co trzecia chata ma lokatora (zasadzka).
+  - **Oprawa 3D** (`swiat3d.gd`, `_pole_osady`, `_wystroj_osady`):
+    - zabudowa: osmalona palisada na brzegu, w głębi szary popiół i sterczące martwe drzewa;
+    - chaty: mury z bali z żarem w szczelinach, w środku deski;
+    - płoty, groby, beczki, siano, koła, zwalone belki;
+    - studnia na placu; szubienice i chorągwie przy kościele; wóz na starcie;
+    - żar w zgliszczach zamiast ognisk; unoszący się żar w powietrzu.
+  - Tekstury z magazynu NightBrand: `narzedzia/gra_3d/tekstury_osady.py` → `os_*`. Modele `p1_*`, `p3_*` i kilka `p8_*` skopiowane do `zasoby/3d/las/`.
+  - Nowe narzędzie agenta `--podglad-krainy=katalog,kraina[,ziarno]`: zrzuty z kilku miejsc mapy.
+- **Liczby „do strojenia”** (skopiowane z Czarnoboru, to nie decyzja balansu):
+  - 56 wrogów, nagroda kontraktu 250, tabela wrogów;
+  - lokator w co trzeciej chacie.
+- Testy: nowy `_test_osady_w_rajdzie` (rajd, wyjścia, wrogowie, oprawa, przekrój muru chaty). `testy.py godot` → OK 150/150. Kontrola spakowanej gry (Linux + `--test`) → OK 150/150.
+- Dostarczone: `Warownia_SpalonaOsada.zip` (153 MB, `TEST_SPALONA_OSADA.bat`), `Osada_zrzuty.jpg`.
+- NIE sprawdzone:
+  - wygląd na prawdziwej karcie (zrzuty z renderera OpenGL pod xvfb; zrobione przed ostatnim rozjaśnieniem mgły);
+  - płynność u autora;
+  - pad;
+  - dźwięk.
+- Uwaga: zrzut „9c/9d” w teście pokazuje ekran wyniku poprzedniego rajdu (stara usterka testu, nie gry).
+- Następny krok: ocena osady przez autora → bossowie (kościół osady), moby osady.
+
 ## 2026-11-26 19:45 — nowe konto, rola: gamedev — pilot Spalonej Osady (generator + mapy z góry)
 - Gałąź: `pilot-spalona-osada` (od main po publikacji).
 - Zrobione: generator `godot/skrypty/mapgen_osada.gd` na wzór lasu. Opis w `docs/pilot_osada/README.md`.
