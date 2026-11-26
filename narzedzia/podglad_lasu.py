@@ -5,7 +5,7 @@ Dane z gry: godot --path godot -- --podglad-lasu=/tmp/las[,ziarno;ziarno]"""
 import sys, json, random, math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-PX = 9  # pikseli na metr
+PX = 7  # pikseli na metr
 POLANA, SCIEZKA, LAS, SKALA, WODA, BROD, DRZEWO, GLAZ, EKSTRAKCJA = range(9)
 KOL = {
     POLANA: (74, 92, 46), SCIEZKA: (112, 92, 64), LAS: (20, 34, 22), SKALA: (78, 76, 72),

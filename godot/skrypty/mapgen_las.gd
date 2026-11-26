@@ -8,7 +8,7 @@ extends RefCounted
 
 const Mapgen = preload("res://skrypty/mapgen.gd")
 
-const ROZMIAR := 96   # 1 pole = 1 m, jak w lochu
+const ROZMIAR := 128   # 1 pole = 1 m; decyzja autora 26.11.2026: wszystkie mapy 128×128 m
 enum T { POLANA, SCIEZKA, LAS, SKALA, WODA, BROD, DRZEWO, GLAZ, EKSTRAKCJA }
 
 ## Rodzaje polan: [min promień, max promień]. Promień w metrach (polana ma ok. 2× tyle średnicy).
@@ -112,7 +112,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 # ---------------------------------------------------------------- TEREN
 func _strumien(r: RandomNumberGenerator) -> void:
 	var pion := r.randf() < 0.5
-	var p := Vector2(r.randf_range(25, 70), -2.0) if pion else Vector2(-2.0, r.randf_range(25, 70))
+	var p := Vector2(r.randf_range(32, ROZMIAR - 32), -2.0) if pion else Vector2(-2.0, r.randf_range(32, ROZMIAR - 32))
 	var kier := Vector2(0, 1) if pion else Vector2(1, 0)
 	var kat := 0.0
 	var szer := r.randf_range(1.4, 1.9)
@@ -126,9 +126,9 @@ func _strumien(r: RandomNumberGenerator) -> void:
 
 
 func _rozstaw_polany(r: RandomNumberGenerator) -> void:
-	var cel := 12
+	var cel := 21   # ×1,78 względem pilota 96 m (ta sama gęstość polan)
 	var proby := 0
-	while proby < 900 and polany.size() < cel:
+	while proby < 1600 and polany.size() < cel:
 		proby += 1
 		var duza := r.randf() < 0.18
 		var rad := r.randf_range(9.0, 11.0) if duza else r.randf_range(5.5, 8.0)
@@ -177,7 +177,7 @@ func _petle(krawedzie: Array, r: RandomNumberGenerator) -> void:
 	for e in krawedzie:
 		stopien[e[0]] = stopien.get(e[0], 0) + 1
 		stopien[e[1]] = stopien.get(e[1], 0) + 1
-	var ile := r.randi_range(2, 3)
+	var ile := r.randi_range(3, 5)
 	for k in kandydaci:
 		if ile <= 0:
 			break
@@ -299,7 +299,7 @@ func _rodzaje_polan(r: RandomNumberGenerator) -> void:
 		if polany[i]["stopien"] == 1:
 			lisci += 1
 	var lisci_na_wyjscia := maxi(0, lisci - 2)   # co najmniej 2 ślepe odnogi zostają z łupem
-	for prog in [26.0, 16.0, 0.0]:
+	for prog in [35.0, 22.0, 0.0]:
 		for i in kol:
 			if wyjscia.size() >= 3:
 				break
@@ -442,7 +442,7 @@ func _lupy(szczescie: float) -> void:
 				_dodaj_skrzynie(lx, ly, rodzaje[rng_lup.randi_range(0, rodzaje.size() - 1)], szczescie + bonus)
 				break
 	# szczątki przy ścieżkach (rzadko)
-	for k in 5:
+	for k in 8:
 		var s: Dictionary = sciezki[rng_lup.randi_range(0, sciezki.size() - 1)]
 		var pts: PackedVector2Array = s["punkty"]
 		var p: Vector2 = pts[rng_lup.randi_range(pts.size() / 4, pts.size() * 3 / 4)]

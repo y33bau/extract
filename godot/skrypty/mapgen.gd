@@ -4,7 +4,7 @@ extends RefCounted
 ## Loch wykuty w litej skale: komnaty różnych rodzajów (krypty, sale filarów, dziedzińce, skarbce, kaplice,
 ## legowiska) połączone krętymi korytarzami z pętlami. Wszystko osiągalne od startu (sprawdzane BFS).
 
-const ROZMIAR := 96
+const ROZMIAR := 128   # decyzja autora 26.11.2026: wszystkie mapy 128×128 m, rajd 20 min
 enum K { PODLOGA, SCIEZKA, MUR, FILAR, KOSZ, GRUZ, EKSTRAKCJA }
 
 const PULE_LUPU := {
@@ -62,7 +62,7 @@ func kafel(x: int, y: int) -> int:
 
 ## Ile komnat na mapę (zależnie od krainy). Liczby do strojenia.
 static func liczba_komnat(id_krainy: String) -> int:
-	return {"catacombs": 36, "outskirts": 32, "crypt": 34}.get(id_krainy, 32)
+	return {"catacombs": 64, "outskirts": 57, "crypt": 60}.get(id_krainy, 57)   # ×1,78 (pole mapy 128² / 96²), ta sama gęstość
 
 
 func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> void:
@@ -159,7 +159,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 		kandydaci.append([odl[idx(c.x, c.y)], c, i])
 	kandydaci.sort_custom(func(a, b): return a[0] > b[0])
 	var ile_ekstrakcji := 4 if id_k == "crypt" else 3
-	for prog in [[30, 22.0], [18, 14.0], [0, 6.0]]:
+	for prog in [[40, 29.0], [24, 19.0], [0, 8.0]]:
 		for kd in kandydaci:
 			if ekstrakcje.size() >= ile_ekstrakcji:
 				break
@@ -192,7 +192,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 	for i in komnaty.size():
 		_lupy_komnaty(i, szczescie)
 	# pojedyncze szczątki w korytarzach (rzadko)
-	for k in 8:
+	for k in 14:
 		if korytarze.is_empty():
 			break
 		var c: Vector2i = korytarze[rng_lup.randi_range(0, korytarze.size() - 1)]

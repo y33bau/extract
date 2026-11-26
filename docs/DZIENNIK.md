@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 12:55 — konto 2, rola: gamedev — mapy 128×128, rajd 20 min
+- Gałąź i commit: `mapy-128` (od `pilot-czarnobor`).
+- **Decyzje autora (11:40):** pilot Czarnoboru zaakceptowany; **wszystkie mapy 128×128 m, rajd 20 minut.**
+- Zrobione: `Mapgen.ROZMIAR` 128 i `MapgenLas.ROZMIAR` 128; `CZAS_RAJDU` 1200 s. Żeby mapa nie była pusta, liczby rosną z polem mapy (×1,78, ta sama gęstość): komnaty 36/32/34 → 64/57/60, wrogowie (`enemyCount`) 34/44/50 → 60/78/89, szczątki w korytarzach 8 → 14, polany lasu 12 → 21, pętle 2–3 → 3–5; odstępy wyjść ×1,33. **Do potwierdzenia przez autora (to liczby balansu).**
+- Testy: `testy.py godot` OK 95/95; kontrola spakowanej gry (Linux `--test`) OK 95/95. Płynność w środowisku agenta bez zmian względem 96 m (8/6 klatek, programowy renderer).
+- Dostarczone: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Mapy128.zip` (`TEST_MAPY_128.bat`).
+- NIE sprawdzone: FPS i czas wczytania rajdu na komputerze autora (89 wrogów w Lochu), pad, dźwięk; czy 20 min wystarcza na przejście; las nadal poza rajdem.
+- Następny krok: podpięcie lasu do rajdu + wygląd 3D z magazynu NightBrand.
+
 ## 2026-11-26 12:10 — konto 2, rola: gamedev — pilot Czarnoboru (mapy z góry)
 - Gałąź i commit: `pilot-czarnobor` (od `magazyn-nightbrand`).
 - Prośba autora: „Zrób pilot”.

@@ -20,5 +20,5 @@ Generator `godot/skrypty/mapgen_las.gd`. **Jeszcze nie jest podpięty do rajdu**
 Test: `_test_lasu()` w `gra.gd` sprawdza 5 ziaren: ziarno, osiągalność, przejście co najmniej 3×3 m do każdej polany, 3 wyjścia w głębi, ślepe odnogi, szerokość ścieżek.
 
 ## Do decyzji autora
-- Wielkość mapy: 96×96 m jak w lochu (gotowe do podpięcia bez zmian w silniku). Większy las (np. 128×128) to dłuższy rajd i zmiana w rajdzie.
+- Wielkość mapy: **128×128 m** (decyzja autora 26.11, 11:40: wszystkie mapy 128×128, rajd 20 min). Polan ok. 18–21.
 - Liczba polan, gęstość wrogów i łupów to liczby pilota, nie balans. Ustalimy je w rundzie balansu.

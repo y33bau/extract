@@ -765,7 +765,7 @@ func _test_lasu() -> void:
 			zle.append(z + ": wyjść %d" % m.ekstrakcje.size())
 		if odnogi < 2:
 			zle.append(z + ": ślepych odnóg %d" % odnogi)
-		if m.polany.size() < 8 or m.skrzynie.size() < 10:
+		if m.polany.size() < 14 or m.skrzynie.size() < 18:
 			zle.append(z + ": polan %d, łupów %d" % [m.polany.size(), m.skrzynie.size()])
 	_ok("las (pilot): ziarno, osiągalność, przejścia ≥3 m, 3 wyjścia w głębi, ślepe odnogi", zle.is_empty(), ", ".join(zle.slice(0, 4)))
 
@@ -774,7 +774,7 @@ func _test_lasu() -> void:
 ## Duże mapy (wersja 2 generatora): rozmiar, osiągalność, rodzaje komnat, ziarno, wrogowie, pościg po korytarzach.
 func _test_duzej_mapy() -> void:
 	var m = rajd.mapa
-	_ok("duża mapa: 96×96 pól", Mapgen.ROZMIAR == 96 and m.siatka.size() == 96 * 96)
+	_ok("duża mapa: 128×128 pól, rajd 20 min", Mapgen.ROZMIAR == 128 and m.siatka.size() == 128 * 128 and is_equal_approx(rajd.CZAS_RAJDU, 1200.0))
 	var d: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
 	var eks_ok: bool = m.ekstrakcje.size() >= 3
 	for e in m.ekstrakcje:
@@ -785,11 +785,11 @@ func _test_duzej_mapy() -> void:
 	for sk in m.skrzynie:
 		if d[m.idx(sk["tx"], sk["ty"])] < 0:
 			sk_ok = false
-	_ok("duża mapa: każda skrzynia osiągalna", sk_ok and m.skrzynie.size() >= 30, "%d skrzyń" % m.skrzynie.size())
+	_ok("duża mapa: każda skrzynia osiągalna", sk_ok and m.skrzynie.size() >= 50, "%d skrzyń" % m.skrzynie.size())
 	var rodzaje := {}
 	for k in m.komnaty:
 		rodzaje[k["typ"]] = true
-	_ok("duża mapa: różne rodzaje komnat", rodzaje.size() >= 6 and m.komnaty.size() >= 25, "%d komnat: %s" % [m.komnaty.size(), ", ".join(rodzaje.keys())])
+	_ok("duża mapa: różne rodzaje komnat", rodzaje.size() >= 6 and m.komnaty.size() >= 45, "%d komnat: %s" % [m.komnaty.size(), ", ".join(rodzaje.keys())])
 	var m2 = Mapgen.new()
 	m2.generuj(rajd.kraina, rajd.ziarno, Profil.poziom("scavenger"))
 	_ok("to samo ziarno = ten sam duży loch", m2.siatka == m.siatka and m2.start == m.start and m2.skrzynie.size() == m.skrzynie.size())
