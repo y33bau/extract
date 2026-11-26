@@ -17,6 +17,14 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 14:50 — nowe konto, rola: agent główny — start sesji i publikacja
+- Gałąź i commit: `main` = `78a9ddc` (fast-forward z `las-w-rajdzie`, 18 commitów: cały łańcuch 9 rund z sesji 25–26.11).
+- **Decyzja autora (14:36): „publikuj”** — opublikowano bez wcześniejszego meldunku z testu `Warownia_Czarnobor.zip` (decyzja autora > zasada D5).
+- Start: repo, folder NIGHTBRAND i skille są; Godot 4.7.2 zainstalowany. Test bazowy `testy.py godot` na `las-w-rajdzie`: OK 100/100.
+- Rozbieżność: skill `warownia-start` podaje zakres v1 „Spalona Osada + Dolne Miasto” — repo (FUNDAMENT, ZASADY B2) mówi „Spalona Osada + Czarnobór”. Obowiązuje repo; skill do poprawy.
+- NIE sprawdzone: płynność lasu na komputerze autora, prawdziwy pad, dźwięk (bez zmian od przekazania).
+- Następny krok: walka i oznaczenia — zebrać od autora, co konkretnie „kuleje”, potem runda gamedev od świeżego `main`.
+
 ## 2026-11-26 14:15 — konto 2, rola: agent główny — przekazanie i biblioteka grafik
 - Gałąź: `las-w-rajdzie`.
 - **Decyzje autora (14:02):** brak limitu wysyłki plików; przekazanie na nowe konto; nowy agent ma pracować na teksturach i modelach NightBrand; plan autora z nowym agentem: **walka, oznaczenia, balans, oprawa graficzna**.
