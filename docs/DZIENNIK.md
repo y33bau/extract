@@ -17,6 +17,26 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 21:00 — nowe konto, rola: grafik (+ gamedev za zgodą autora) — łup, rozpad poległych, pole widzenia
+- Gałąź: `grafika-osada-lup` (od `osada-w-rajdzie`).
+- **Uwagi autora (20:33–20:41):**
+  - „usuń obiekty z dziwną siatką ala 3D, posiłkuj się tym, co wygląda dobrze”;
+  - „mob po śmierci zamienia się w 2D; niech się rozpada w pył, a zostaje skrzyneczka lub krzyżyk do przeszukania”;
+  - „dodaj większe pole widzenia, w walce wrogowie znikają”.
+- Zrobione:
+  - **Pojemniki łupu we wszystkich krainach** to teraz malowane modele NightBrand zamiast pikselowych brył:
+    - kufer `p8_kufer`;
+    - sarkofag `p3_sarcophagus`;
+    - szczątki rycerza = krzyż z czaszkami `p1_grave_cross`.
+    - Modele i tekstury pobrane z `NightBrand-PC` (tylko odczyt) do `zasoby/3d/las/`.
+  - **Poległy wróg**: po animacji śmierci (1,4 s) rozsypuje się w pył (popiół z iskrami, ok. 0,55 s). Na jego miejscu z ziemi wyrasta skrzyneczka albo krzyżyk; boss zostawia złoty kufer. Przeszukanie działa jak dotąd.
+  - **Pole widzenia** (`rajd.gd`): przód 13 m (było 11,5), boki i tył 8 m (było 4,8). Wróg, który z nami walczy, jest widoczny do 12 m, jeśli nic go nie zasłania, także za plecami. Liczby do strojenia.
+- Testy: nowe testy łupu, rozpadu i pola widzenia. `testy.py godot` → OK 153/153.
+- NIE sprawdzone:
+  - wygląd pyłu na prawdziwej karcie;
+  - czy 13/8/12 m nie odbiera strachu (do oceny autora);
+  - pad.
+
 ## 2026-11-26 20:20 — nowe konto, rola: gamedev — Spalona Osada w rajdzie
 - **Decyzja autora (19:39): pilot osady „pasuje”** → osada w rajdzie.
 - Gałąź: `osada-w-rajdzie` (od `pilot-spalona-osada`).

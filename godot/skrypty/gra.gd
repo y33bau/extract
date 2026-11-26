@@ -1456,6 +1456,55 @@ func _test_osady_w_rajdzie() -> void:
 	s3.odswiez_widok()
 	await _czekaj(1.2)
 	await _zrzut("9d_osada")
+	# autor 26.11: łup w modelach biblioteki NightBrand; poległy rozpada się w pył i zostawia skrzyneczkę lub krzyżyk
+	var modele_ok := true
+	for sk in s3._skrzynie:
+		var plik := String((sk["wezel3d"] as Node3D).get_child(0).scene_file_path)
+		if not plik.begins_with("res://zasoby/3d/las/"):
+			modele_ok = false
+	# autor 26.11: szersze pole widzenia; wróg w walce nie znika za plecami (taktyka jak w soulsach)
+	var wr = rajd.wrogowie[1]
+	rajd.gracz.pochodnia_w_rece = true
+	var pole := Vector2.ZERO
+	for p in m.polany:
+		if p["typ"] == "plac":
+			pole = p["c"]
+	# miejsce na placu, z którego widać 9 m za plecy (bez studni, drzew i wozów po drodze)
+	for oy in range(-8, 9):
+		for ox in range(0, 9):
+			var g2: Vector2 = pole + Vector2(ox + 0.5, oy + 0.5)
+			var w2: Vector2 = g2 + Vector2(-9.0, 0.0)
+			if not Mapgen.blokuje_ruch(m.kafel(int(g2.x), int(g2.y))) and not Mapgen.blokuje_ruch(m.kafel(int(w2.x), int(w2.y))) and rajd.linia_wzroku(g2, w2):
+				rajd.gracz.w = g2
+	rajd.gracz.kat = 0.0
+	wr.w = rajd.gracz.w + Vector2(-9.0, 0.0)   # za plecami, 9 m: dalej niż boczne pole widzenia (8 m)
+	wr.stan = "walka"
+	wr.uspiony = true
+	rajd._licz_widok()
+	await _czekaj(0.2)
+	var za_plecami: bool = wr.widoczny_dla_gracza
+	wr.stan = "patrol"
+	await _czekaj(0.2)
+	var spokojny_ukryty: bool = not wr.widoczny_dla_gracza
+	_ok("pole widzenia: wróg w walce za plecami (9 m) widoczny, spokojny nie", za_plecami and spokojny_ukryty, "w walce %s, spokojny ukryty %s, linia %s, stan %s, d %.1f" % [str(za_plecami), str(spokojny_ukryty), str(rajd.linia_wzroku(rajd.gracz.w, wr.w)), wr.stan, rajd.gracz.w.distance_to(wr.w)])
+	_ok("łup w modelach biblioteki (kufer, sarkofag, krzyż z czaszkami)", modele_ok and not s3._skrzynie.is_empty(), "%d pojemników" % s3._skrzynie.size())
+	var ofiara = rajd.wrogowie[0]
+	var id_of: int = ofiara.get_instance_id()
+	var wz: Vector2 = ofiara.w
+	rajd.gracz.w = wz + Vector2(-2.0, -2.0)
+	rajd._licz_widok()
+	s3.odswiez_widok()
+	await _czekaj(0.3)
+	rajd.zabij(ofiara)
+	await _czekaj(0.9)
+	var cialo: Node3D = s3._wrogowie[id_of]["wezel"]
+	var w_trakcie: bool = cialo.visible
+	wz = rajd.zwloki[rajd.zwloki.size() - 1]["w"]
+	await _czekaj_az(func(): return not cialo.visible and s3._zwloki.has(str(wz)) and (s3._zwloki[str(wz)] as Node3D).scale.length() > 0.05, 12.0)
+	var znak: Node3D = s3._zwloki.get(str(wz))
+	var zwl_ok: bool = rajd.zwloki.any(func(z): return z["w"] == wz and not z["przedmioty"].is_empty())
+	_ok("poległy: animacja, potem rozpad w pył; zostaje skrzyneczka lub krzyżyk do przeszukania", w_trakcie and not cialo.visible and znak != null and znak.scale.length() > 0.05 and zwl_ok,
+		"ciało %s (%.2f s), znak %s" % [str(cialo.visible), float(s3._wrogowie[id_of]["smierc"]), "brak" if znak == null else String(znak.scene_file_path).get_file()])
 
 
 ## Oprawa mapy: materiały krainy z tekstur NightBrand, maska murów, pochodnie nie wiszą w powietrzu.

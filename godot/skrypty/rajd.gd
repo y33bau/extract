@@ -536,6 +536,13 @@ var numer_widoku := 0
 var _widoczne_ost := PackedInt32Array()
 
 
+## Pole widzenia (autor 26.11: „wrogowie w walce znikają, to przeszkadza w taktyce”; było 11,5 / 4,8 m; do strojenia).
+const WZROK_PRZOD := 13.0
+const WZROK_BOK := 8.0
+## Wróg, który z nami walczy, jest widoczny w tym promieniu, jeśli nic go nie zasłania (słychać go i czuć, także za plecami).
+const ZASIEG_WALKI_WIDOCZNY := 12.0
+
+
 func _licz_widok() -> void:
 	for i in _widoczne_ost:
 		widok[i] = 1
@@ -544,7 +551,7 @@ func _licz_widok() -> void:
 	for r in 128:
 		var a := r / 128.0 * TAU
 		var dk := absf(angle_difference(a, gracz.kat))
-		var max_d := (11.5 if dk < 1.1 else 4.8) * wzrok
+		var max_d := (WZROK_PRZOD if dk < 1.1 else WZROK_BOK) * wzrok
 		var c := cos(a)
 		var s := sin(a)
 		var d := 0.25
@@ -1486,8 +1493,11 @@ func _aktualizuj(dt: float) -> void:
 	p.animuj(czas)
 	for en in wrogowie:
 		var v := widoczne(en.w)
-		en.visible = v == 2
-		en.widoczny_dla_gracza = v == 2
+		var widac := v == 2
+		if not widac and en.stan == "walka" and en.w.distance_to(p.w) < ZASIEG_WALKI_WIDOCZNY and linia_wzroku(p.w, en.w):
+			widac = true
+		en.visible = widac
+		en.widoczny_dla_gracza = widac
 		en.animuj(czas)
 	for z in zwloki:
 		z["wezel"].visible = widoczne(z["w"]) > 0

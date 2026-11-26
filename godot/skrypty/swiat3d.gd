@@ -1823,14 +1823,13 @@ func _skrzynia(rodzaj: String) -> Node3D:
 	var n := Node3D.new()
 	var r: Node3D
 	match rodzaj:
+		# autor 26.11: malowane modele biblioteki NightBrand zamiast pikselowych brył (kufer, sarkofag, zbroja)
 		"loot_sarcophagus":
-			r = _rekwizyt("sarkofag", 1.75, true)
+			r = _rekwizyt("las/p3_sarcophagus", 1.75, true)
 		"loot_knight":
-			r = _rekwizyt("zbroja", 1.9)
+			r = _rekwizyt("las/p1_grave_cross", 1.05)
 		_:
-			r = _rekwizyt("kufer", 0.95, true)
-			for mi in r.find_children("*", "MeshInstance3D", true, false):
-				(mi as MeshInstance3D).material_override = _mat["skrzynia"]
+			r = _rekwizyt("las/p8_kufer", 0.95, true)
 	remove_child(r)
 	r.position.y = float(r.get_meta("y0"))
 	n.add_child(r)
@@ -2134,7 +2133,7 @@ func _wrog3d(en) -> Dictionary:
 			break
 	var krag := _krag(Color(0.62, 0.07, 0.05), 0.42 * s if not en.boss else 0.66 * s)  # autor 26.11: kręgi mniejsze (było 0,62 / 0,95)
 	add_child(krag)
-	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
+	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat, "rodzaj": en.rodzaj,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
 		"krag": krag, "obrys": obrys, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
@@ -2351,6 +2350,91 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 		d2["smierc"] += dt
 		var ap2: AnimationPlayer = d2["ap"]
 		_graj(ap2, "smierc", minf(1.0, d2["smierc"] / 1.4))
+		# autor 26.11: ciało rozpada się w pył, zostaje skrzyneczka albo krzyżyk do przeszukania (_aktualizuj_rekwizyty)
+		var n2: Node3D = d2["wezel"]
+		if d2["smierc"] >= SMIERC_DO_ROZPADU and not d2.get("pyl", false):
+			d2["pyl"] = true
+			d2["skala0"] = n2.scale
+			if n2.visible:
+				var pyl := _pyl_rozpadu(float(SKALA_WROGA.get(d2.get("rodzaj", ""), 1.0)))
+				pyl.position = n2.position + Vector3(0, 0.6, 0)
+				add_child(pyl)
+		if d2.get("pyl", false) and n2.visible:
+			var t2 := clampf((d2["smierc"] - SMIERC_DO_ROZPADU) / CZAS_ROZPADU, 0.0, 1.0)
+			if t2 >= 1.0:
+				n2.visible = false
+				d2["rozpadl"] = true
+			else:
+				var s0: Vector3 = d2["skala0"]
+				n2.scale = Vector3(s0.x * (1.0 - 0.35 * t2), s0.y * (1.0 - t2 * 0.97), s0.z * (1.0 - 0.35 * t2))
+
+
+const SMIERC_DO_ROZPADU := 1.45   # po animacji śmierci (1,4 s)
+const CZAS_ROZPADU := 0.55
+const ZNAK_PO := 1.7               # skrzyneczka / krzyżyk pojawia się, gdy ciało się rozsypie
+
+
+## Pył po rozpadzie wroga: szary popiół z kilkoma iskrami, unosi się i opada (jednorazowo).
+func _pyl_rozpadu(skala: float) -> GPUParticles3D:
+	var c := GPUParticles3D.new()
+	c.amount = 70
+	c.lifetime = 1.6
+	c.one_shot = true
+	c.explosiveness = 0.75
+	c.local_coords = false
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(0.35, 0.6, 0.35) * skala
+	pm.direction = Vector3.UP
+	pm.spread = 50.0
+	pm.initial_velocity_min = 0.2
+	pm.initial_velocity_max = 0.9
+	pm.gravity = Vector3(0.15, 0.25, 0.05)
+	pm.damping_min = 0.4
+	pm.damping_max = 0.9
+	pm.scale_min = 0.6
+	pm.scale_max = 1.4
+	var gr := Gradient.new()
+	gr.set_color(0, Color(0.55, 0.52, 0.5, 0.95))
+	gr.add_point(0.15, Color(1.0, 0.45, 0.12, 0.9))
+	gr.add_point(0.35, Color(0.42, 0.4, 0.38, 0.75))
+	gr.set_color(gr.get_point_count() - 1, Color(0.2, 0.19, 0.18, 0.0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = gr
+	pm.color_ramp = gt
+	c.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.09, 0.09)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = _kropka()
+	q.material = m
+	c.draw_pass_1 = q
+	c.emitting = true
+	get_tree().create_timer(2.5).timeout.connect(c.queue_free)
+	return c
+
+
+## Znak po poległym: skrzyneczka albo krzyżyk (boss: złoty kufer). Rośnie z ziemi, gdy ciało się rozsypie.
+func _znak_zwlok(z: Dictionary, czas: float) -> Node3D:
+	var wz: Vector2 = z["w"]
+	var h := _hash(int(wz.x * 10.0), int(wz.y * 10.0))
+	var n: Node3D
+	if z.get("boss", false):
+		n = _rekwizyt("las/p8_kufer_zloto", 0.9, true)
+	elif h % 2 == 0:
+		n = _rekwizyt("las/p8_kufer", 0.6, true)
+	else:
+		n = _rekwizyt("las/p1_grave_cross", 0.8)
+	n.position = Vector3(wz.x, float(n.get_meta("y0")), wz.y)
+	n.rotation.y = float(h % 628) / 100.0
+	n.set_meta("skala", n.scale)
+	n.set_meta("od", czas)
+	n.scale = Vector3.ONE * 0.001
+	return n
 
 
 func _aktualizuj_rekwizyty(czas: float) -> void:
@@ -2375,6 +2459,13 @@ func _aktualizuj_rekwizyty(czas: float) -> void:
 			worek.position = Vector3(wz.x, 0.16, wz.y)
 			add_child(worek)
 			_zwloki[klucz] = worek
+		elif not z.get("sakwa", false) and not _zwloki.has(klucz):
+			_zwloki[klucz] = _znak_zwlok(z, czas)
+		if not z.get("sakwa", false) and _zwloki.has(klucz):
+			var zn: Node3D = _zwloki[klucz]
+			var t3 := clampf((czas - float(zn.get_meta("od"))) - ZNAK_PO, 0.0, 0.35) / 0.35
+			var sk: Vector3 = zn.get_meta("skala")
+			zn.scale = sk * maxf(0.001, t3)
 	for k in _zwloki.keys():
 		if not obecne.has(k):
 			(_zwloki[k] as Node3D).queue_free()
