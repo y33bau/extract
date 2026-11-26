@@ -31,10 +31,12 @@ var kula_hp: Control
 var kula_st: Control
 var pasek: Control
 var stan_sakwy: Label
-const ROZMIAR_RAMY := 210.0
+const ROZMIAR_RAMY := 156.0     # autor 26.11: mniejszy HUD (było 210)
 const PROMIEN_OKNA := 0.39       # okrągłe okno w ramie minimapy (część boku)
-const ROZMIAR_KULI := 168.0
-const SKALA_PASKA := 0.82
+const ROZMIAR_KULI := 124.0     # autor 26.11: mniejszy HUD (było 168)
+const SKALA_PASKA := 0.62        # autor 26.11: mniejszy HUD (było 0.82)
+const ROZMIAR_ZEGARA := 72.0  # autor 26.11: mniejszy HUD (było 92)
+const SKALA_TEKSTU := SKALA_PASKA / 0.82  # czcionki paska rosną/maleją razem z nim
 ## Sloty paska akcji (piksele grafiki pasek_akcji.webp 724x241): środki x, środek y, rozmiar.
 const SLOTY_X := [72.5, 128.5, 182.5, 236.0, 290.0, 434.0, 488.5, 543.5, 597.5, 652.5]
 const SLOT_Y := 113.0
@@ -69,14 +71,14 @@ func _ready() -> void:
 	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	pasek_bossa.offset_left = -280.0
 	pasek_bossa.offset_right = 280.0
-	pasek_bossa.offset_top = 112.0
-	pasek_bossa.offset_bottom = 176.0
+	pasek_bossa.offset_top = 92.0
+	pasek_bossa.offset_bottom = 156.0
 	pasek_bossa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pasek_bossa.draw.connect(_rysuj_pasek_bossa)
 	korzen.add_child(pasek_bossa)
 
 	# lewy górny: kraina i wynik (bez panelu, cień pod tekstem)
-	info = Ui.etykieta("", 15, Color("e9dcc3"))
+	info = Ui.etykieta("", 13, Color("e9dcc3"))
 	info.add_theme_constant_override("outline_size", 6)
 	info.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	korzen.add_child(info)
@@ -110,7 +112,7 @@ void fragment() {
 	rama_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ramka.add_child(rama_tex)
 	v2.add_child(ramka)
-	kierunki = Ui.etykieta("", 13, Color("8ee0b8"))
+	kierunki = Ui.etykieta("", 12, Color("8ee0b8"))
 	kierunki.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	kierunki.add_theme_constant_override("outline_size", 5)
 	kierunki.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
@@ -124,7 +126,7 @@ void fragment() {
 	srodek.alignment = BoxContainer.ALIGNMENT_CENTER
 	srodek.add_theme_constant_override("separation", 4)
 	zegar = Control.new()
-	zegar.custom_minimum_size = Vector2(420, 92)
+	zegar.custom_minimum_size = Vector2(420, ROZMIAR_ZEGARA)
 	zegar.draw.connect(_rysuj_zegar)
 	srodek.add_child(zegar)
 	baner = Ui.panel()
@@ -167,7 +169,7 @@ void fragment() {
 	pasek.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 0)
 	pasek.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	pasek.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	stan_sakwy = Ui.etykieta("", 13, Color("f0b35a"))
+	stan_sakwy = Ui.etykieta("", 12, Color("f0b35a"))
 	stan_sakwy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stan_sakwy.add_theme_constant_override("outline_size", 5)
 	stan_sakwy.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
@@ -180,7 +182,7 @@ void fragment() {
 
 ## Przypina kontrolkę do rogu/krawędzi ekranu; rośnie do środka ekranu.
 func _rog(c: Control, preset: Control.LayoutPreset) -> void:
-	c.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, 14)
+	c.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, 10)
 	if preset in [Control.PRESET_TOP_RIGHT, Control.PRESET_BOTTOM_RIGHT]:
 		c.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	if preset == Control.PRESET_CENTER_TOP:
@@ -343,13 +345,13 @@ func _rysuj_kule(c: Control, tex: Texture2D, co: String) -> void:
 		c.draw_circle(Vector2(b, b) * 0.5, b * 0.36, Color(1.0, 0.1, 0.05, 0.12 * puls))
 	var f := Ui.czcionka(700)
 	var txt := "%d / %d" % [ceili(wart), int(maks)]
-	c.draw_string_outline(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 19, 6, Color(0, 0, 0, 0.9))
-	c.draw_string(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 19, Color("f6ead2"))
+	c.draw_string_outline(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, roundi(b * 0.113), 5, Color(0, 0, 0, 0.9))
+	c.draw_string(f, Vector2(0, b * 0.53), txt, HORIZONTAL_ALIGNMENT_CENTER, b, roundi(b * 0.113), Color("f6ead2"))
 	var podpis := "ŻYCIE" if co == "hp" else "WYTRZYMAŁOŚĆ"
 	if co == "hp" and p.plonie:
 		podpis = "PŁONIESZ!"
-	c.draw_string_outline(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, 11, 4, Color(0, 0, 0, 0.9))
-	c.draw_string(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, 11, Color("ffb070") if p.plonie and co == "hp" else Color("d8c8aa"))
+	c.draw_string_outline(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, maxi(8, roundi(b * 0.066)), 3, Color(0, 0, 0, 0.9))
+	c.draw_string(f, Vector2(0, b * 0.66), podpis, HORIZONTAL_ALIGNMENT_CENTER, b, maxi(8, roundi(b * 0.066)), Color("ffb070") if p.plonie and co == "hp" else Color("d8c8aa"))
 
 
 func _ikona_hud(n: String) -> Texture2D:
@@ -409,17 +411,17 @@ func _rysuj_pasek_akcji() -> void:
 			pasek.draw_texture_rect(tex, Rect2(srodek - Vector2(bok, bok) * 0.5, Vector2(bok, bok)), false, mod)
 		if ile >= 0:
 			var t := str(ile)
-			pasek.draw_string_outline(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, 13, 4, Color(0, 0, 0, 0.95))
-			pasek.draw_string(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, 13, Color("f6ead2") if not pusty else Color(0.6, 0.55, 0.5))
+			pasek.draw_string_outline(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, roundi(13 * SKALA_TEKSTU), 3, Color(0, 0, 0, 0.95))
+			pasek.draw_string(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, roundi(13 * SKALA_TEKSTU), Color("f6ead2") if not pusty else Color(0.6, 0.55, 0.5))
 		# podpowiedź klawisza / przycisku pada nad slotem
 		if pad and str(w[3]) != "":
 			var pt := _pad_tex(str(w[3]))
-			var pb := Vector2(20, 20) * (1.4 if str(w[3]) in ["lb", "rb"] else 1.0)
+			var pb := Vector2(20, 20) * SKALA_TEKSTU * (1.4 if str(w[3]) in ["lb", "rb"] else 1.0)
 			pb.x = pb.y * (pt.get_size().x / pt.get_size().y)
 			pasek.draw_texture_rect(pt, Rect2(srodek + Vector2(-pb.x * 0.5, -roz.y * 0.5 - pb.y - 1), pb), false)
 		elif str(w[2]) != "":
-			pasek.draw_string_outline(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, 12, 4, Color(0, 0, 0, 0.95))
-			pasek.draw_string(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, 12, Color("e6ba63"))
+			pasek.draw_string_outline(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, roundi(12 * SKALA_TEKSTU), 3, Color(0, 0, 0, 0.95))
+			pasek.draw_string(f, srodek + Vector2(-roz.x, -roz.y * 0.5 - 4), w[2], HORIZONTAL_ALIGNMENT_CENTER, roz.x * 2.0, roundi(12 * SKALA_TEKSTU), Color("e6ba63"))
 	# medalion postawy (środek) + tabliczka z nazwą stanu
 	var sp := stan_postawy()
 	var stan: String = sp[0]
@@ -430,8 +432,8 @@ func _rysuj_pasek_akcji() -> void:
 	if stan != "gotowy":
 		pasek.draw_circle(m, mb * 0.75, Color(kol, 0.25))
 	pasek.draw_texture_rect(_ikona_hud("postawa_" + stan), Rect2(m - Vector2(mb, mb) * 0.5, Vector2(mb, mb)), false, Color(1, 1, 1, 0.95))
-	pasek.draw_string_outline(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, 13, 4, Color(0, 0, 0, 0.95))
-	pasek.draw_string(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, 13, kol)
+	pasek.draw_string_outline(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, roundi(13 * SKALA_TEKSTU), 3, Color(0, 0, 0, 0.95))
+	pasek.draw_string(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, roundi(13 * SKALA_TEKSTU), kol)
 	# dolny pasek: wytrzymałość pancerza
 	if z["armor"]:
 		var d := Dane.p(z["armor"]["id"])
@@ -461,7 +463,7 @@ func stan_postawy() -> Array:
 func _rysuj_zegar() -> void:
 	if rajd == null:
 		return
-	var b := 92.0
+	var b := ROZMIAR_ZEGARA
 	var x := (zegar.size.x - b) * 0.5
 	zegar.draw_texture_rect(_tex_zegar, Rect2(x, 0, b, b), false)
 	var f := Ui.czcionka(700)
@@ -470,10 +472,10 @@ func _rysuj_zegar() -> void:
 	if t < 60.0:
 		kol = Color(1.0, 0.45 + 0.3 * sin(Time.get_ticks_msec() / 1000.0 * 6.0), 0.35)
 	var txt := "%d:%02d" % [int(t / 60.0), int(t) % 60]
-	zegar.draw_string_outline(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 21, 6, Color(0, 0, 0, 0.9))
-	zegar.draw_string(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 21, kol)
-	zegar.draw_string_outline(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 9, 3, Color(0, 0, 0, 0.9))
-	zegar.draw_string(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 9, Color("c9b898"))
+	zegar.draw_string_outline(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 17, 5, Color(0, 0, 0, 0.9))
+	zegar.draw_string(f, Vector2(x, b * 0.6), txt, HORIZONTAL_ALIGNMENT_CENTER, b, 17, kol)
+	zegar.draw_string_outline(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 8, 3, Color(0, 0, 0, 0.9))
+	zegar.draw_string(f, Vector2(x, b * 0.36), "DO ZMROKU", HORIZONTAL_ALIGNMENT_CENTER, b, 8, Color("c9b898"))
 
 
 ## Minimapa: obraz N×N aktualizowany tylko w polach, które zmieniły stan mgły; widać okno wokół gracza.

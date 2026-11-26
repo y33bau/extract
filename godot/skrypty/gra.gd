@@ -675,6 +675,71 @@ func _test_oprawy_walki(p, en) -> void:
 	en.hp = en.hp_max
 
 
+## Runda „walka i oznaczenia” (autor 26.11): znak zamachu i barwa sylwetki, pewna riposta z doskokiem,
+## odskok w tył bez kierunku, unik przerywa cios, szybszy krok po ciosie, mniejszy HUD i kręgi.
+func _test_walki_i_oznaczen(p, en) -> void:
+	var s3 = rajd.swiat3d
+	var d3: Dictionary = s3._wrog3d(en)
+	var start_w: Vector2 = p.w
+	var start_kat: float = p.kat
+	en.ogluszenie = 0.0
+	en.hp = en.hp_max
+	en.atak_timer = 99.0
+	_ustaw_wroga_przed(en, 1.3)
+	en.kat = atan2(p.w.y - en.w.y, p.w.x - en.w.x)
+	en.widoczny_dla_gracza = true
+	# zapowiedź: sylwetka wroga nabiera barwy w trakcie zamachu
+	en.uspiony = true
+	en.zamach = en.zamach_dl * 0.3
+	var tint := 0.0
+	for i in 6:
+		await _klatka()
+		tint = maxf(tint, float(d3.get("tint_zamachu", 0.0)))
+	_ok("zapowiedź: sylwetka wroga świeci w zamachu (znak nad głową)", tint > 0.2, "barwa %.2f" % tint)
+	await _zrzut("9d_znak_zamachu")
+	en.zamach = 0.0
+	# riposta: ogłuszony wróg 2,3 m z boku — doskok domyka dystans, cios trafia
+	var bok := Vector2(cos(p.kat + 0.9), sin(p.kat + 0.9))
+	en.w = p.w + bok * 2.3
+	if rajd.pelne(en.w.x, en.w.y) or not rajd.linia_wzroku(p.w, en.w):
+		en.w = p.w - bok * 2.3
+	en.ogluszenie = 2.0
+	var hp0: float = en.hp
+	var w0: Vector2 = p.w
+	p.atak_cd = 0.0
+	p.stamina = p.stamina_max
+	rajd.atak_wrecz()
+	_ok("riposta: doskok do ogłuszonego 2,3 m obok i pewne trafienie", en.hp < hp0 and en.ogluszenie <= 0.0 and p.w.distance_to(w0) > 0.4,
+		"HP %.0f → %.0f, doskok %.2f m" % [hp0, en.hp, p.w.distance_to(w0)])
+	en.hp = en.hp_max
+	await _czekaj_az(func(): return rajd.hitstop <= 0.0, 2.0)
+	# unik bez kierunku = odskok w tył i przerwanie wybrzmienia ciosu
+	_ustaw_wroga_przed(en, 1.2)
+	p.atak_cd = 0.0
+	p.unik_cd = 0.0
+	p.stamina = p.stamina_max
+	rajd.atak_wrecz()
+	var przod := Vector2(cos(p.kat), sin(p.kat))
+	await _czekaj_az(func(): return rajd.hitstop <= 0.0, 2.0)
+	rajd.unik(Vector2.ZERO)
+	_ok("unik bez kierunku: odskok w tył, przerywa cios", p.unik_kier.dot(przod) < -0.9 and p.zamach_anim <= 0.0, "kierunek·przód %.2f" % p.unik_kier.dot(przod))
+	await _czekaj_az(func(): return p.unik_czas <= 0.0, 2.0)
+	_ok("ruch po ciosie szybszy niż dawniej (do strojenia)", rajd.V_PO_CIOSIE > 1.6 and rajd.V_W_CIOSIE > 0.5)
+	_ok("trafienie: mocniejsze zatrzymanie klatki", rajd.HITSTOP_CIOS > 0.055 and rajd.HITSTOP_CIEZKI > 0.085)
+	# oznaczenia: mniejszy HUD i kręgi
+	_ok("HUD mniejszy: kule, minimapa, pasek akcji", hud.kula_hp.size.x <= 130.0 and hud.pasek.size.x <= 724.0 * 0.65,
+		"kula %.0f px, pasek %.0f px" % [hud.kula_hp.size.x, hud.pasek.size.x])
+	var kr: MeshInstance3D = d3["krag"]
+	var kb: MeshInstance3D = s3._krag_bohatera
+	_ok("kręgi pod postaciami mniejsze", (kr.mesh as PlaneMesh).size.x < 1.0 and (kb.mesh as PlaneMesh).size.x < 1.0,
+		"wróg %.2f m, bohater %.2f m" % [(kr.mesh as PlaneMesh).size.x, (kb.mesh as PlaneMesh).size.x])
+	en.ogluszenie = 0.0
+	en.hp = en.hp_max
+	p.w = start_w  # kolejne testy zakładają miejsce startu (otwarta przestrzeń)
+	p.kat = start_kat
+	p.predkosc = Vector2.ZERO
+
+
 ## Pauza: Start na padzie otwiera i zatrzymuje grę, lista sterowania z mapy akcji, LB/RB zakładki, B wraca; Esc też otwiera.
 func _test_pauzy(gdzie: String, zrzut: String) -> void:
 	await _pad(JOY_BUTTON_START)
@@ -1301,6 +1366,7 @@ func _test() -> void:
 	await _test_mocnego_ciosu(p, en)
 	await _test_namierzania(p, en)
 	await _test_oprawy_walki(p, en)
+	await _test_walki_i_oznaczen(p, en)
 	en.w = Vector2(2.5, 2.5)
 	en.uspiony = true
 

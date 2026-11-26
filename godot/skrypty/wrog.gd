@@ -130,6 +130,8 @@ func _rysuj_nakladke() -> void:
 		var p := Vector2(-14.0 if sprite.flip_h else 14.0, -(110.0 if boss else 62.0))
 		var kol := Color(1.0, 0.24, 0.16, puls) if ciezki else Color(1.0, 0.84, 0.31, puls)
 		nakladka.draw_circle(p, 7.0 + puls * 5.0, kol)
+	if zamach > 0.0 and tryb_3d and ogluszenie <= 0.0:
+		_rysuj_znak_zamachu(gora, t)
 	var bw := 46.0
 	var a := _alfa_paska
 	if a > 0.01:
@@ -180,6 +182,31 @@ func _rysuj_nakladke() -> void:
 
 
 static var _tex_x: Texture2D
+
+
+## Znak zamachu nad głową (autor 26.11: „nie widzę ciosu wroga”): trójkąt z „!” rośnie i jaśnieje aż do ciosu.
+## Złoty = paruj, czerwony z podwójną obwódką = ciężki (tylko unik), błękitny = strzała. Inny kształt niż romb riposty.
+func _rysuj_znak_zamachu(gora: float, t_s: float) -> void:
+	var t := clampf(1.0 - zamach / maxf(zamach_dl, 0.01), 0.0, 1.0)
+	var kol := Color(1.0, 0.25, 0.12) if ciezki else (Color(0.62, 0.82, 1.0) if rodzaj == "archer" else Color(1.0, 0.8, 0.28))
+	var puls := 0.5 + 0.5 * sin(t_s * (18.0 + 14.0 * t))
+	var r := 7.0 + 4.0 * t + puls * 1.0
+	var c := Vector2(0.0, gora - 16.0 - r)
+	var tr := PackedVector2Array([c + Vector2(0, -r * 1.05), c + Vector2(r, r * 0.8), c + Vector2(-r, r * 0.8)])
+	var pos := PackedVector2Array()
+	for v in tr:
+		pos.append(c + (v - c) * 1.6)
+	nakladka.draw_colored_polygon(pos, Color(kol, 0.18 + 0.25 * t))
+	nakladka.draw_colored_polygon(tr, Color(kol, 0.65 + 0.35 * t))
+	nakladka.draw_polyline(tr + PackedVector2Array([tr[0]]), Color(0.08, 0.04, 0.03, 0.9), 1.5)
+	if ciezki:
+		var tr2 := PackedVector2Array()
+		for v in tr:
+			tr2.append(c + (v - c) * 1.3)
+		nakladka.draw_polyline(tr2 + PackedVector2Array([tr2[0]]), Color(kol, 0.9), 1.5)
+	var f := Ui.czcionka(700)
+	var rozm := roundi(r * 1.3)
+	nakladka.draw_string(f, c + Vector2(-r, r * 0.62), "!", HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, rozm, Color(0.1, 0.04, 0.02, 0.95))
 
 
 func _namierzony() -> bool:

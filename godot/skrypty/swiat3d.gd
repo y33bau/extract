@@ -1618,7 +1618,7 @@ func _bohater() -> void:
 	var cialo_b: MeshInstance3D = bohater.find_child("cialo", true, false)
 	if cialo_b:
 		cialo_b.material_overlay = _blysk_bohatera
-	_krag_bohatera = _krag(Color(1.0, 0.75, 0.4), 0.6)
+	_krag_bohatera = _krag(Color(1.0, 0.75, 0.4), 0.42)  # autor 26.11: krąg mniejszy (było 0,6)
 	(_krag_bohatera.material_override as ShaderMaterial).set_shader_parameter("sila", 0.7)
 	add_child(_krag_bohatera)
 
@@ -1840,7 +1840,7 @@ func _wrog3d(en) -> Dictionary:
 		if c is Node3D and (c as Node3D).visible and c.name != "bron_tarcza":
 			bron = c
 			break
-	var krag := _krag(Color(0.62, 0.07, 0.05), 0.62 * s if not en.boss else 0.95 * s)
+	var krag := _krag(Color(0.62, 0.07, 0.05), 0.42 * s if not en.boss else 0.66 * s)  # autor 26.11: kręgi mniejsze (było 0,62 / 0,95)
 	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
@@ -1852,6 +1852,7 @@ func _wrog3d(en) -> Dictionary:
 ## Błysk „paruj teraz” zapala się dokładnie wtedy, gdy wciśnięcie parowania już zdąży (początek okna gracza),
 ## a zwężający się pierścień od początku zamachu pokazuje, kiedy to nastąpi (jak w grach rytmicznych).
 var BLYSK_PRZED := 0.28
+const SILA_KLINA := 0.95  # klin zasięgu na ziemi (autor 26.11: „nie widzę ciosu wroga”; było 0,6)
 var _podpowiedz_pochodni := 0.0
 
 
@@ -1867,7 +1868,7 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 	znak.global_position = Vector3(en.w.x, 0.03, en.w.y)
 	znak.global_rotation = Vector3(0, -en.kat, 0)
 	zm.set_shader_parameter("postep", t)
-	zm.set_shader_parameter("sila", 0.6)
+	zm.set_shader_parameter("sila", SILA_KLINA)
 	if en.rodzaj == "archer":
 		zm.set_shader_parameter("dlugosc", clampf((en.w.distance_to(rajd.gracz.w) + 1.0) / 12.0, 0.15, 1.0))
 	BLYSK_PRZED = rajd.dlugosc_okna_parowania()
@@ -2109,7 +2110,7 @@ func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
 		var mocno: float = clampf(0.45 + strata * 3.0, 0.45, 1.0)
 		d["flash"] = 1.0
 		d["traf_licznik"] = int(d["traf_licznik"]) + 1
-		d["odchyl_v"] = float(d["odchyl_v"]) - 7.5 * mocno
+		d["odchyl_v"] = float(d["odchyl_v"]) - 10.0 * mocno
 		if en.zamach <= 0.0 and en.cios_anim <= 0.0 and en.ogluszenie <= 0.0:
 			d["reakcja"] = REAKCJA
 	d["ost_hp"] = en.hp
@@ -2125,9 +2126,19 @@ func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
 	n.rotation.x = d["odchyl"]
 	var f: float = d["flash"]
 	var sk: float = d["skala"]
-	n.scale = Vector3(sk * (1.0 + 0.05 * f), sk * (1.0 - 0.07 * f), sk * (1.0 + 0.05 * f))
+	n.scale = Vector3(sk * (1.0 + 0.08 * f), sk * (1.0 - 0.1 * f), sk * (1.0 + 0.08 * f))
 	var b: StandardMaterial3D = d["blysk"]
-	b.albedo_color = Color(1.0, 0.93, 0.82, 0.75 * f * f)
+	var kol := Color(1.0, 0.93, 0.82, 0.85 * f * f)
+	# zapowiedź ciosu na ciele (autor 26.11: „nie widzę ciosu wroga”): sylwetka nabiera barwy aż do uderzenia —
+	# złota = do sparowania, czerwona = ciężki (tylko unik), błękitna = strzała
+	if en.zamach > 0.0 and en.ogluszenie <= 0.0 and en.zamach_dl > 0.0:
+		var t: float = 1.0 - en.zamach / en.zamach_dl
+		var kz := Color(1.0, 0.2, 0.1) if en.ciezki else (Color(0.6, 0.8, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.78, 0.25))
+		var az: float = 0.12 + 0.38 * t * t + 0.08 * sin(Time.get_ticks_msec() / 1000.0 * 28.0)
+		if az > kol.a:
+			kol = Color(kz, az)
+	d["tint_zamachu"] = kol.a if en.zamach > 0.0 else 0.0
+	b.albedo_color = kol
 
 
 ## Krąg pod stopami: czerwony pod wrogiem w walce, ciepły pod bohaterem — postać nie ginie w mroku.

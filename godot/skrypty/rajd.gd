@@ -65,6 +65,13 @@ var _klik_czas := 0.0
 const ZASIEG_NAMIERZANIA := 9.0
 ## Mocny cios jak w NightBrand: przytrzymaj cios co najmniej tyle (s), puść = mocny cios (parametry ciężkiego ciosu z combo).
 const PROG_MOCNEGO := 0.35
+# Runda „walka i oznaczenia” (26.11) — wyczucie walki, do strojenia z autorem:
+const HITSTOP_CIOS := 0.075      # było 0,055
+const HITSTOP_CIEZKI := 0.11     # było 0,085
+const DOSKOK_RIPOSTY := 1.4      # m: tyle doskoku domyka ripostę w ogłuszonego (zwykły cios 0,18 / ciężki 0,32)
+const CD_PAROWANIA := 0.5        # s: przerwa między próbami parowania (było 0,65)
+const V_W_CIOSIE := 0.9          # m/s w chwili cięcia (było 0,5)
+const V_PO_CIOSIE := 2.3         # m/s do końca odnowienia ciosu (było 1,6 przez całą animację)
 var bufor_uniku := 0.0
 
 var podloga: Node2D
@@ -625,10 +632,13 @@ func atak_wrecz(mocny := false) -> void:
 	p.zamach_anim = p.zamach_anim_max
 	# doskok tylko do celu i tylko tyle, by domknąć dystans (nie w ścianę, nie w pustkę)
 	var doskok := Vector2.ZERO
+	# riposta (autor 26.11: „parowanie/riposta kuleje”): ogłuszony cel w zasięgu doskoku zawsze dostaje cios —
+	# doskok domyka cały dystans, a łuk i zasięg broni go nie gubią
+	var pewny = _cel_doskoku if (_cel_doskoku != null and _cel_doskoku.ogluszenie > 0.0 and linia_wzroku(p.w, _cel_doskoku.w)) else null
 	if _cel_doskoku != null:
 		var dd: Vector2 = _cel_doskoku.w - p.w
 		var brak: float = dd.length() - (float(bron["range"]) * 0.7 + _cel_doskoku.promien)
-		doskok = dd.normalized() * clampf(brak, 0.0, 0.32 if ciezki else 0.18)
+		doskok = dd.normalized() * clampf(brak, 0.0, DOSKOK_RIPOSTY if pewny != null else (0.32 if ciezki else 0.18))
 	var przed_doskokiem := p.w
 	przesun(p, doskok)
 	if swiat3d != null:
@@ -642,11 +652,12 @@ func atak_wrecz(mocny := false) -> void:
 	for i in range(wrogowie.size() - 1, -1, -1):
 		var en: Wrog = wrogowie[i]
 		var d := en.w - p.w
-		if d.length() > float(bron["range"]) + en.promien:
-			continue
 		var kat_do := atan2(d.y, d.x)
-		if absf(angle_difference(p.atak_kat, kat_do)) > float(bron["arc"]) * 0.58:
-			continue
+		if en != pewny:
+			if d.length() > float(bron["range"]) + en.promien:
+				continue
+			if absf(angle_difference(p.atak_kat, kat_do)) > float(bron["arc"]) * 0.58:
+				continue
 		var riposta := en.ogluszenie > 0.0
 		var obr := float(bron["dmg"]) * kuznia * bieglosc * (1.35 if ciezki else 1.0)
 		if riposta:
@@ -667,10 +678,10 @@ func atak_wrecz(mocny := false) -> void:
 		else:
 			obr *= 1.0 - en.pancerz
 			Dzwiek.trafienie()
-			hitstop = 0.085 if ciezki else 0.055
-			wstrzas = minf(9.0, wstrzas + (5.0 if ciezki else 2.5))
-			_kopnij(kat_do, 7.0 if ciezki else 4.0)
-			efekty.czastki_dodaj(en.w, 7, Color("b51d29"), 2.8, 0.4)
+			hitstop = HITSTOP_CIEZKI if ciezki else HITSTOP_CIOS
+			wstrzas = minf(10.0, wstrzas + (6.5 if ciezki else 3.5))
+			_kopnij(kat_do, 10.0 if ciezki else 6.0)
+			efekty.czastki_dodaj(en.w, 14 if ciezki else 10, Color("b51d29"), 3.2, 0.45)
 			if swiat3d != null:
 				swiat3d.efekt("ciecie_krew", en.w, 1.1, kat_do, 1.1, 0.26, 0.04)
 				swiat3d.krew(en.w, kat_do, ciezki)
@@ -681,7 +692,7 @@ func atak_wrecz(mocny := false) -> void:
 		en.trafiony = 0.15
 		en.licznik_trafien += 1
 		en.stan = "walka"
-		var odrzut := 0.45 if riposta else (0.25 if ciezki else 0.12)
+		var odrzut := 0.45 if riposta else (0.3 if ciezki else 0.16)
 		var odrzut_wek := Vector2(cos(kat_do), sin(kat_do)) * odrzut
 		przesun(en, odrzut_wek)
 		if swiat3d != null:
@@ -873,8 +884,14 @@ func unik(kierunek_ruchu: Vector2) -> void:
 	if p.stamina < koszt:
 		return
 	p.stamina -= koszt
-	p.unik_kier = kierunek_ruchu if kierunek_ruchu != Vector2.ZERO else Vector2(cos(p.kat), sin(p.kat))
+	# bez kierunku: odskok w tył (od wroga), nie przewrót prosto pod jego cios
+	p.unik_kier = kierunek_ruchu.normalized() if kierunek_ruchu != Vector2.ZERO else -Vector2(cos(p.kat), sin(p.kat))
 	p.unik_czas = p.UNIK_DLUGOSC
+	# unik przerywa wybrzmienie ciosu i ładowanie (płynne wyjście z walki)
+	p.zamach_anim = 0.0
+	p.atak_czas = 0.0
+	p.trzyma_atak = false
+	p.ladowanie = 0.0
 	p.unik_cd = 0.62
 	p.blok = false
 	Dzwiek.unik()
@@ -893,7 +910,7 @@ func parowanie_start() -> void:
 		napis(p.w - Vector2(0.8, 0.8), "ZA PÓŹNO", Color("fca5a5"), 11)
 	if p.parowanie_cd <= 0.0:
 		p.okno_parowania = dlugosc_okna_parowania()
-		p.parowanie_cd = 0.65
+		p.parowanie_cd = CD_PAROWANIA
 
 
 ## Długość okna parowania gracza (s): ta sama liczba steruje regułą i zapowiedzią ciosu na ekranie.
@@ -1313,7 +1330,7 @@ func _aktualizuj(dt: float) -> void:
 			p.krok_anim += dt * 14.0
 		else:
 			var ruch := Iso.ekran_na_swiat_kierunek(Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol"))
-			var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (0.5 if p.atak_czas > 0.0 else (1.6 if p.zamach_anim > 0.0 else 3.4))
+			var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (V_W_CIOSIE if p.atak_czas > 0.0 else (V_PO_CIOSIE if p.atak_cd > 0.0 else 3.4))
 			# płynny ruch: rozpędzanie, hamowanie i łuk przy zmianie kierunku (pełna prędkość w ~0,15 s)
 			p.predkosc = p.predkosc.move_toward(ruch * v, (26.0 if ruch != Vector2.ZERO else 30.0) * dt)
 			if p.predkosc.length() > 0.15:

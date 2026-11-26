@@ -17,6 +17,23 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 15:05 — nowe konto, rola: gamedev — walka i oznaczenia
+- Gałąź: `walka-i-oznaczenia` (od `main` `7063a91`).
+- **Ocena autora (14:43):** Czarnobór — „płynność super”, ale **assety długo się doczytują w trakcie odsłaniania mapy** (usterka do osobnej rundy, nie ruszana).
+- **Zlecenie autora (14:45):** walka kuleje we wszystkich 4 punktach: nie widać ciosu wroga, trafienia bez wagi, ruch w walce, parowanie/riposta; oznaczenia: „ogólnie zmniejsz HUD”, „kręgi pod postaciami są za duże”.
+- Zrobione:
+  - Zapowiedź ciosu wroga: sylwetka wroga nabiera barwy w zamachu (złota = paruj, czerwona = ciężki/tylko unik, błękitna = strzała; `swiat3d.gd::_reakcja_wroga`), znak trójkąta z „!” nad głową rosnący do ciosu (`wrog.gd::_rysuj_znak_zamachu`), jaśniejszy klin na ziemi (`SILA_KLINA` 0,6 → 0,95).
+  - Waga trafień: hitstop cios 0,055 → **0,075**, ciężki 0,085 → **0,11** (`rajd.HITSTOP_*`); mocniejszy wstrząs i kopnięcie obrazu, więcej krwi, odrzut 0,12/0,25 → 0,16/0,3 m, mocniejsze odchylenie i „przysiad” trafionego wroga.
+  - Riposta: ogłuszony cel w zasięgu doskoku (do **1,4 m**, `DOSKOK_RIPOSTY`) zawsze dostaje cios — łuk i zasięg broni go nie gubią (wymaga linii wzroku). Przerwa między parowaniami 0,65 → **0,5 s** (`CD_PAROWANIA`). Okno parowania bez zmian (0,28 s).
+  - Ruch w walce: unik bez kierunku = **odskok w tył** (było: przewrót do przodu, pod cios); unik przerywa wybrzmienie ciosu i ładowanie; krok w chwili cięcia 0,5 → **0,9 m/s**, po ciosie 1,6 → **2,3 m/s** i tylko do końca odnowienia ciosu (było przez całą animację).
+  - HUD ~25% mniejszy: kule 168 → 124 px, minimapa 210 → 156 px, pasek akcji ×0,82 → ×0,62, zegar 92 → 72 px, mniejsze czcionki; pasek bossa wyżej.
+  - Kręgi: wróg 0,62 → 0,42 (×skala), boss 0,95 → 0,66, bohater 0,6 → 0,42 m promienia.
+  - **Wszystkie powyższe liczby: do strojenia z autorem.** Obrażenia, HP, postura, okno parowania — bez zmian.
+- Testy: `testy.py godot` OK **107/107** (nowe: barwa zamachu, riposta z doskokiem 2,3 m z boku, odskok w tył + przerwanie ciosu, liczby wyczucia, mniejszy HUD, mniejsze kręgi). Kontrola spakowanej gry (Linux `--test`) OK 107/107.
+- Dostarczone: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_WalkaOznaczenia.zip` (`TEST_WALKA_OZNACZENIA.bat`, 401 MB — tuż pod limitem narzędzia przesyłania 400 MiB na plik; następna paczka musi być lżejsza: wyłączyć nieużywane zasoby z eksportu).
+- NIE sprawdzone: wyczucie na komputerze autora, prawdziwy pad, dźwięk; czy znak „!” nie zlewa się z napisami obrażeń w tłumie; podgląd `--podglad-walki` pokazał wroga już ogłuszonego w scenie zamachu (scenariusz podglądu do poprawy).
+- Następny krok: ocena autora; potem usterka doczytywania assetów przy odsłanianiu mapy (Czarnobór) i odchudzenie eksportu.
+
 ## 2026-11-26 14:50 — nowe konto, rola: agent główny — start sesji i publikacja
 - Gałąź i commit: `main` = `78a9ddc` (fast-forward z `las-w-rajdzie`, 18 commitów: cały łańcuch 9 rund z sesji 25–26.11).
 - **Decyzja autora (14:36): „publikuj”** — opublikowano bez wcześniejszego meldunku z testu `Warownia_Czarnobor.zip` (decyzja autora > zasada D5).
