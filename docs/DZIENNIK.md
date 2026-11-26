@@ -17,6 +17,11 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 21:25 — nowe konto, rola: agent główny — publikacja osady
+- **Decyzja autora (21:24): „publikuj, potem dopracujemy parę rzeczy”.**
+- Opublikowano na main (fast-forward): `pilot-spalona-osada` → `osada-w-rajdzie` → `grafika-osada-lup`. Test na main: OK 154/154.
+- Następny krok: poprawki autora (czekamy na listę), potem boss osady w spalonym kościele.
+
 ## 2026-11-26 21:00 — nowe konto, rola: grafik (+ gamedev za zgodą autora) — łup, rozpad poległych, pole widzenia
 - Gałąź: `grafika-osada-lup` (od `osada-w-rajdzie`).
 - **Uwagi autora (20:33–20:41):**
