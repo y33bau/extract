@@ -812,7 +812,7 @@ func _interakcja() -> void:
 		return
 	var m: Array = MIEJSCA[cel]
 	var w2: Vector2 = m[2]
-	_etykieta.text = "[A / E]  " + str(m[0])
+	_etykieta.text = "E / Y:  " + str(m[0])
 	_etykieta.position = Vector3(w2.x, 2.5, w2.y)
 	_etykieta.visible = true
 	if Input.is_action_just_pressed("interakcja"):

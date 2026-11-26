@@ -129,7 +129,7 @@ func _ready() -> void:
 	v4.add_child(h4)
 	sprzet = Ui.etykieta("", 12)
 	v4.add_child(sprzet)
-	v4.add_child(Ui.etykieta("[F/↓] pochodnia • [G/R3] zrzuć sakwę • [Tab/Back] sakwa", 11, Ui.SZARY))
+	v4.add_child(Ui.etykieta("F / krzyżak dół: pochodnia   ·   G / R3: zrzuć sakwę   ·   Tab / Widok: sakwa", 11, Ui.SZARY))
 	p4.add_child(v4)
 	korzen.add_child(p4)
 	_rog(p4, Control.PRESET_BOTTOM_RIGHT)
@@ -212,10 +212,10 @@ func _process(_dt: float) -> void:
 	var m := int(r.czas_pozostaly / 60.0)
 	var s := int(r.czas_pozostaly) % 60
 	info.text = "%s   •   ziarno %s\nCZAS %d:%02d    POKONANI %d    PAROWANIA %d" % [str(r.kraina["name"]).to_upper(), r.ziarno, m, s, r.zabici, r.parowania]
-	hp_txt.text = "❤ ŻYWOTNOŚĆ  %d / %d%s" % [ceili(p.hp), int(p.hp_max), "   POPARZENIE!" if p.plonie else ""]
+	hp_txt.text = "ŻYWOTNOŚĆ  %d / %d%s" % [ceili(p.hp), int(p.hp_max), "   POPARZENIE!" if p.plonie else ""]
 	hp_pasek.max_value = p.hp_max
 	hp_pasek.value = p.hp
-	st_txt.text = "⚡ WYTRZYMAŁOŚĆ  %d / %d" % [ceili(p.stamina), int(p.stamina_max)]
+	st_txt.text = "WYTRZYMAŁOŚĆ  %d / %d" % [ceili(p.stamina), int(p.stamina_max)]
 	st_pasek.max_value = p.stamina_max
 	st_pasek.value = p.stamina
 	var zb = p.rynsztunek["armor"]
@@ -231,7 +231,7 @@ func _process(_dt: float) -> void:
 	bron.text = Dane.p(p.rynsztunek["weapon"]["id"])["name"] if p.rynsztunek["weapon"] else "Gołe pięści"
 	var tarcza: String = Dane.p(p.rynsztunek["shield"]["id"])["name"] if p.rynsztunek["shield"] else "Brak tarczy"
 	var obc: int = r.sakwa_obciazenie()
-	sprzet.text = "%s   •   🏹 %d strzał\nSakwa %d/12%s" % ["🔥 Pochodnia w ręce" if p.pochodnia_w_rece else "Tarcza: " + tarcza, r.liczba_strzal(),
+	sprzet.text = "%s   ·   %d strzał\nSakwa %d/12%s" % ["Pochodnia w ręce" if p.pochodnia_w_rece else "Tarcza: " + tarcza, r.liczba_strzal(),
 		p.rynsztunek["backpack"].size(), "  (odnowa staminy −%d%%)" % roundi(minf(45.0, obc * 3.5)) if obc > 0 else ""]
 	if p.okno_parowania > 0.0:
 		postawa.text = "PAROWANIE!"
@@ -251,13 +251,13 @@ func _process(_dt: float) -> void:
 		baner_pasek.value = (1.0 - r.ekstrakcja_czas / r.CZAS_EKSTRAKCJI) * 100.0
 	var linie: Array = []
 	for e in r.mapa.ekstrakcje:
-		linie.append("✦ %s: %dm" % [e["nazwa"], roundi(p.w.distance_to(e["w"]))])
+		linie.append("%s: %d m" % [e["nazwa"], roundi(p.w.distance_to(e["w"]))])
 	kierunki.text = "\n".join(linie)
 	var poj = r.najblizszy_pojemnik() if not r.okno_otwarte else null
 	if poj != null:
-		podpowiedz.text = "[E / A] Przeszukaj: " + poj["nazwa"]
+		podpowiedz.text = "E / Y: przeszukaj " + poj["nazwa"]
 	elif not r.okno_otwarte and r.pochodnia_na_ziemi != null and not p.pochodnia_w_rece and p.w.distance_to(r.pochodnia_na_ziemi) < 1.6:
-		podpowiedz.text = "[F / ↓] Podnieś pochodnię"
+		podpowiedz.text = "F / krzyżak dół: podnieś pochodnię"
 	else:
 		podpowiedz.text = ""
 	(winieta_trafienie.material as ShaderMaterial).set_shader_parameter("sila", r.blysk_trafienia)

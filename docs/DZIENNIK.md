@@ -17,6 +17,21 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 01:35 — konto 2, rola: gamedev + grafik (jeden wykonawca)
+- Gałąź `menu-i-pauza` (od `walka-oprawa` `bcff8c7`). main nietknięty.
+- Zlecenie autora (01:02): menu i pauza („menu archaiczne, nieczytelne”), zasoby NightBrand, **Esc i Start na padzie = pauza**, sterowanie postaci (mysz i pad) jak w NightBrand, „podobnie skille”. Repo `y33bau/NightBrand-PC` podpięte TYLKO DO ODCZYTU (nic tam nie zmieniono).
+- Decyzje autora: **czcionka Cinzel**; zestaw grafik UI wybrany przez autora w `NIGHTBRAND\NightBrand_test_911\assets\ui` (24 pliki).
+- Zrobione:
+  - **Pauza** (`godot/skrypty/pauza.gd`, nowa): Esc / P / pad Start; w rajdzie (bez otwartego okna łupów) i w Przystani (bez menu Warowni). Zatrzymuje grę (`get_tree().paused`). Zakładki: Sterowanie (z `Sterowanie.OPIS`, ikony przycisków pada), Umiejętności, Grafika i dźwięk; „Wróć do gry” (fokus); „Wyjdź z gry” tylko w Przystani (w rajdzie nie ma wyjścia — inaczej byłaby ucieczka przed śmiercią). LB/RB zakładki, B / Start / Esc wraca.
+  - **Sterowanie jak w NightBrand** (`sterowanie.gd`): cios LPM / J / X / RT (RB zapasowo), blok i parowanie PPM / L / LB, unik Spacja / Shift / **A** (było B), rozmowa i przeszukiwanie E / Enter / **Y** (było A), łuk Q / **B** (było Y), pauza Esc / P / Start. Reszta bez zmian. Podpowiedzi w grze zaktualizowane.
+  - **Menu Warowni i okna** w nowym motywie (patrz `GRAFIKA.md` → „Menu, pauza, przyciski”): drewniane/gotyckie przyciski z NightBrand, zakładki z żarem, sloty w ramkach, Cinzel wszędzie, bez emoji; pasek zasobów w osobnym wierszu; nazwy przedmiotów zawijane zamiast ucinane.
+  - **Umiejętności — ZAŁOŻENIE (autor nie odpowiedział):** tylko wygląd (zakładka w menu i w pauzie). Aktywne umiejętności z NightBrand (sloty Q/E/F/R/G, mana) to nowa mechanika — nie wdrożono, czeka na decyzję.
+  - **Ramki — ZAŁOŻENIE:** slot nitowany z wyboru autora; panele płaskie z mosiężną ramą.
+- Testy: 79/79 OK (nowe: pauza Start/Esc w Przystani i rajdzie, gra zatrzymana, fokus na „Wróć do gry”, sterowanie z listy akcji, RB zakładki, B wraca; zaktualizowane pod nowy układ: unik A, rozmowa/skrzynia Y). Kontrola spakowanej gry Linux 79/79 OK.
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Menu.zip` (312 MB, `TEST_MENU.bat`).
+- NIE sprawdzone: prawdziwy pad (Start, RT jako oś), wygląd na monitorze autora w innych rozdzielczościach, dźwięk. Silny cios przez przytrzymanie (jak w NightBrand) NIE wdrożony — zmienia walkę, czeka na zgodę.
+- Następny krok: ocena autora; propozycje: HUD rajdu jak w NightBrand (kule życia/staminy, pasek akcji, rama minimapy — zasoby już są), decyzja o aktywnych umiejętnościach i silnym ciosie przez przytrzymanie.
+
 ## 2026-11-26 01:05 — konto 2, rola: grafik
 - Gałąź `walka-oprawa`. **Ocena autora (00:59): „Jest o wiele lepiej.”** Zatrzymanie klatki i reszta oprawy walki zostają (brak zastrzeżeń autora).
 - **Decyzja autora:** w Warowni (Przystań) postacie mniejsze / kamera dalej; w misjach bez zmian. Zrobione: `przystan.gd` ZOOM 1,85 → 1,35. Rajd bez zmian.

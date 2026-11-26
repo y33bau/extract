@@ -8,6 +8,7 @@ const Rajd = preload("res://skrypty/rajd.gd")
 const Hud = preload("res://skrypty/hud.gd")
 const Okno = preload("res://skrypty/okno_lupu.gd")
 const Przystan = preload("res://skrypty/przystan.gd")
+const Pauza = preload("res://skrypty/pauza.gd")
 
 var hub_warstwa: CanvasLayer
 var hub: Hub
@@ -15,6 +16,7 @@ var przystan: Przystan
 var rajd: Rajd
 var hud: Hud
 var okno: Okno
+var pauza: Pauza
 var wynik: CanvasLayer
 var wynik_przycisk: Button
 var ostatni_wynik := {}
@@ -28,6 +30,8 @@ func _ready() -> void:
 	hub.start_rajdu.connect(rozpocznij_rajd)
 	hub.zamknij.connect(zamknij_menu)
 	hub_warstwa.add_child(hub)
+	pauza = Pauza.new()
+	add_child(pauza)
 	_przystan()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
@@ -199,6 +203,19 @@ func _przystan() -> void:
 	hub.visible = false
 
 
+func moze_pauzowac() -> bool:
+	if rajd != null:
+		return not rajd.zakonczony and not rajd.okno_otwarte
+	return przystan != null and przystan.aktywna and not hub.is_visible_in_tree()
+
+
+func otworz_pauze() -> void:
+	if rajd != null:
+		pauza.otworz(str(rajd.kraina["name"]), true)
+	else:
+		pauza.otworz("Przystań · Warownia Popiołów", false)
+
+
 func otworz_menu(zakladka: int) -> void:
 	hub_warstwa.visible = true
 	hub.visible = true
@@ -219,6 +236,11 @@ func zamknij_menu() -> void:
 
 
 func _unhandled_input(e: InputEvent) -> void:
+	# pauza: Esc / P / Start — w trwającym rajdzie (bez otwartego okna) i w Przystani (bez menu Warowni)
+	if e.is_action_pressed("pauza") and not get_tree().paused and moze_pauzowac():
+		otworz_pauze()
+		get_viewport().set_input_as_handled()
+		return
 	# Back / Tab w Przystani: całe menu Warowni
 	if przystan != null and przystan.aktywna and rajd == null and e.is_action_pressed("sakwa"):
 		otworz_menu(-1)
@@ -246,7 +268,7 @@ func rozpocznij_rajd(kraina: String, ziarno: String) -> void:
 	rajd.toast.connect(hud.pokaz_toast)
 	rajd.obszar.connect(hud.pokaz_obszar)
 	rajd.koniec.connect(_koniec_rajdu)
-	hud.pokaz_toast.call_deferred("🔥 Pochodnia zajmuje rękę tarczy: nie parujesz. [F / ↓] rzuć ją przed walką.", "info")
+	hud.pokaz_toast.call_deferred("Pochodnia zajmuje rękę tarczy: nie parujesz. F / krzyżak dół: rzuć ją przed walką.", "info")
 
 
 func _koniec_rajdu(przezyl: bool, powod: String, s: Dictionary) -> void:
@@ -270,7 +292,7 @@ func _koniec_rajdu(przezyl: bool, powod: String, s: Dictionary) -> void:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	p.add_child(v)
-	var t := Ui.etykieta("✨ EKSTRAKCJA UDANA" if przezyl else "💀 POLEGŁEŚ W RUINACH", 26, Color("34d399") if przezyl else Color("ef4444"))
+	var t := Ui.etykieta("Ekstrakcja udana" if przezyl else "Poległeś w ruinach", 26, Color("34d399") if przezyl else Color("ef4444"))
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	var pw := Ui.etykieta(powod, 14)
@@ -285,9 +307,9 @@ func _koniec_rajdu(przezyl: bool, powod: String, s: Dictionary) -> void:
 	if przezyl:
 		txt += "\nWartość łupu z sakwy: %d zł" % s["wartosc"]
 	for kt in s.get("kontrakty", []):
-		txt += "\n📜 Kontrakt Chojraka wykonany: %s" % kt
+		txt += "\nKontrakt Chojraka wykonany: %s" % kt
 	for a in s["awanse"]:
-		txt += "\n📜 Awans: %s — poziom %d" % [Dane.umiejetnosci[a[0]]["name"], a[1]]
+		txt += "\nAwans: %s — poziom %d" % [Dane.umiejetnosci[a[0]]["name"], a[1]]
 	v.add_child(Ui.etykieta(txt, 14))
 	wynik_przycisk = Ui.przycisk_akcji("POWRÓT DO WAROWNI")
 	wynik_przycisk.custom_minimum_size = Vector2(0, 48)
@@ -420,6 +442,38 @@ func _test_oprawy_walki(p, en) -> void:
 		rajd.wrogowie.erase(boss)
 		boss.queue_free()
 	en.hp = en.hp_max
+
+
+## Pauza: Start na padzie otwiera i zatrzymuje grę, lista sterowania z mapy akcji, LB/RB zakładki, B wraca; Esc też otwiera.
+func _test_pauzy(gdzie: String, zrzut: String) -> void:
+	await _pad(JOY_BUTTON_START)
+	await _czekaj_az(func(): return pauza.visible, 2.0)
+	_ok("%s: Start otwiera pauzę i zatrzymuje grę" % gdzie, pauza.visible and get_tree().paused)
+	await _klatka()
+	var fokus := get_viewport().gui_get_focus_owner()
+	_ok("%s: pauza — fokus na „Wróć do gry” (pad)" % gdzie, fokus == pauza.wroc, str(fokus))
+	var wiersze := pauza.zakladki.get_child(0).find_children("*", "Label", true, false).size()
+	_ok("%s: pauza — sterowanie klawiatura + pad dla każdej czynności" % gdzie, wiersze >= Sterowanie.OPIS.size() * 2, "%d etykiet" % wiersze)
+	await _zrzut(zrzut)
+	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+	_ok("%s: RB przełącza zakładkę pauzy" % gdzie, pauza.zakladki.current_tab == 1)
+	await _zrzut(zrzut + "_umiejetnosci")
+	pauza.zakladki.current_tab = 0
+	await _pad(JOY_BUTTON_B)
+	await _czekaj_az(func(): return not pauza.visible, 2.0)
+	_ok("%s: B wraca do gry" % gdzie, not pauza.visible and not get_tree().paused)
+	var esc := InputEventKey.new()
+	esc.physical_keycode = KEY_ESCAPE
+	esc.pressed = true
+	Input.parse_input_event(esc)
+	await _czekaj_az(func(): return pauza.visible, 2.0)
+	var esc2 := InputEventKey.new()
+	esc2.physical_keycode = KEY_ESCAPE
+	esc2.pressed = false
+	Input.parse_input_event(esc2)
+	_ok("%s: Esc otwiera pauzę" % gdzie, pauza.visible)
+	pauza.zamknij()
+	await _klatka()
 
 
 func _ustaw_wroga_przed(en, odl := 1.0) -> void:
@@ -672,10 +726,10 @@ func _test_wygladu(p, en) -> void:
 	_ok("3D: model Hadræna paruje w grze (widoczna poza)", anim_par3d.ends_with("_parowanie") and dlon_par.distance_to(dlon_postoj) > 0.08,
 		"%s, dłoń przesunięta o %.2f m" % [anim_par3d, dlon_par.distance_to(dlon_postoj)])
 	await _czekaj(0.7)
-	# przewrót: B -> animacja przewrotu z nietykalnością
+	# przewrót: A (układ NightBrand) -> animacja przewrotu z nietykalnością
 	p.stamina = p.stamina_max
 	p.unik_cd = 0.0
-	await _pad(JOY_BUTTON_B, 0.05)
+	await _pad(JOY_BUTTON_A, 0.05)
 	await _czekaj_az(func(): return p.unik_czas > 0.0 or p.biezaca_anim == "przewrot", 1.0)
 	await _klatka()
 	var anim_unik: String = p.biezaca_anim
@@ -718,9 +772,9 @@ func _test() -> void:
 	_ok("Przystań: lewy drążek chodzi", przystan.poz.distance_to(s0) > 0.5, "%.2f m" % przystan.poz.distance_to(s0))
 	przystan.poz = przystan.MIEJSCA["marga"][2] + Vector2(0.9, 0.9)
 	await _czekaj_az(func(): return przystan.cel == "marga", 5.0)
-	await _pad(JOY_BUTTON_A)
+	await _pad(JOY_BUTTON_Y)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
-	_ok("Przystań: A przy Mardze otwiera Kupca", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2, "zakładka %d" % hub.zakladki.current_tab)
+	_ok("Przystań: Y przy Mardze otwiera Kupca", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1b_marga_kupiec")
 	# przejście zakładek padem (RB)
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
@@ -738,15 +792,16 @@ func _test() -> void:
 	await _czekaj_az(func(): return przystan.cel == "przewoznik" and przystan.krag != null and przystan.krag.visible, 3.0)
 	var kp: Vector3 = przystan._npc["przewoznik"]["wezel"].position
 	_ok("Przystań: złoty krąg pod rozmówcą", przystan.krag != null and przystan.krag.visible and Vector2(przystan.krag.position.x, przystan.krag.position.z).distance_to(Vector2(kp.x, kp.z)) < 0.1)
-	await _pad(JOY_BUTTON_A)
+	await _pad(JOY_BUTTON_Y)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
-	_ok("Przystań: A przy przewoźniku otwiera Wyprawę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 0, "zakładka %d" % hub.zakladki.current_tab)
+	_ok("Przystań: Y przy przewoźniku otwiera Wyprawę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 0, "zakładka %d" % hub.zakladki.current_tab)
 	await _zrzut("1c_przewoznik")
 	await _pad(JOY_BUTTON_B)
 	await _czekaj_az(func(): return not hub.is_visible_in_tree(), 5.0)
 	przystan.uzyj("chlop")
 	_ok("Przystań: gawędziarz mówi", przystan._dymek.visible and przystan._dymek.text.length() > 10)
 	przystan.poz = Vector2(18.0, 22.0)
+	await _test_pauzy("Przystań", "9a_pauza_przystan")
 	await _pad(JOY_BUTTON_BACK)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Back otwiera całe menu Warowni", hub.is_visible_in_tree())
@@ -768,6 +823,7 @@ func _test() -> void:
 	rozpocznij_rajd("catacombs", "TEST01")
 	await _czekaj(0.5)
 	_ok("rajd startuje", rajd != null and rajd.gracz != null)
+	await _test_pauzy("rajd", "9b_pauza_rajd")
 	_test_mapy()
 	await _test_duzej_mapy()
 	var p = rajd.gracz
@@ -888,8 +944,8 @@ func _test() -> void:
 		p.w = sk["w"] + Vector2(0.0, 0.6)
 	await _czekaj(0.15)
 	var przed: int = p.rynsztunek["backpack"].size()
-	await _pad(JOY_BUTTON_A)
-	_ok("A otwiera skrzynię", okno.otwarte and rajd.aktywny_pojemnik == sk)
+	await _pad(JOY_BUTTON_Y)
+	_ok("Y otwiera skrzynię", okno.otwarte and rajd.aktywny_pojemnik == sk)
 	await _czekaj_az(func(): return rajd.aktywny_pojemnik["przedmioty"].all(func(w): return w["odkryty"]), 15.0)
 	await _czekaj(0.3)
 	await _zrzut("4_okno_lupu")

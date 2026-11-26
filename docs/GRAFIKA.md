@@ -71,6 +71,13 @@ Zestaw na biotop (minimum): 4–6 wariantów podłogi, ścieżka, krąg ekstrakc
 złoto `#e6ba63`, żar `#e07a38`, popiół (tekst) `#dcd6ce`, tło paneli `#1a171c`, rama `#352f38`.
 Rzadkość: zwykły `#78736d`, niepospolity `#4ca676`, rzadki `#4d88c7`, epicki `#c79c4c`, legendarny `#d43f49`.
 
+### Menu, pauza, przyciski (runda `menu-i-pauza`, 26.11.2026)
+- **Czcionka całego interfejsu: Cinzel** (decyzja autora: „Cinzel”; ociekające napisy-obrazki z NightBrand odrzucone).
+- **Zasoby z NightBrand wybrane przez autora** (`NIGHTBRAND\NightBrand_test_911\assets\ui`) → `godot/zasoby/ui/` (czytelne nazwy: `przycisk_drewno`, `przycisk_gotycki(_wybrany)`, `kula_*`, `rama_minimapy`, `slot`, `pasek_akcji`, `pad_*` (ikony przycisków pada), `zebatka`, `kursor`). Gotowe do rozciągania (9-slice) w `godot/zasoby/ui/9/`: `btn` / `btn_fokus` (gotycki: ciemna tablica, bordo przy fokusie), `akcja` / `akcja_fokus` (drewno z okuciami, fokus = żar), `tab` / `tab_wybrana` (zakładki), `slot` (ramka przedmiotu).
+- Motyw: `Ui.motyw()` (jeden, wspólny): zwykłe przyciski = gotyckie, główne przyciski (`Ui.przycisk_akcji`) = drewniane z żarem, zakładki = drewniane (wybrana żarzy się), panele = ciemne płótno z cienką mosiężną ramą (tekstura panelu rozciągała się w smugi), sloty przedmiotów = nitowana ramka + nazwa w kolorze rzadkości.
+- **Bez emoji i strzałek w napisach** — Cinzel ich nie ma (sprawdzone: brak →←↑↓✓✦), wyglądały archaicznie. Zamiast „↓” piszemy „krzyżak dół”.
+- Kula życia/many, pasek akcji, rama minimapy i zębatka są w zasobach, ale HUD rajdu jeszcze ich nie używa (propozycja na następną rundę).
+
 ### Oprawa walki (runda `walka-oprawa`, 26.11.2026)
 - **Czcionka walki: Cinzel** (SIL OFL, `godot/zasoby/czcionki/cinzel.ttf` + licencja, która jedzie w paczce). `Ui.czcionka(waga)` — grubość 400–900; klucz wariantu musi być liczbowym tagiem OpenType (tekstowy „wght” nie działa — sprawdzone testem).
 - **Pasek wroga** (`Ui.rysuj_pasek`, `wrog.gd`): ciemne tło, brązowa rama, czerwone życie `#c4252f` z jaśniejszą górą, jasny „ślad” utraconego życia (dogania po 0,45 s). Postura jak w Sekiro: rośnie od środka, złoto → żar, pulsuje >75%. Pojawia się płynnie tylko w walce.

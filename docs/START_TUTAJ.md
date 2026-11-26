@@ -29,8 +29,9 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 - **Silnik: Godot 4.7.2, renderer Forward+, prawdziwe 3D z kamerą izometryczną** (decyzje autora 25.11.2026). Gra w `godot/`; wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`.
 - Gra: Warownia-Przystań w 3D (swobodny ruch, NPC: Marga = kupiec, Chojrak = wyprawy i kontrakty, chłop = gawędziarz, przewoźnik z łodzią; obóz rosnący z poziomem), rajd na mapach 96×96 z ziarna (7 rodzajów komnat, 3–4 ekstrakcje, patrole, pościg), walka (combo, parowanie z pierścieniem rytmu, riposta, blok, przewrót, postura, pochodnia vs tarcza, zrzut sakwy), mgła wojny, minimapa, łup, śmierć (Relikwiarz, połowa doświadczenia), dźwięk, pad wszędzie, ustawienie jakości grafiki.
 - Postacie: Hadræn (płynny ruch i walka przyjęte przez autora), 6 typów wrogów i NPC z Meshy w pozie T — **autor 26.11.2026: „Postacie są super”**.
-- Testy: `testy.py godot` 67/67 (gałąź `walka-oprawa`).
-- Runda w toku: **`walka-oprawa`** (nowa oprawa walki, czeka na ocenę autora). Kolejne zaplanowane rundy: menu i interfejs, świat rajdu.
+- Testy: `testy.py godot` 79/79 (gałąź `menu-i-pauza`).
+- Rundy nieopublikowane: `walka-oprawa` (oprawa walki, przyjęta: „o wiele lepiej”) → **`menu-i-pauza`** (menu, pauza Esc/Start, sterowanie jak NightBrand; czeka na ocenę). Następne: HUD rajdu jak NightBrand, świat rajdu.
+- Sterowanie: układ NightBrand (unik A, rozmowa Y, łuk B, pauza Start) — pełna lista w `godot/skrypty/sterowanie.gd` (`OPIS`).
 - Prototyp JS (`zrodlo/`) = archiwum.
 - **`main` = opublikowana wersja** (26.11.2026, stan gałęzi `mapy-runda-2`, przyjęty przez autora). Nowa runda: nowa gałąź od `main`.
 - Liczby do strojenia czekające na decyzję autora: wrogowie 34/44/50 na mapę, czas rajdu 15 min, skrzynie 40–80, nagrody kontraktów 40/60/150–400.

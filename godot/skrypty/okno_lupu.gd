@@ -43,7 +43,7 @@ func _ready() -> void:
 	var t := Ui.etykieta("SAKWA I ŁUPY", 18, Ui.ZLOTO)
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	naglowek.add_child(t)
-	naglowek.add_child(Ui.etykieta("Klik/A bierze • Shift/Y → Relikwiarz • PPM/X wyrzuca • Tab/B zamyka", 12, Ui.SZARY))
+	naglowek.add_child(Ui.etykieta("Klik / A bierze   ·   Shift / Y do Relikwiarza   ·   PPM / X wyrzuca   ·   Tab / B zamyka", 12, Ui.SZARY))
 	var zamknij := Button.new()
 	zamknij.text = "Zamknij"
 	zamknij.pressed.connect(zamknij_okno)
@@ -59,11 +59,11 @@ func _ready() -> void:
 	h.add_child(lewa)
 	rynsztunek_txt = Ui.etykieta("", 13)
 	lewa.add_child(rynsztunek_txt)
-	lewa.add_child(Ui.etykieta("🔒 RELIKWIARZ (chroniony po śmierci)", 13, Ui.ZLOTO))
+	lewa.add_child(Ui.etykieta("RELIKWIARZ (chroniony po śmierci)", 13, Ui.ZLOTO))
 	siatka_rel = GridContainer.new()
 	siatka_rel.columns = 5
 	lewa.add_child(siatka_rel)
-	lewa.add_child(Ui.etykieta("🎒 SAKWA", 13, Ui.SZARY))
+	lewa.add_child(Ui.etykieta("SAKWA", 13, Ui.SZARY))
 	siatka_sakwy = GridContainer.new()
 	siatka_sakwy.columns = 4
 	lewa.add_child(siatka_sakwy)
@@ -138,7 +138,7 @@ func odswiez() -> void:
 		tytul.text = "BRAK POJEMNIKA"
 		szukanie.visible = false
 		zabierz.visible = false
-		var l2 := Ui.etykieta("Podejdź do skrzyni, sarkofagu lub szczątków i naciśnij [E / A].", 13, Ui.SZARY)
+		var l2 := Ui.etykieta("Podejdź do skrzyni, sarkofagu lub szczątków i naciśnij E / Y.", 13, Ui.SZARY)
 		l2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l2.custom_minimum_size = Vector2(360, 0)
 		siatka_lupu.add_child(l2)
@@ -158,7 +158,7 @@ func odswiez() -> void:
 				siatka_lupu.add_child(_slot(wpis["przedmiot"], "lup%d" % i, _klik_lup.bind(i)))
 			else:
 				var b := Button.new()
-				b.text = "❓ Przeszukiwanie…"
+				b.text = "Przeszukiwanie…"
 				b.custom_minimum_size = Vector2(190, 58)
 				b.disabled = true
 				siatka_lupu.add_child(b)
@@ -167,14 +167,18 @@ func odswiez() -> void:
 
 func _slot(inst, klucz: String, akcja: Callable) -> Button:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(150, 58)
-	b.clip_text = true
+	b.custom_minimum_size = Vector2(160, 58)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD
+	b.add_theme_font_size_override("font_size", 14)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.set_meta("klucz", klucz)
 	if inst == null:
-		b.text = "—"
+		b.text = ""
 		b.focus_mode = Control.FOCUS_ALL
-		b.modulate = Color(1, 1, 1, 0.5)
+		b.add_theme_stylebox_override("normal", Ui.styl_slotu(Color.GRAY))
+		b.add_theme_stylebox_override("focus", Ui.styl_slotu(Color.GRAY, true))
+		b.add_theme_stylebox_override("hover", Ui.styl_slotu(Color.GRAY, true))
+		b.modulate = Color(1, 1, 1, 0.55)
 		b.focus_entered.connect(func(): opis.text = ""; _fokus_klucz = klucz)
 		return b
 	var d := Dane.p(inst["id"])
@@ -185,13 +189,10 @@ func _slot(inst, klucz: String, akcja: Callable) -> Button:
 	if d.get("type") == "arrow":
 		dop = " x%d" % int(inst["qty"])
 	b.text = str(d["name"]) + dop
-	var ramka := StyleBoxFlat.new()
-	ramka.bg_color = Color("16131a")
-	ramka.border_color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
-	ramka.border_width_left = 4
-	ramka.set_corner_radius_all(3)
-	ramka.content_margin_left = 8
-	b.add_theme_stylebox_override("normal", ramka)
+	var rz: Color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
+	for st in ["normal", "hover", "focus", "pressed"]:
+		b.add_theme_stylebox_override(st, Ui.styl_slotu(rz, st != "normal"))
+	b.add_theme_color_override("font_color", rz.lightened(0.35))
 	var tekst_opisu := "%s — %s\n%s\n%s" % [d["name"], Dane.NAZWY_TYPOW.get(d.get("type"), ""), d.get("desc", ""), Dane.opis_statystyk(inst)]
 	b.tooltip_text = tekst_opisu
 	b.focus_entered.connect(func(): opis.text = tekst_opisu; _fokus_klucz = klucz)

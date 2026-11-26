@@ -1489,7 +1489,7 @@ func _zapowiedz(en, d: Dictionary, t: float, widac: bool) -> void:
 	pm.set_shader_parameter("w_oknie", 1.0 if zostalo <= BLYSK_PRZED else 0.0)
 	if widac and rajd.gracz.pochodnia_w_rece and not en.ciezki and en.rodzaj != "archer" and _podpowiedz_pochodni <= 0.0:
 		_podpowiedz_pochodni = 6.0
-		rajd.napis(rajd.gracz.w - Vector2(1.1, 1.1), "🔥 Z POCHODNIĄ NIE SPARUJESZ — [F / ↓]", Color("f59e0b"), 11)
+		rajd.napis(rajd.gracz.w - Vector2(1.1, 1.1), "Z POCHODNIĄ NIE SPARUJESZ — F / krzyżak dół", Color("f59e0b"), 11)
 	var gw: Sprite3D = d["glint"]
 	if en.rodzaj != "archer" and zostalo <= BLYSK_PRZED:
 		if not d["glint_byl"]:

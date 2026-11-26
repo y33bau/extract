@@ -47,13 +47,12 @@ func _ready() -> void:
 	var odst := Control.new()
 	odst.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gora.add_child(odst)
-	naglowek = Ui.etykieta("", 15)
-	gora.add_child(naglowek)
+	naglowek = Ui.etykieta("", 15, Color("d9c7a4"))
 	przycisk_dzwieku = Button.new()
-	przycisk_dzwieku.text = "🔊"
+	przycisk_dzwieku.text = "Dźwięk: wł."
 	przycisk_dzwieku.pressed.connect(func():
 		Dzwiek.wyciszony = not Dzwiek.wyciszony
-		przycisk_dzwieku.text = "🔇" if Dzwiek.wyciszony else "🔊")
+		przycisk_dzwieku.text = "Dźwięk: wył." if Dzwiek.wyciszony else "Dźwięk: wł.")
 	gora.add_child(przycisk_dzwieku)
 	przycisk_grafiki = Button.new()
 	przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()]
@@ -64,7 +63,7 @@ func _ready() -> void:
 		przycisk_grafiki.text = "Grafika: " + Profil.JAKOSCI[Profil.jakosc()])
 	gora.add_child(przycisk_grafiki)
 	var wroc := Button.new()
-	wroc.text = "⟵ Przystań"
+	wroc.text = "Przystań"
 	wroc.tooltip_text = "Wróć do Przystani (B / Esc)"
 	wroc.pressed.connect(func(): zamknij.emit())
 	gora.add_child(wroc)
@@ -73,14 +72,15 @@ func _ready() -> void:
 	reset.pressed.connect(func(): dialog_reset.popup_centered())
 	gora.add_child(reset)
 	v.add_child(gora)
+	v.add_child(naglowek)
 	zakladki = TabContainer.new()
 	zakladki.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(zakladki)
-	t_wyprawa = _zakladka("⚔ Wyprawa", VBoxContainer.new())
-	t_ekw = _zakladka("🎒 Ekwipunek i Skrytka", HBoxContainer.new())
-	t_kupiec = _zakladka("⚖ Kupiec", HBoxContainer.new())
-	t_warownia = _zakladka("🏰 Warownia", VBoxContainer.new())
-	t_umiej = _zakladka("📜 Umiejętności", VBoxContainer.new())
+	t_wyprawa = _zakladka("Wyprawa", VBoxContainer.new())
+	t_ekw = _zakladka("Ekwipunek", HBoxContainer.new())
+	t_kupiec = _zakladka("Kupiec", HBoxContainer.new())
+	t_warownia = _zakladka("Warownia", VBoxContainer.new())
+	t_umiej = _zakladka("Umiejętności", VBoxContainer.new())
 	zakladki.tab_changed.connect(func(_i): Dzwiek.ui(); _fokus_klucz = ""; odswiez())
 	opis = Ui.etykieta("", 13, Ui.POPIOL)
 	opis.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -95,7 +95,7 @@ func _ready() -> void:
 	dialog_reset.cancel_button_text = "Anuluj"
 	dialog_reset.confirmed.connect(func(): Profil.resetuj(); odswiez())
 	add_child(dialog_reset)
-	Profil.awans.connect(func(u, lv): opis.text = "📜 Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv])
+	Profil.awans.connect(func(u, lv): opis.text = "Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv])
 	odswiez()
 
 
@@ -140,7 +140,7 @@ func _wyczysc(c: Control) -> void:
 
 func odswiez() -> void:
 	var d := Profil.d
-	naglowek.text = "🪙 %d   ⚒ %d   🔥 %d   🏺 %d   |   Wyprawy %d (przeżyte %d)   " % [
+	naglowek.text = "Złoto %d   ·   Żelazo %d   ·   Popiół %d   ·   Relikty %d   ·   Wyprawy %d (przeżyte %d)   " % [
 		d["gold"], Profil.licz_surowiec("iron"), Profil.licz_surowiec("ash"), Profil.licz_surowiec("relic"), d["stats"]["raids"], d["stats"]["survived"]]
 	match zakladki.current_tab:
 		0: _wyprawa()
@@ -179,26 +179,29 @@ func _przycisk(tekst: String, klucz: String, akcja: Callable, opis_txt := "") ->
 
 func _slot(inst, klucz: String, akcja: Callable, na_relikwiarz := Callable()) -> Button:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(170, 56)
-	b.clip_text = true
+	b.custom_minimum_size = Vector2(166, 58)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.set_meta("klucz", klucz)
 	if inst == null:
-		b.text = "—"
-		b.modulate = Color(1, 1, 1, 0.45)
+		b.text = ""
+		b.add_theme_stylebox_override("normal", Ui.styl_slotu(Color.GRAY))
+		b.add_theme_stylebox_override("focus", Ui.styl_slotu(Color.GRAY, true))
+		b.add_theme_stylebox_override("hover", Ui.styl_slotu(Color.GRAY, true))
+		b.modulate = Color(1, 1, 1, 0.55)
 		return b
 	var d := Dane.p(inst["id"])
 	b.icon = Dane.ikona(inst["id"])
 	b.add_theme_constant_override("icon_max_width", 32)
 	var dop := " x%d" % int(inst["qty"]) if d.get("type") == "arrow" else ""
 	b.text = str(d["name"]) + dop
-	var ramka := StyleBoxFlat.new()
-	ramka.bg_color = Color("16131a")
-	ramka.border_color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
-	ramka.border_width_left = 4
-	ramka.set_corner_radius_all(3)
-	ramka.content_margin_left = 8
-	b.add_theme_stylebox_override("normal", ramka)
+	var rz: Color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
+	b.add_theme_stylebox_override("normal", Ui.styl_slotu(rz))
+	b.add_theme_stylebox_override("hover", Ui.styl_slotu(rz, true))
+	b.add_theme_stylebox_override("focus", Ui.styl_slotu(rz, true))
+	b.add_theme_stylebox_override("pressed", Ui.styl_slotu(rz, true))
+	b.add_theme_color_override("font_color", rz.lightened(0.35))
+	b.add_theme_font_size_override("font_size", 14)
 	var t := "%s — %s\n%s\n%s" % [d["name"], Dane.NAZWY_TYPOW.get(d.get("type"), ""), d.get("desc", ""), Dane.opis_statystyk(inst)]
 	b.tooltip_text = t
 	b.focus_entered.connect(func(): opis.text = t)
@@ -218,6 +221,12 @@ func _slot(inst, klucz: String, akcja: Callable, na_relikwiarz := Callable()) ->
 	return b
 
 
+## Zaznaczona opcja (wybrana kraina, kategoria): bordowa tablica i złoty napis — bez strzałek.
+func _wybrany(b: Button) -> void:
+	b.add_theme_stylebox_override("normal", b.get_theme_stylebox("focus"))
+	b.add_theme_color_override("font_color", Color("ffd58a"))
+
+
 func _zmiana() -> void:
 	Dzwiek.ui()
 	Profil.zapisz()
@@ -231,11 +240,11 @@ func _wyprawa() -> void:
 	var h := HBoxContainer.new()
 	for k in Dane.krainy:
 		var id: String = k["id"]
-		var b := _przycisk("%s%s\n%s  •  %s" % ["▶ " if id == wybrana_kraina else "", k["name"], k["diff"], k["lootStars"]], "kraina_" + id,
+		var b := _przycisk("%s%s\n%s  •  %s" % ["" if id == wybrana_kraina else "", k["name"], k["diff"], k["lootStars"]], "kraina_" + id,
 			func(): wybrana_kraina = id; _wyprawa(), "%s\n%s" % [k["subtitle"], k["desc"]])
-		b.custom_minimum_size = Vector2(300, 64)
+		b.custom_minimum_size = Vector2(300, 72)
 		if id == wybrana_kraina:
-			b.add_theme_color_override("font_color", Color("f0b96e"))
+			_wybrany(b)
 		h.add_child(b)
 	t_wyprawa.add_child(h)
 	var hz := HBoxContainer.new()
@@ -246,7 +255,7 @@ func _wyprawa() -> void:
 	pole.custom_minimum_size = Vector2(160, 0)
 	pole.text_changed.connect(func(t): ziarno = t.to_upper())
 	hz.add_child(pole)
-	hz.add_child(_przycisk("🎲 Losuj", "losuj", func(): ziarno = _losowe_ziarno(); _wyprawa()))
+	hz.add_child(_przycisk("Losuj", "losuj", func(): ziarno = _losowe_ziarno(); _wyprawa()))
 	t_wyprawa.add_child(hz)
 	# kontrakty Chojraka: liczą się tylko po udanej ekstrakcji
 	t_wyprawa.add_child(Ui.etykieta("KONTRAKTY CHOJRAKA (liczą się po powrocie z wyprawy)", 15, Ui.ZLOTO))
@@ -265,23 +274,19 @@ func _wyprawa() -> void:
 		nazwa.call("weapon"), nazwa.call("shield"), nazwa.call("bow"), strzaly, nazwa.call("armor"), flaszki, l["backpack"].size(), l["reliquary"].size(), Profil.max_relikwiarz()]
 	t_wyprawa.add_child(Ui.etykieta(gotowosc, 14))
 	if not l["weapon"]:
-		t_wyprawa.add_child(Ui.etykieta("⚠ Brak broni białej! Odbierz Zestaw Wygnańca u Kupca lub załóż broń ze Skrytki.", 13, Color("fca5a5")))
+		t_wyprawa.add_child(Ui.etykieta("Uwaga: brak broni białej! Odbierz Zestaw Wygnańca u Kupca lub załóż broń ze Skrytki.", 13, Color("fca5a5")))
 	if flaszki == 0:
-		t_wyprawa.add_child(Ui.etykieta("⚠ Nie masz Flaszek Żaru do leczenia w trakcie wyprawy.", 13, Color("fca5a5")))
-	var start := Ui.przycisk_akcji("⚔  ROZPOCZNIJ WYPRAWĘ")
+		t_wyprawa.add_child(Ui.etykieta("Uwaga: nie masz Flaszek Żaru do leczenia w trakcie wyprawy.", 13, Color("fca5a5")))
+	var start := Ui.przycisk_akcji("Rozpocznij wyprawę")
 	start.set_meta("klucz", "start")
 	start.custom_minimum_size = Vector2(0, 56)
 	start.add_theme_font_size_override("font_size", 20)
 	start.pressed.connect(func(): start_rajdu.emit(wybrana_kraina, ziarno if ziarno != "" else _losowe_ziarno()))
 	t_wyprawa.add_child(start)
-	var instr := "STEROWANIE  (klawiatura i mysz / pad)\n" + \
-		"Ruch: WASD / lewy drążek    •    Celowanie: mysz / prawy drążek\n" + \
-		"Combo: LPM / RB lub X    •    Parowanie i blok: PPM / LB    •    Unik: Spacja / B\n" + \
-		"Łuk: Q / Y    •    Przeszukaj: E / A    •    Mikstury: 1-2-3 / krzyżak ↑ ← →\n" + \
-		"Pochodnia: F / krzyżak ↓    •    Zrzuć sakwę: G / R3    •    Sakwa: Tab / Back\n\n" + \
-		"Paruj, gdy broń wroga błyśnie ZŁOTEM, i odpowiedz Ripostą. CZERWONY błysk: tylko unik.\n" + \
-		"Pochodnia zajmuje rękę tarczy: rzuć ją przed walką. Złamana postura (żółty pasek) też otwiera Ripostę.\n" + \
-		"Śmierć zabiera wszystko poza Relikwiarzem i połowę zdobytego doświadczenia."
+	var instr := "Paruj, gdy broń wroga błyśnie ZŁOTEM, i odpowiedz Ripostą. CZERWONY błysk: tylko unik.\n" + \
+		"Pochodnia zajmuje rękę tarczy: rzuć ją przed walką. Złamana postura też otwiera Ripostę.\n" + \
+		"Śmierć zabiera wszystko poza Relikwiarzem i połowę zdobytego doświadczenia.\n" + \
+		"Pełne sterowanie (klawiatura, mysz i pad): pauza — Esc / P / Start."
 	t_wyprawa.add_child(Ui.etykieta(instr, 13, Ui.SZARY))
 
 
@@ -307,7 +312,7 @@ func _ekwipunek() -> void:
 			l[slot] = null
 			_zmiana()))
 	lewa.add_child(g)
-	lewa.add_child(Ui.etykieta("🔒 RELIKWIARZ %d/%d (chroniony po śmierci)" % [l["reliquary"].size(), Profil.max_relikwiarz()], 14, Ui.ZLOTO))
+	lewa.add_child(Ui.etykieta("RELIKWIARZ %d/%d (chroniony po śmierci)" % [l["reliquary"].size(), Profil.max_relikwiarz()], 14, Ui.ZLOTO))
 	var gr := GridContainer.new()
 	gr.columns = 3
 	for i in Profil.max_relikwiarz():
@@ -318,7 +323,7 @@ func _ekwipunek() -> void:
 			d["stash"].append(l["reliquary"].pop_at(idx))
 			_zmiana()))
 	lewa.add_child(gr)
-	lewa.add_child(Ui.etykieta("🎒 SAKWA %d/12 (klik → Skrytka, Shift/Y → Relikwiarz)" % l["backpack"].size(), 14, Ui.SZARY))
+	lewa.add_child(Ui.etykieta("SAKWA %d/12 (klik: do Skrytki, Shift / Y: do Relikwiarza)" % l["backpack"].size(), 14, Ui.SZARY))
 	var gb := GridContainer.new()
 	gb.columns = 3
 	for i in Profil.SAKWA_MAX:
@@ -387,7 +392,7 @@ func _kupiec() -> void:
 		if Dane.typ(it["id"]) == "weapon":
 			ma_bron = true
 	if not ma_bron and d["gold"] < 200:
-		var zestaw := Ui.przycisk_akcji("🆘 Zestaw Wygnańca (0 zł)")
+		var zestaw := Ui.przycisk_akcji("Zestaw Wygnańca (0 zł)")
 		zestaw.set_meta("klucz", "zestaw")
 		zestaw.pressed.connect(func():
 			d["loadout"]["weapon"] = Profil.nowy_przedmiot("rusty_sword")
@@ -399,7 +404,9 @@ func _kupiec() -> void:
 	var kat := HBoxContainer.new()
 	for k in [["all", "Wszystko"], ["weapon", "Broń"], ["shield", "Tarcze"], ["bow", "Łuki"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]:
 		var id: String = k[0]
-		var b := _przycisk(("▶ " if kategoria == id else "") + k[1], "kat_" + id, func(): kategoria = id; _kupiec())
+		var b := _przycisk(k[1], "kat_" + id, func(): kategoria = id; _kupiec())
+		if kategoria == id:
+			_wybrany(b)
 		kat.add_child(b)
 	lewa.add_child(kat)
 	var g := GridContainer.new()
@@ -420,7 +427,9 @@ func _kupiec() -> void:
 		b.icon = Dane.ikona(id)
 		b.add_theme_constant_override("icon_max_width", 28)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.custom_minimum_size = Vector2(330, 44)
+		b.custom_minimum_size = Vector2(250, 44)
+		b.add_theme_font_size_override("font_size", 14)
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD
 		b.disabled = zablok or d["gold"] < cena
 		g.add_child(b)
 	lewa.add_child(g)
@@ -464,6 +473,8 @@ func _kupiec() -> void:
 		b.icon = Dane.ikona(it["id"])
 		b.add_theme_constant_override("icon_max_width", 22)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.add_theme_font_size_override("font_size", 14)
+		b.clip_text = true
 		prawa.add_child(b)
 
 
@@ -507,20 +518,20 @@ func _warownia() -> void:
 		var p := Ui.panel()
 		p.custom_minimum_size = Vector2(560, 0)
 		var v := VBoxContainer.new()
-		v.add_child(Ui.etykieta("%s %s   —   poziom %d / %d" % [up["icon"], up["name"], lv, maks], 16, Ui.ZLOTO))
+		v.add_child(Ui.etykieta("%s   —   poziom %d / %d" % [up["name"], lv, maks], 16, Ui.ZLOTO))
 		var o := Ui.etykieta(up["desc"], 13)
 		o.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		v.add_child(o)
 		if lv >= maks:
-			v.add_child(Ui.etykieta("✓ MAKSYMALNY POZIOM", 14, Color("34d399")))
+			v.add_child(Ui.etykieta("MAKSYMALNY POZIOM", 14, Color("34d399")))
 		else:
 			var k: Dictionary = up["costs"][lv]
 			var stac: bool = Profil.d["gold"] >= int(k["gold"]) and Profil.licz_surowiec("iron") >= int(k["iron"]) \
 				and Profil.licz_surowiec("ash") >= int(k["ash"]) and Profil.licz_surowiec("relic") >= int(k["relic"])
-			var koszt := "🪙 %d zł" % int(k["gold"])
-			if int(k["iron"]) > 0: koszt += "   ⚒ %d żelaza" % int(k["iron"])
-			if int(k["ash"]) > 0: koszt += "   🔥 %d popiołu" % int(k["ash"])
-			if int(k["relic"]) > 0: koszt += "   🏺 %d reliktów" % int(k["relic"])
+			var koszt := "%d zł" % int(k["gold"])
+			if int(k["iron"]) > 0: koszt += "   ·   %d żelaza" % int(k["iron"])
+			if int(k["ash"]) > 0: koszt += "   ·   %d popiołu" % int(k["ash"])
+			if int(k["relic"]) > 0: koszt += "   ·   %d reliktów" % int(k["relic"])
 			v.add_child(Ui.etykieta(koszt, 13, Ui.POPIOL if stac else Color("f87171")))
 			var bid: String = id
 			var b := Ui.przycisk_akcji("Rozbuduj do poziomu %d" % (lv + 1))
@@ -534,7 +545,7 @@ func _warownia() -> void:
 				Profil.zuzyj_surowiec("relic", int(k["relic"]))
 				Profil.d["stronghold"][bid] = Profil.budynek(bid) + 1
 				Dzwiek.ekstrakcja()
-				opis.text = "🏰 Ulepszono: %s (poziom %d)!" % [up["name"], Profil.budynek(bid)]
+				opis.text = "Ulepszono: %s (poziom %d)!" % [up["name"], Profil.budynek(bid)]
 				Profil.zapisz()
 				odswiez())
 			v.add_child(b)
@@ -553,7 +564,7 @@ func _umiejetnosci() -> void:
 		var wym := int(sk["lv"]) * 100
 		var p := Ui.panel()
 		var v := VBoxContainer.new()
-		v.add_child(Ui.etykieta("%s %s   —   poziom %d" % [u["icon"], u["name"], int(sk["lv"])], 15, Ui.ZLOTO))
+		v.add_child(Ui.etykieta("%s   —   poziom %d" % [u["name"], int(sk["lv"])], 15, Ui.ZLOTO))
 		v.add_child(Ui.etykieta("%s     (%d / %d PD)" % [u["bonusDesc"], int(sk["xp"]), wym], 13))
 		var pas := Ui.pasek(Color("c26a2c"), 8)
 		pas.max_value = wym
