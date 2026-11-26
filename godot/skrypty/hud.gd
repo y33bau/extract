@@ -255,7 +255,8 @@ func _process(_dt: float) -> void:
 		return
 	var r = rajd
 	var p = r.gracz
-	info.text = "%s\nPokonani %d   ·   Parowania %d   ·   ziarno %s" % [str(r.kraina["name"]).to_upper(), r.zabici, r.parowania, r.ziarno]
+	# Pokonani i parowania: w pauzie i na ekranie wyniku; ziarno tylko w trybie autora
+	info.text = str(r.kraina["name"]).to_upper() + ("\nziarno %s" % r.ziarno if Ui.tryb_autora() else "")
 	if _hp_cien < 0.0 or p.hp > _hp_cien:
 		_hp_cien = p.hp
 	else:
@@ -268,7 +269,7 @@ func _process(_dt: float) -> void:
 	zegar.queue_redraw()
 	baner.visible = r.w_ekstrakcji
 	if r.w_ekstrakcji:
-		baner_txt.text = "%.1f s" % r.ekstrakcja_czas
+		baner_txt.text = "%.1f s" % maxf(0.0, r.ekstrakcja_czas)  # bez „−0,0 s”
 		baner_pasek.value = (1.0 - r.ekstrakcja_czas / r.CZAS_EKSTRAKCJI) * 100.0
 	var linie: Array = []
 	for e in r.mapa.ekstrakcje:
@@ -409,7 +410,7 @@ func _rysuj_pasek_akcji() -> void:
 			var bok := minf(roz.x, roz.y) * 0.82
 			var mod := Color(1, 1, 1, 0.3) if pusty else Color.WHITE
 			pasek.draw_texture_rect(tex, Rect2(srodek - Vector2(bok, bok) * 0.5, Vector2(bok, bok)), false, mod)
-		if ile >= 0:
+		if ile > 0:  # pusty slot bez licznika „0”
 			var t := str(ile)
 			pasek.draw_string_outline(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, roundi(13 * SKALA_TEKSTU), 3, Color(0, 0, 0, 0.95))
 			pasek.draw_string(f, srodek + Vector2(-roz.x * 0.5, roz.y * 0.48), t, HORIZONTAL_ALIGNMENT_RIGHT, roz.x - 3, roundi(13 * SKALA_TEKSTU), Color("f6ead2") if not pusty else Color(0.6, 0.55, 0.5))

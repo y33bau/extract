@@ -18,7 +18,9 @@ var t_ekw: HBoxContainer
 var t_kupiec: HBoxContainer
 var t_warownia: VBoxContainer
 var t_umiej: VBoxContainer
-var dialog_reset: ConfirmationDialog
+var panel_opisu: PanelContainer
+var _komunikat_kupca := ""  # w Kupcu komunikaty (kupiono, brak złota) idą do prawego panelu
+var _znaczki: Control  # LB / RB przy zakładkach (pad)
 var przycisk_dzwieku: Button
 var przycisk_grafiki: Button
 var _fokus_klucz := ""
@@ -67,10 +69,7 @@ func _ready() -> void:
 	wroc.tooltip_text = "Wróć do Przystani (B / Esc)"
 	wroc.pressed.connect(func(): zamknij.emit())
 	gora.add_child(wroc)
-	var reset := Button.new()
-	reset.text = "Reset"
-	reset.pressed.connect(func(): dialog_reset.popup_centered())
-	gora.add_child(reset)
+	# Reset (usunięcie zapisu) przeniesiony do pauzy: Opcje → Dane zapisu (ocena NightBrand 26.11)
 	v.add_child(gora)
 	v.add_child(naglowek)
 	zakladki = TabContainer.new()
@@ -81,22 +80,38 @@ func _ready() -> void:
 	t_kupiec = _zakladka("Kupiec", HBoxContainer.new())
 	t_warownia = _zakladka("Warownia", VBoxContainer.new())
 	t_umiej = _zakladka("Umiejętności", VBoxContainer.new())
-	zakladki.tab_changed.connect(func(_i): Dzwiek.ui(); _fokus_klucz = ""; odswiez())
+	# miejsce na znaczek LB przed pierwszą zakładką
+	zakladki.add_theme_constant_override("side_margin", 44)
+	# zmiana zakładki czyści opis (wcześniej w Kupcu wisiał tekst krainy z Wyprawy)
+	zakladki.tab_changed.connect(func(_i): Dzwiek.ui(); _fokus_klucz = ""; opis.text = ""; _komunikat_kupca = ""; odswiez())
 	opis = Ui.etykieta("", 13, Ui.POPIOL)
 	opis.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	opis.custom_minimum_size = Vector2(0, 54)
-	var po := Ui.panel()
-	po.add_child(opis)
-	v.add_child(po)
-	dialog_reset = ConfirmationDialog.new()
-	dialog_reset.title = "Zniszczyć Kronikę Warowni?"
-	dialog_reset.dialog_text = "Wszystkie przedmioty, ulepszenia, złoto i umiejętności zostaną usunięte."
-	dialog_reset.ok_button_text = "Tak, zresetuj"
-	dialog_reset.cancel_button_text = "Anuluj"
-	dialog_reset.confirmed.connect(func(): Profil.resetuj(); odswiez())
-	add_child(dialog_reset)
-	Profil.awans.connect(func(u, lv): opis.text = "Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv])
+	panel_opisu = Ui.panel()
+	panel_opisu.add_child(opis)
+	v.add_child(panel_opisu)
+	_znaczki = Control.new()
+	_znaczki.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_znaczki)
+	_znaczki.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_znaczki.draw.connect(func(): Ui.rysuj_znaczki_zakladek(_znaczki, zakladki))
+	Profil.awans.connect(func(u, lv): _info("Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv]))
 	odswiez()
+
+
+func _process(_dt: float) -> void:
+	if is_visible_in_tree():
+		_znaczki.queue_redraw()
+
+
+## Komunikat dla gracza: w Kupcu w prawym panelu (jeden panel opisu), gdzie indziej w dolnym.
+func _info(t: String) -> void:
+	if zakladki.current_tab == 2:
+		_komunikat_kupca = t
+		if _sz_kom != null and is_instance_valid(_sz_kom):
+			_sz_kom.text = t
+	else:
+		opis.text = t
 
 
 func _zakladka(nazwa: String, zawartosc: Control) -> Control:
@@ -113,7 +128,7 @@ func _zakladka(nazwa: String, zawartosc: Control) -> Control:
 func _unhandled_input(e: InputEvent) -> void:
 	if not is_visible_in_tree():
 		return
-	if e.is_action_pressed("ui_cancel") and not dialog_reset.visible:
+	if e.is_action_pressed("ui_cancel"):
 		zamknij.emit()
 		get_viewport().set_input_as_handled()
 		return
@@ -142,6 +157,7 @@ func odswiez() -> void:
 	var d := Profil.d
 	naglowek.text = "Złoto %d   ·   Żelazo %d   ·   Popiół %d   ·   Relikty %d   ·   Wyprawy %d (przeżyte %d)   " % [
 		d["gold"], Profil.licz_surowiec("iron"), Profil.licz_surowiec("ash"), Profil.licz_surowiec("relic"), d["stats"]["raids"], d["stats"]["survived"]]
+	panel_opisu.visible = zakladki.current_tab != 2  # Kupiec ma własny panel szczegółów po prawej
 	match zakladki.current_tab:
 		0: _wyprawa()
 		1: _ekwipunek()
@@ -201,7 +217,8 @@ func _slot(inst, klucz: String, akcja: Callable, na_relikwiarz := Callable()) ->
 	b.add_theme_stylebox_override("focus", Ui.styl_slotu(rz, true))
 	b.add_theme_stylebox_override("pressed", Ui.styl_slotu(rz, true))
 	b.add_theme_color_override("font_color", rz.lightened(0.35))
-	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_font_size_override("font_size", 12)  # „Tonik Wytrzymałości” mieści się w slocie
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var t := "%s — %s\n%s\n%s" % [d["name"], Dane.NAZWY_TYPOW.get(d.get("type"), ""), d.get("desc", ""), Dane.opis_statystyk(inst)]
 	b.tooltip_text = t
 	b.focus_entered.connect(func(): opis.text = t)
@@ -223,7 +240,9 @@ func _slot(inst, klucz: String, akcja: Callable, na_relikwiarz := Callable()) ->
 
 ## Zaznaczona opcja (wybrana kraina, kategoria): bordowa tablica i złoty napis — bez strzałek.
 func _wybrany(b: Button) -> void:
-	b.add_theme_stylebox_override("normal", b.get_theme_stylebox("focus"))
+	# wcześniej: styl „focus” pobierany przed wejściem do drzewa = domyślna biała ramka Godota
+	b.add_theme_stylebox_override("normal", Ui.styl_wybrany())
+	b.add_theme_stylebox_override("hover", Ui.styl_wybrany())
 	b.add_theme_color_override("font_color", Color("ffd58a"))
 
 
@@ -248,6 +267,7 @@ func _wyprawa() -> void:
 		h.add_child(b)
 	t_wyprawa.add_child(h)
 	var hz := HBoxContainer.new()
+	hz.visible = Ui.tryb_autora()  # narzędzie autora — gracz zawsze dostaje losową mapę
 	hz.add_child(Ui.etykieta("ZIARNO MAPY: ", 14, Ui.SZARY))
 	var pole := LineEdit.new()
 	pole.text = ziarno
@@ -281,7 +301,10 @@ func _wyprawa() -> void:
 	start.set_meta("klucz", "start")
 	start.custom_minimum_size = Vector2(0, 56)
 	start.add_theme_font_size_override("font_size", 20)
-	start.pressed.connect(func(): start_rajdu.emit(wybrana_kraina, ziarno if ziarno != "" else _losowe_ziarno()))
+	start.pressed.connect(func():
+		var z := ziarno if (ziarno != "" and Ui.tryb_autora()) else _losowe_ziarno()
+		ziarno = _losowe_ziarno()  # następna wyprawa: nowa mapa
+		start_rajdu.emit(wybrana_kraina, z))
 	t_wyprawa.add_child(start)
 	var instr := "Paruj, gdy broń wroga błyśnie ZŁOTEM, i odpowiedz Ripostą. CZERWONY błysk: tylko unik.\n" + \
 		"Pochodnia zajmuje rękę tarczy: rzuć ją przed walką. Złamana postura też otwiera Ripostę.\n" + \
@@ -306,7 +329,7 @@ func _ekwipunek() -> void:
 			if l[slot] == null:
 				return
 			if d["stash"].size() >= Profil.max_skrytka():
-				opis.text = "Skrytka jest pełna!"
+				_info("Skrytka jest pełna!")
 				return
 			d["stash"].append(l[slot])
 			l[slot] = null
@@ -336,7 +359,7 @@ func _ekwipunek() -> void:
 				_zmiana(),
 			func():
 				if l["reliquary"].size() >= Profil.max_relikwiarz():
-					opis.text = "Relikwiarz jest pełny!"
+					_info("Relikwiarz jest pełny!")
 					return
 				l["reliquary"].append(l["backpack"].pop_at(idx))
 				_zmiana()))
@@ -366,12 +389,12 @@ func _ekwipunek() -> void:
 				elif l["backpack"].size() < Profil.SAKWA_MAX:
 					l["backpack"].append(d["stash"].pop_at(idx))
 				else:
-					opis.text = "Sakwa jest pełna (12/12)!"
+					_info("Sakwa jest pełna (12/12)!")
 					return
 				_zmiana(),
 			func():
 				if l["reliquary"].size() >= Profil.max_relikwiarz():
-					opis.text = "Relikwiarz jest pełny!"
+					_info("Relikwiarz jest pełny!")
 					return
 				l["reliquary"].append(d["stash"].pop_at(idx))
 				_zmiana()))
@@ -389,6 +412,7 @@ var _sz_opis: Label
 var _sz_staty: Label
 var _sz_porown: Label
 var _sz_cena: Label
+var _sz_kom: Label
 
 
 func _kupiec() -> void:
@@ -471,7 +495,7 @@ func _kupiec() -> void:
 						zysk += Dane.cena_skupu(lista[i]["id"])
 						lista.remove_at(i)
 			d["gold"] += zysk
-			opis.text = "Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż."
+			_info("Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż.")
 			_zmiana()))
 		lewa.add_child(hs)
 		var wpisy: Array = []
@@ -555,6 +579,11 @@ func _panel_szczegolow() -> Control:
 	_sz_cena = Ui.etykieta("", 20, Ui.ZLOTO)
 	_sz_cena.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_sz_cena)
+	_sz_kom = Ui.etykieta(_komunikat_kupca, 15, Color("f0cf85"))
+	_sz_kom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_sz_kom.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_sz_kom.custom_minimum_size = Vector2(360, 0)
+	v.add_child(_sz_kom)
 	return p
 
 
@@ -603,13 +632,13 @@ func _kup(id: String) -> void:
 	var def := Dane.p(id)
 	var cena := int(def["price"])
 	if int(def.get("forgeReq", 0)) > Profil.budynek("forge"):
-		opis.text = "Ten oręż wymaga Kuźni na poziomie %d." % int(def["forgeReq"])
+		_info("Ten oręż wymaga Kuźni na poziomie %d." % int(def["forgeReq"]))
 		return
 	if d["gold"] < cena:
-		opis.text = "Za mało złota!"
+		_info("Za mało złota!")
 		return
 	if d["stash"].size() >= Profil.max_skrytka() and d["loadout"]["backpack"].size() >= Profil.SAKWA_MAX:
-		opis.text = "Brak miejsca w Skrytce i Sakwie!"
+		_info("Brak miejsca w Skrytce i Sakwie!")
 		return
 	d["gold"] -= cena
 	var inst := Profil.nowy_przedmiot(id)
@@ -621,7 +650,7 @@ func _kup(id: String) -> void:
 		d["stash"].append(inst)
 	else:
 		l["backpack"].append(inst)
-	opis.text = "Kupiono: " + str(def["name"])
+	_info("Kupiono: " + str(def["name"]))
 	Dzwiek.lup()
 	_zmiana()
 
@@ -668,7 +697,7 @@ func _warownia() -> void:
 				Profil.zuzyj_surowiec("relic", int(k["relic"]))
 				Profil.d["stronghold"][bid] = Profil.budynek(bid) + 1
 				Dzwiek.ekstrakcja()
-				opis.text = "Ulepszono: %s (poziom %d)!" % [up["name"], Profil.budynek(bid)]
+				_info("Ulepszono: %s (poziom %d)!" % [up["name"], Profil.budynek(bid)])
 				Profil.zapisz()
 				odswiez())
 			v.add_child(b)

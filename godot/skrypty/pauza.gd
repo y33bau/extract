@@ -3,6 +3,8 @@ extends CanvasLayer
 ## Zatrzymuje drzewo gry (get_tree().paused); sama działa zawsze. Pad: LB/RB zakładki, A wybiera, B lub Start wraca do gry.
 
 signal wznowiono
+signal otwarto
+signal zresetowano  # usunięto zapis (Opcje → Dane zapisu)
 
 const Ui = preload("res://skrypty/ui.gd")
 
@@ -15,6 +17,9 @@ var _grafika: Button
 var _dzwiek: Button
 var _umiej: VBoxContainer
 var w_rajdzie := false
+var dane_zapisu: Button
+var dialog_reset: ConfirmationDialog
+var _znaczki: Control
 
 
 func _init() -> void:
@@ -29,7 +34,7 @@ func _ready() -> void:
 	korzen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(korzen)
 	var tlo := ColorRect.new()
-	tlo.color = Color(0.02, 0.015, 0.02, 0.78)
+	tlo.color = Color(0.02, 0.015, 0.02, 0.92)  # ciemniej: gra pod pauzą nie przebija (było 0,78)
 	tlo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	korzen.add_child(tlo)
 	var winieta := ColorRect.new()
@@ -94,6 +99,23 @@ void fragment() {
 	dialog_wyjscia.cancel_button_text = "Zostań"
 	dialog_wyjscia.confirmed.connect(func(): get_tree().quit())
 	korzen.add_child(dialog_wyjscia)
+	dialog_reset = ConfirmationDialog.new()
+	dialog_reset.title = "Zniszczyć Kronikę Warowni?"
+	dialog_reset.dialog_text = "Wszystkie przedmioty, ulepszenia, złoto i umiejętności zostaną usunięte."
+	dialog_reset.ok_button_text = "Tak, usuń zapis"
+	dialog_reset.cancel_button_text = "Anuluj"
+	dialog_reset.confirmed.connect(func(): Profil.resetuj(); zresetowano.emit(); _odswiez_umiejetnosci())
+	korzen.add_child(dialog_reset)
+	_znaczki = Control.new()
+	_znaczki.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	korzen.add_child(_znaczki)
+	_znaczki.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_znaczki.draw.connect(func(): Ui.rysuj_znaczki_zakladek(_znaczki, zakladki))
+
+
+func _process(_dt: float) -> void:
+	if visible:
+		_znaczki.queue_redraw()
 
 
 func _ornament(c: Control) -> void:
@@ -189,7 +211,7 @@ func _odswiez_umiejetnosci() -> void:
 
 func _ustawienia() -> Control:
 	var c := CenterContainer.new()
-	c.name = "Grafika i dźwięk"
+	c.name = "Opcje"
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
 	c.add_child(v)
@@ -210,6 +232,13 @@ func _ustawienia() -> Control:
 	var uw := Ui.etykieta("Zmiana jakości grafiki działa od następnej wyprawy.", 14, Color("9d8f78"))
 	uw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(uw)
+	# Dane zapisu (przeniesione z górnego paska Warowni): tylko w Przystani, zawsze z potwierdzeniem
+	dane_zapisu = Button.new()
+	dane_zapisu.text = "Dane zapisu: usuń Kronikę Warowni"
+	dane_zapisu.custom_minimum_size = Vector2(440, 56)
+	dane_zapisu.add_theme_color_override("font_color", Color("e8a08a"))
+	dane_zapisu.pressed.connect(func(): dialog_reset.popup_centered())
+	v.add_child(dane_zapisu)
 	return c
 
 
@@ -218,13 +247,15 @@ func _napisy_ustawien() -> void:
 	_dzwiek.text = "Dźwięk: wyłączony" if Dzwiek.wyciszony else "Dźwięk: włączony"
 
 
-func otworz(miejsce: String, rajd_trwa: bool) -> void:
+func otworz(miejsce: String, rajd_trwa: bool, statystyki := "") -> void:
 	w_rajdzie = rajd_trwa
-	podtytul.text = miejsce.to_upper()
-	wyjdz.visible = not rajd_trwa  # w rajdzie nie ma ucieczki z gry (pauza to nie wyjście z wyprawy)
+	podtytul.text = miejsce.to_upper() + ("   ·   " + statystyki if statystyki != "" else "")
+	wyjdz.visible = not rajd_trwa
+	dane_zapisu.visible = not rajd_trwa  # w trakcie wyprawy nie kasujemy zapisu  # w rajdzie nie ma ucieczki z gry (pauza to nie wyjście z wyprawy)
 	_napisy_ustawien()
 	_odswiez_umiejetnosci()
 	visible = true
+	otwarto.emit()
 	get_tree().paused = true
 	Dzwiek.ui()
 	wroc.grab_focus.call_deferred()
@@ -251,7 +282,7 @@ func _fokus_w_zakladce() -> void:
 
 
 func _unhandled_input(e: InputEvent) -> void:
-	if not visible or dialog_wyjscia.visible:
+	if not visible or dialog_wyjscia.visible or dialog_reset.visible:
 		return
 	if e.is_action_pressed("pauza") or e.is_action_pressed("ui_cancel"):
 		zamknij()

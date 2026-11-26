@@ -17,6 +17,23 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 15:25 — nowe konto, rola: gamedev — szlif menu i UI (zlecenie od zespołu NightBrand)
+- Gałąź: `szlif-menu-ui` (od `walka-i-oznaczenia`, nie od `main` — obie rundy zmieniają `hud.gd`; paczka zawiera obie).
+- Zlecenie autora (15:07): przekazanie zespołu NightBrand — `NIGHTBRAND\WAROWNIA_POPIOLOW\ZADANIE_WAROWNIA_SZLIF_MENU_UI_2026-11-26.md` (+ OCENA_…, PODPOWIEDZI_…). Tylko wygląd i porządek UI, bez rozgrywki i balansu.
+- Zrobione (7 punktów zlecenia):
+  1. Kupiec: zmiana zakładki czyści dolny opis; w Kupcu dolny panel ukryty, komunikaty (kupiono, brak złota) w prawym panelu (`hub._info`, `_sz_kom`).
+  2. Pauza: tło 0,78 → 0,92; HUD chowa się na czas pauzy (`pauza.otwarto` / `wznowiono` w `gra.gd`).
+  3. Narzędzia autora: ziarno mapy + „Losuj” i ziarno w HUD tylko z parametrem gry `--autor` (`Ui.tryb_autora()`; bez niego każda wyprawa dostaje losowe ziarno). „Pokonani · Parowania” z HUD → podtytuł pauzy (na ekranie wyniku były już wcześniej).
+  4. Reset: zniknął z górnego paska Warowni → pauza w Przystani, zakładka „Opcje” (dawniej „Grafika i dźwięk”) → „Dane zapisu: usuń Kronikę Warowni” z potwierdzeniem; w rajdzie ukryty.
+  5. Znaczki LB/RB przy zakładkach huba i pauzy, gdy gracz używa pada (`Sterowanie.pad_aktywny`, `Ui.rysuj_znaczki_zakladek`).
+  6. Biała ramka „wybranego” to był domyślny styl Godota (styl „focus” pobrany przed wejściem przycisku do drzewa). Teraz „wybrane” = jaśniejsza tablica + złoty napis (`Ui.styl_wybrany`); fokus = jedna złota poświata z motywu.
+  7. Drobne: nazwy w slotach Skrytki i okna łupu czcionką 12 z łamaniem słów; pusty slot pasa bez „0”; rytuał ekstrakcji bez „−0,0 s”; gwiazdki łupu zawsze w skali 4 (★★☆☆ / ★★★☆ / ★★★★).
+- Testy: `testy.py godot` OK **119/119** (nowe: Wyprawa → Kupiec bez tekstu krainy i jeden panel, komunikat w prawym panelu, brak Resetu w pasku, ziarno ukryte, styl wybranego, skala gwiazdek, pad → znaczki LB/RB, HUD schowany pod pauzą i wraca, statystyki w pauzie, Opcje → usuń zapis z potwierdzeniem / brak w rajdzie). Kontrola spakowanej gry OK 119/119.
+- Dostarczone: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_SzlifMenu.zip` (`TEST_SZLIF_MENU.bat`; `TEST_TRYB_AUTORA.bat` = gra z `--autor`). 401 MB — na granicy limitu przesyłania.
+- NIE sprawdzone: prawdziwy pad (znaczki LB/RB tylko na symulowanym), wygląd u autora, ekrany inne niż 16:9; okno potwierdzenia resetu z padem.
+- Poza zakresem (czeka na decyzję autora, wg OCENA): czcionka tekstu (Cinzel tylko nagłówki), okno łupu i wynik w ramie, przebudowa huba, grafika lochu/mgły/ścieżki, propozycje walki NightBrand a)–e).
+- Następny krok: ocena autora obu paczek; potem doczytywanie assetów przy odsłanianiu mapy + odchudzenie eksportu.
+
 ## 2026-11-26 15:05 — nowe konto, rola: gamedev — walka i oznaczenia
 - Gałąź: `walka-i-oznaczenia` (od `main` `7063a91`).
 - **Ocena autora (14:43):** Czarnobór — „płynność super”, ale **assety długo się doczytują w trakcie odsłaniania mapy** (usterka do osobnej rundy, nie ruszana).

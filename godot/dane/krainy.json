@@ -5,7 +5,7 @@
   "subtitle": "Mroczne korytarze i stare krypty",
   "diff": "POCZĄTKUJĄCA",
   "diffColor": "text-emerald-400",
-  "lootStars": "★★☆",
+  "lootStars": "★★☆☆",
   "enemyCount": 60,
   "hasBoss": false,
   "palette": {
@@ -25,7 +25,7 @@
   "subtitle": "Knieja, polany i wymuszone ścieżki",
   "diff": "ŚREDNIA",
   "diffColor": "text-[#e6ba63]",
-  "lootStars": "★★★",
+  "lootStars": "★★★☆",
   "enemyCount": 56,
   "hasBoss": false,
   "palette": {
@@ -44,7 +44,7 @@
   "subtitle": "Zawalony dziedziniec i mury strażnicze",
   "diff": "ŚREDNIA",
   "diffColor": "text-[#e6ba63]",
-  "lootStars": "★★★",
+  "lootStars": "★★★☆",
   "enemyCount": 78,
   "hasBoss": false,
   "palette": {

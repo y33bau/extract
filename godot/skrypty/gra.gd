@@ -33,6 +33,13 @@ func _ready() -> void:
 	hub_warstwa.add_child(hub)
 	pauza = Pauza.new()
 	add_child(pauza)
+	# HUD chowa się pod pauzą (nie przebija licznikiem, minimapą ani podpowiedziami)
+	pauza.otwarto.connect(func(): if hud != null and is_instance_valid(hud): hud.visible = false)
+	pauza.wznowiono.connect(func(): if hud != null and is_instance_valid(hud) and rajd != null: hud.visible = true)
+	pauza.zresetowano.connect(func():
+		hub.odswiez()
+		if przystan != null:
+			przystan.odswiez_budynki())
 	_przystan()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
@@ -301,7 +308,7 @@ func moze_pauzowac() -> bool:
 
 func otworz_pauze() -> void:
 	if rajd != null:
-		pauza.otworz(str(rajd.kraina["name"]), true)
+		pauza.otworz(str(rajd.kraina["name"]), true, "Pokonani %d   ·   Parowania %d" % [rajd.zabici, rajd.parowania])
 	else:
 		pauza.otworz("Przystań · Warownia Popiołów", false)
 
@@ -512,6 +519,52 @@ func _test_kramu() -> void:
 	hub.tryb_kupca = "kup"
 	hub.kategoria = "all"
 	Profil.d = kopia_profilu  # test nie zmienia profilu (zakup był tylko sprawdzeniem)
+
+
+## Szlif menu i UI (zlecenie autora 26.11, ocena NightBrand): jeden panel opisu w Kupcu, bez narzędzi autora
+## na widoku gracza, Reset poza górnym paskiem, spokojne „wybrane”, znaczki LB/RB przy zakładkach.
+func _test_szlifu_menu() -> void:
+	hub.zakladki.current_tab = 0
+	hub.odswiez()
+	await _klatka()
+	await _klatka()
+	var kraina: Dictionary = Dane.krainy[0]
+	hub.opis.text = "%s\n%s" % [kraina["subtitle"], kraina["desc"]]  # jak po fokusie na krainie
+	hub.zakladki.current_tab = 2
+	await _klatka()
+	await _klatka()
+	var w_kupcu: bool = hub.panel_opisu.visible and hub.opis.text.contains(str(kraina["desc"]))
+	_ok("Wyprawa → Kupiec: brak tekstu krainy, jeden panel opisu", not w_kupcu and not hub.panel_opisu.visible and hub.opis.text == "", "dolny panel %s" % hub.panel_opisu.visible)
+	var przed := int(Profil.d["gold"])
+	Profil.d["gold"] = 0
+	hub._kup("ember_flask")
+	await _klatka()
+	_ok("Kupiec: komunikat w prawym panelu", hub._sz_kom != null and hub._sz_kom.text == "Za mało złota!", hub._sz_kom.text if hub._sz_kom else "brak")
+	Profil.d["gold"] = przed
+	var gora_reset := hub.find_children("*", "Button", true, false).any(func(b): return b.text == "Reset")
+	_ok("Warownia: Reset zniknął z górnego paska", not gora_reset)
+	hub.zakladki.current_tab = 0
+	await _klatka()
+	await _klatka()
+	var pole_ziarna := hub.t_wyprawa.find_children("*", "LineEdit", true, false)
+	_ok("Wyprawa: ziarno mapy i Losuj ukryte (tylko tryb autora)", pole_ziarna.size() > 0 and not (pole_ziarna[0] as LineEdit).is_visible_in_tree())
+	var wybrany: Array = hub.t_wyprawa.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "kraina_" + hub.wybrana_kraina)
+	_ok("wybrana kraina: spokojny znak, nie biała ramka", wybrany.size() == 1 and (wybrany[0] as Button).get_theme_stylebox("normal") is StyleBoxTexture)
+	var gw := hub.t_wyprawa.find_children("*", "Button", true, false).filter(func(b): return str(b.text).contains("★"))
+	var skala_ok := true
+	for b in gw:
+		var gwiazdki := 0
+		for ch in str(b.text):
+			if ch == "★" or ch == "☆":
+				gwiazdki += 1
+		skala_ok = skala_ok and gwiazdki == 4
+	_ok("trudność: jedna skala gwiazdek (4)", gw.size() >= 3 and skala_ok, "%d krain" % gw.size())
+	await _pad(JOY_BUTTON_DPAD_DOWN)
+	_ok("pad: menu wie, że gra się padem (znaczki LB/RB)", Sterowanie.pad_aktywny)
+	await _zrzut("2b_wyprawa_pad")
+	hub.zakladki.current_tab = 2
+	await _klatka()
+	await _zrzut("1e_kram_szlif")
 
 
 ## Namierzanie i celowanie (decyzja autora 26.11.2026): kursor nie obraca postaci, klik na wroga = cios w niego,
@@ -750,6 +803,16 @@ func _test_pauzy(gdzie: String, zrzut: String) -> void:
 	_ok("%s: pauza — fokus na „Wróć do gry” (pad)" % gdzie, fokus == pauza.wroc, str(fokus))
 	var wiersze := pauza.zakladki.get_child(0).find_children("*", "Label", true, false).size()
 	_ok("%s: pauza — sterowanie klawiatura + pad dla każdej czynności" % gdzie, wiersze >= Sterowanie.OPIS.size() * 2, "%d etykiet" % wiersze)
+	if rajd != null:
+		_ok("rajd: pod pauzą HUD schowany, wynik walki w podtytule", not hud.visible and pauza.podtytul.text.contains("Pokonani"), pauza.podtytul.text)
+		_ok("rajd: w pauzie nie ma usuwania zapisu", not pauza.dane_zapisu.visible)
+	else:
+		_ok("Przystań: Opcje → usuń zapis (z potwierdzeniem)", pauza.dane_zapisu.visible and pauza.zakladki.get_child(2).name == "Opcje")
+		pauza.dane_zapisu.pressed.emit()
+		await _klatka()
+		var okno_ok: bool = pauza.dialog_reset.visible
+		pauza.dialog_reset.hide()
+		_ok("Przystań: usunięcie zapisu pyta o potwierdzenie", okno_ok)
 	await _zrzut(zrzut)
 	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
 	_ok("%s: RB przełącza zakładkę pauzy" % gdzie, pauza.zakladki.current_tab == 1)
@@ -758,6 +821,8 @@ func _test_pauzy(gdzie: String, zrzut: String) -> void:
 	await _pad(JOY_BUTTON_B)
 	await _czekaj_az(func(): return not pauza.visible, 2.0)
 	_ok("%s: B wraca do gry" % gdzie, not pauza.visible and not get_tree().paused)
+	if rajd != null:
+		_ok("rajd: po pauzie HUD wraca", hud.visible)
 	var esc := InputEventKey.new()
 	esc.physical_keycode = KEY_ESCAPE
 	esc.pressed = true
@@ -1226,6 +1291,7 @@ func _test() -> void:
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)
 	_ok("Back otwiera całe menu Warowni", hub.is_visible_in_tree())
 	await _test_kramu()
+	await _test_szlifu_menu()
 	hub.zakladki.current_tab = 0
 	await _czekaj(0.2)
 	# ustawienie jakości grafiki: przycisk przełącza i zapamiętuje

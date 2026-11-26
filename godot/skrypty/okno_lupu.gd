@@ -168,8 +168,8 @@ func odswiez() -> void:
 func _slot(inst, klucz: String, akcja: Callable) -> Button:
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(160, 58)
-	b.autowrap_mode = TextServer.AUTOWRAP_WORD
-	b.add_theme_font_size_override("font_size", 14)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.add_theme_font_size_override("font_size", 12)  # długie nazwy („Tonik Wytrzymałości”) bez ucięcia
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.set_meta("klucz", klucz)
 	if inst == null:

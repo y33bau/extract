@@ -27,8 +27,12 @@ const OPIS := [
 
 const MARTWA_STREFA := 0.25
 
+## Czym gracz gra teraz (menu pokazują znaczki pada albo klawisze): ostatnie urządzenie, którego użył.
+var pad_aktywny := false
+
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS  # także w pauzie
 	_akcja("ruch_lewo", [_klaw(KEY_A), _klaw(KEY_LEFT), _os(JOY_AXIS_LEFT_X, -1.0)])
 	_akcja("ruch_prawo", [_klaw(KEY_D), _klaw(KEY_RIGHT), _os(JOY_AXIS_LEFT_X, 1.0)])
 	_akcja("ruch_gora", [_klaw(KEY_W), _klaw(KEY_UP), _os(JOY_AXIS_LEFT_Y, -1.0)])
@@ -58,6 +62,13 @@ func _ready() -> void:
 	_akcja("okno_wyrzuc", [_pr(JOY_BUTTON_X)])
 	_akcja("zakladka_lewo", [_pr(JOY_BUTTON_LEFT_SHOULDER)])
 	_akcja("zakladka_prawo", [_pr(JOY_BUTTON_RIGHT_SHOULDER)])
+
+
+func _input(e: InputEvent) -> void:
+	if e is InputEventJoypadButton or (e is InputEventJoypadMotion and absf(e.axis_value) > 0.4):
+		pad_aktywny = true
+	elif e is InputEventKey or e is InputEventMouseButton or (e is InputEventMouseMotion and e.relative.length() > 2.0):
+		pad_aktywny = false
 
 
 func _akcja(nazwa: String, zdarzenia: Array) -> void:

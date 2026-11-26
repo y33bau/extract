@@ -147,6 +147,38 @@ static func _styl(tlo: Color, rama: Color, grubosc: int, zaokr: int) -> StyleBox
 	return s
 
 
+## Tryb autora: narzędzia autora (ziarno mapy, „Losuj”, ziarno w HUD) widać tylko z parametrem gry --autor
+## (np. `Warownia_Popiolow.exe -- --autor`). Gracz ich nie widzi.
+static func tryb_autora() -> bool:
+	return "--autor" in OS.get_cmdline_user_args()
+
+
+## Wybrana opcja (kraina, tryb kramu, kategoria): spokojny znak — jaśniejsza tablica i złoty napis, bez drugiej ramki.
+## Fokus zostaje jeden: złota poświata z motywu (btn_fokus).
+static func styl_wybrany() -> StyleBoxTexture:
+	var sb := _tex("btn", [26, 14, 26, 14])
+	sb.modulate_color = Color(1.45, 1.25, 0.95)
+	return sb
+
+
+## Znaczki LB / RB po bokach paska zakładek (rysowane na nakładce `c`, gdy gracz używa pada).
+static func rysuj_znaczki_zakladek(c: Control, zakladki: TabContainer) -> void:
+	if not Sterowanie.pad_aktywny or not zakladki.is_visible_in_tree() or zakladki.get_tab_count() == 0:
+		return
+	var tb := zakladki.get_tab_bar()
+	var r0 := tb.get_tab_rect(0)
+	var r1 := tb.get_tab_rect(zakladki.get_tab_count() - 1)
+	var przes := tb.global_position - c.global_position
+	for z in [["lb", r0, -1.0], ["rb", r1, 1.0]]:
+		var tex: Texture2D = load("res://zasoby/ui/pad_%s.webp" % z[0])
+		var r: Rect2 = z[1]
+		var wys := 26.0
+		var szer := wys * tex.get_size().x / maxf(1.0, tex.get_size().y)
+		var y := przes.y + r.position.y + (r.size.y - wys) * 0.5
+		var x := przes.x + (r.position.x - szer - 6.0 if z[2] < 0.0 else r.end.x + 6.0)
+		c.draw_texture_rect(tex, Rect2(x, y, szer, wys), false)
+
+
 ## Główny przycisk (start wyprawy, rozbudowa, wznowienie gry): drewniana tablica z okuciami, fokus = żar.
 static func przycisk_akcji(tekst: String) -> Button:
 	var b := Button.new()
