@@ -5,7 +5,7 @@ extends RefCounted
 ## legowiska) połączone krętymi korytarzami z pętlami. Wszystko osiągalne od startu (sprawdzane BFS).
 
 const ROZMIAR := 128   # decyzja autora 26.11.2026: wszystkie mapy 128×128 m, rajd 20 min
-enum K { PODLOGA, SCIEZKA, MUR, FILAR, KOSZ, GRUZ, EKSTRAKCJA }
+enum K { PODLOGA, SCIEZKA, MUR, FILAR, KOSZ, GRUZ, EKSTRAKCJA, WODA }   # WODA: las (strumień) — blokuje ruch, nie wzrok
 
 const PULE_LUPU := {
 	"loot_chest": ["iron_ingot", "iron_arrows", "ember_flask", "stamina_tonic", "ash_salve", "silver_goblet", "steel_falchion", "iron_kite", "yew_longbow"],
@@ -43,7 +43,7 @@ var rng_wrogowie := RandomNumberGenerator.new()
 
 
 static func blokuje_ruch(t: int) -> bool:
-	return t == K.MUR or t == K.FILAR or t == K.KOSZ or t == K.GRUZ
+	return t == K.MUR or t == K.FILAR or t == K.KOSZ or t == K.GRUZ or t == K.WODA
 
 
 static func blokuje_wzrok(t: int) -> bool:

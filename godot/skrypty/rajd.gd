@@ -9,6 +9,7 @@ signal obszar(nazwa: String, opis: String)  # wejście do nowej komnaty (tytuł 
 
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
+const MapgenLas = preload("res://skrypty/mapgen_las.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
 const Wrog = preload("res://skrypty/wrog.gd")
 const Efekty = preload("res://skrypty/efekty.gd")
@@ -22,7 +23,7 @@ const ZOOM_3D := 1.45      # bliższa kamera dla modeli 3D (tylko wygląd)
 
 var kraina: Dictionary
 var ziarno := ""
-var mapa: Mapgen
+var mapa  # Mapgen (loch) albo MapgenLas (las) — ten sam interfejs logiki
 var gracz: Bohater
 var wrogowie: Array = []
 var zwloki: Array = []     # {w, rodzaj, kat, nazwa, boss, sakwa, przedmioty, wezel}
@@ -82,7 +83,7 @@ var swiat3d: Swiat3D
 func start(id_krainy: String, ziarno_mapy: String) -> void:
 	kraina = Dane.kraina(id_krainy)
 	ziarno = ziarno_mapy
-	mapa = Mapgen.new()
+	mapa = MapgenLas.new() if kraina.get("typ", "") == "las" else Mapgen.new()
 	mapa.generuj(kraina, ziarno, Profil.poziom("scavenger"))
 	widok.resize(N * N)
 	widok.fill(0)
@@ -109,6 +110,10 @@ const NAZWY_OBSZAROW := {
 	"legowisko": ["Legowisko", "Kości obgryzione do czysta. Gospodarze są w domu."],
 	"skarbiec": ["Skarbiec", "Złoto przyciąga strażników jak padlina wrony."],
 	"ekstrakcja": ["Krąg Powrotu", "Stąd można wrócić. Jeśli ktoś pozwoli."],
+	"oboz": ["Obóz Kłusowników", "Ognisko jeszcze ciepłe. Właściciele nie odeszli daleko."],
+	"kapliczka_lesna": ["Leśna Kapliczka", "Ktoś tu zostawił chleb. Las go nie ruszył."],
+	"kurhan": ["Kurhan", "Stare kamienie. Pod nimi starsze kości."],
+	"laka": ["Wilcza Łąka", "Otwarte niebo. Za otwarte."],
 }
 var komnata_pola := PackedInt32Array()
 var _komnata_gracza := -1
@@ -158,7 +163,7 @@ func _buduj_swiat() -> void:
 	add_child(swiat)
 	for y in N:
 		for x in N:
-			var t := mapa.kafel(x, y)
+			var t: int = mapa.kafel(x, y)
 			var nazwa := ""
 			var off := Vector2.ZERO
 			match t:
@@ -236,13 +241,14 @@ func _postaw_gracza() -> void:
 
 
 func _postaw_wrogow() -> void:
-	var r := mapa.rng_wrogowie
+	var r: RandomNumberGenerator = mapa.rng_wrogowie
 	var tabela: Array = {
 		"catacombs": [["scout", 0.5], ["warden", 0.3], ["archer", 0.2]],
+		"czarnobor": [["scout", 0.35], ["archer", 0.3], ["warden", 0.2], ["brute", 0.15]],
 		"outskirts": [["scout", 0.25], ["warden", 0.25], ["archer", 0.2], ["knight", 0.2], ["brute", 0.1]],
 		"crypt": [["scout", 0.15], ["warden", 0.2], ["archer", 0.15], ["knight", 0.25], ["brute", 0.25]],
 	}[kraina["id"]]
-	var ciezcy: Array = {"catacombs": ["warden", "warden", "archer"], "outskirts": ["knight", "brute", "warden"],
+	var ciezcy: Array = {"catacombs": ["warden", "warden", "archer"], "czarnobor": ["brute", "warden", "archer"], "outskirts": ["knight", "brute", "warden"],
 		"crypt": ["knight", "brute", "brute"]}[kraina["id"]]
 	var limit := int(kraina["enemyCount"])
 	# Komnaty dają miejsca: legowiska i skarbce strzeżone, zwykłe komnaty po 0-2, korytarze — patrole.
@@ -257,9 +263,14 @@ func _postaw_wrogow() -> void:
 			"legowisko":
 				ile = 3 + r.randi_range(0, 1)
 				straz = true
-			"skarbiec":
+			"skarbiec", "kurhan":
 				ile = 2
 				straz = true
+			"oboz":
+				ile = 3
+				straz = true
+			"laka", "polana":
+				ile = 2 + r.randi_range(0, 1)
 			"sala_filarow", "dziedziniec":
 				ile = 2 + r.randi_range(0, 1)
 			"ekstrakcja":
@@ -311,7 +322,7 @@ func _postaw_wrogow() -> void:
 			if not (k["typ"] in ["legowisko", "sala_filarow", "dziedziniec"]):
 				continue
 			var c2: Vector2 = k["srodek"]
-			var t2 := mapa.kafel(int(c2.x), int(c2.y))
+			var t2: int = mapa.kafel(int(c2.x), int(c2.y))
 			if Mapgen.blokuje_ruch(t2):
 				continue
 			var dd := c2.distance_to(gracz.w)
@@ -337,7 +348,7 @@ func _rysuj_podloge() -> void:
 			var v := widok[y * N + x]
 			if v == 0:
 				continue
-			var t := mapa.kafel(x, y)
+			var t: int = mapa.kafel(x, y)
 			var tex: Texture2D = tekstury["floor_%d" % mapa.wariant[y * N + x]]
 			if t == K.SCIEZKA:
 				tex = tekstury["path"]
@@ -518,7 +529,7 @@ func _licz_widok() -> void:
 			var tx: int = i % N
 			var ty: int = i / N
 			var alfa := 1.0 if v == 2 else 0.34
-			var t := mapa.siatka[i]
+			var t: int = mapa.siatka[i]
 			if (t == K.MUR or t == K.FILAR) and tx + ty > gracz.w.x + gracz.w.y \
 					and absf(tx - gracz.w.x) < 2.1 and absf(ty - gracz.w.y) < 2.1:
 				alfa = minf(alfa, 0.35)
@@ -1048,7 +1059,7 @@ func zabij(en: Wrog) -> void:
 	wrogowie.erase(en)
 	zabici += 1
 	efekty.czastki_dodaj(en.w, 16, Color("8f151d"), 3.2, 0.65)
-	var r := mapa.rng_lup
+	var r: RandomNumberGenerator = mapa.rng_lup
 	var lup: Array = []
 	if en.boss:
 		for id in ["ash_crown", "ancient_relic", "ash_essence", "ash_greatsword"]:

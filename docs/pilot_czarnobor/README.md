@@ -2,7 +2,7 @@ Stan na 2026-11-26, rola: gamedev
 
 # Pilot Czarnoboru: mapy lasu z góry
 
-Generator `godot/skrypty/mapgen_las.gd`. **Jeszcze nie jest podpięty do rajdu**: gra działa jak dotąd, a to jest tylko podgląd układu do oceny przez autora.
+Generator `godot/skrypty/mapgen_las.gd`. Pilot zaakceptowany 26.11; od rundy `las-w-rajdzie` Czarnobór jest grywalną krainą (opis wyglądu: `docs/GRAFIKA.md`, „Las: Czarnobór”).
 
 ## Jak działa
 1. Plamy skał w gąszczu (szum), strumień od krawędzi do krawędzi.

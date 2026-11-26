@@ -242,7 +242,7 @@ func _wyprawa() -> void:
 		var id: String = k["id"]
 		var b := _przycisk("%s%s\n%s  •  %s" % ["" if id == wybrana_kraina else "", k["name"], k["diff"], k["lootStars"]], "kraina_" + id,
 			func(): wybrana_kraina = id; _wyprawa(), "%s\n%s" % [k["subtitle"], k["desc"]])
-		b.custom_minimum_size = Vector2(300, 72)
+		b.custom_minimum_size = Vector2(250 if Dane.krainy.size() > 3 else 300, 72)
 		if id == wybrana_kraina:
 			_wybrany(b)
 		h.add_child(b)

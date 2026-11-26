@@ -89,6 +89,14 @@ Rzadkość: zwykły `#78736d`, niepospolity `#4ca676`, rzadki `#4d88c7`, epicki 
 - **Czytelność:** krąg pod wrogiem w walce (ciemnoczerwony), ciepły krąg pod bohaterem, mocniejsze światło postaci bohatera (1,35).
 - Podgląd dla agenta: `godot --path godot --rendering-driver vulkan -- --podglad-walki=/tmp/katalog[,kraina]` (seria zrzutów: cios, ciężki cios, zamach, parowanie, riposta, ból, śmierć).
 
+### Las: Czarnobór (runda `las-w-rajdzie`, 26.11.2026)
+- Źródło: magazyn NightBrand (`magazyn/nightbrand/`) → `godot/zasoby/3d/las/` (modele `.glb` + tekstura `.webp` o tej samej nazwie, runo 2D w `las/runo/`). Podłoże `zasoby/3d/swiat/las_*` (mech, ziemia, liście, skała = urwisko, mchy, błoto); mapy `normal` i `rh` wyliczone z jasności tekstury.
+- Wysokości (m): świerk 4,6, sosna 5,0, brzoza 4,0, martwy dąb 3,6, martwy świerk 4,2; drzewa na polanach ×0,75; głaz 0,9. Bohater ok. 1,8.
+- Ściana lasu: drzewo w każdym polu przy przejściu, co 2. pole dalej, co 3. w głębi (do 4 pól); runo paproci na skraju. Skały: moduły murów z teksturą urwiska.
+- Wydajność: drzewo ma ok. 12,8 tys. trójkątów — w lesie stoją uproszczenia z importu Godota (LOD 1 ok. 3,2 tys. w dwóch pierwszych rzędach, LOD 2 ok. 1,3 tys. dalej, bez cieni); MultiMesh dzielony na kwadraty 16×16 m (karta pomija kwadraty poza kadrem).
+- Mgła wojny: drzewo i podłoże pod nim są widoczne, gdy widać najbliższe pole przejścia (`_kotwica`). Drzewo między kamerą a bohaterem znika (jak mur obniżany do cokołu).
+- Woda: płaskie pola z shaderem `woda.gdshader` (toń 0,035/0,08/0,085; bród jaśniejszy), dno obniżone.
+
 ## 5. Proces produkcji grafiki
 1. **Grafik pisze prompty** (dla ChatGPT / Gemini — jak w NightBrand; narzędzia płatne typu PixelLab tylko za zgodą autora). Prompt zawsze zawiera: styl („dark fantasy painted pixel art, isometric 2:1”), widok, rozmiar siatki, przezroczyste tło, paletę biotopu, brak tekstu i podpisów.
 2. **Autor generuje** i wrzuca pliki do swojego folderu (agent wskazuje ścieżkę, np. `NIGHTBRAND\WAROWNIA_GRAFIKA\spalona_osada\`).

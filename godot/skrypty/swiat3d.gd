@@ -7,6 +7,8 @@ const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
 const K = Mapgen.K
+const MapgenLas = preload("res://skrypty/mapgen_las.gd")
+const T = MapgenLas.T
 const N := Mapgen.ROZMIAR
 const PX_NA_M := 45.254834  # 32 * sqrt(2): pole świata -> piksele ekranu (zgodnie z Iso)
 const WYS_MURU := 1.7
@@ -59,11 +61,15 @@ var _dekor := []         # [Node3D, idx kafla] - rekwizyty widoczne wg mgły woj
 var _skala_rek := {}     # nazwa -> [skala, przesunięcie y]
 var lekki := false  # tryb testowy albo jakość Niska: bez cieni i efektów ekranowych
 var jakosc := 2      # 0 Niska, 1 Średnia, 2 Wysoka, 3 Ultra (Profil.jakosc)
+var las := false     # biotop otwarty (Czarnobór): drzewa zamiast murów, strumień, runo
+var _teren := PackedByteArray()
+var _odl_przejscia := PackedByteArray()  # las: odległość (w polach, do 6) od najbliższego pola przechodniego
+var _kotwica := PackedInt32Array()        # las: najbliższe pole przechodnie — od niego zależy widoczność drzewa (mgła wojny)
 
 
 func zbuduj(r) -> void:
 	rajd = r
-	lekki = "--test" in OS.get_cmdline_user_args() and not "--pelna" in OS.get_cmdline_user_args()
+	lekki = ("--test" in OS.get_cmdline_user_args() or "--lekki" in OS.get_cmdline_user_args()) and not "--pelna" in OS.get_cmdline_user_args()
 	jakosc = 3 if "--pelna" in OS.get_cmdline_user_args() else Profil.jakosc()
 	if not lekki:
 		var vp0 := get_viewport()
@@ -77,6 +83,10 @@ func zbuduj(r) -> void:
 		vp.msaa_3d = Viewport.MSAA_DISABLED
 		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 		vp.scaling_3d_scale = 0.5
+	las = rajd.kraina.get("typ", "") == "las"
+	if las:
+		_teren = rajd.mapa.teren
+		_licz_odl_przejscia()
 	_materialy()
 	_srodowisko()
 	_kamera()
@@ -141,6 +151,14 @@ const WYGLAD := {
 		"mur": "pod_mur", "mur_skala": 0.42, "akcent": "pod_ziemia", "wys_akcentu": 0.5, "sila_akcentu": 0.7, "mur_ton": Color(0.95, 0.95, 1.0), "mur_zar": 0.0,
 		"otoczenie": Color(0.34, 0.38, 0.52), "otoczenie_sila": 0.45, "mgla": Color(0.45, 0.5, 0.6, 0.38), "ksiezyc": Color(0.6, 0.7, 1.0), "ksiezyc_sila": 0.85,
 		"tlo": Color(0.01, 0.012, 0.02), "nasycenie": 1.06, "kontrast": 1.1, "pochodnie": Color(1.0, 0.7, 0.42), "swiatla": 1.0, "mur_jasnosc": 1.0,
+	},
+	"czarnobor": {
+		"a": "las_mech", "a_skala": 0.2, "b": "las_ziemia", "b_skala": 0.26, "c": "las_liscie", "c_skala": 0.3,
+		"b_ilosc": 0.22, "c_ilosc": 0.3, "c_przy_murach": 0.95, "sciezka_b": 1.0, "kaluze": 0.15, "zar": 0.0,
+		"ton": Color(0.9, 0.95, 0.88), "jasnosc": 1.05,
+		"mur": "las_skala", "mur_skala": 0.3, "akcent": "las_mchy", "wys_akcentu": 0.85, "sila_akcentu": 0.95, "mur_ton": Color(0.9, 0.95, 0.9), "mur_zar": 0.0,
+		"otoczenie": Color(0.26, 0.34, 0.3), "otoczenie_sila": 0.5, "mgla": Color(0.34, 0.44, 0.42, 0.5), "ksiezyc": Color(0.55, 0.68, 0.9), "ksiezyc_sila": 0.95,
+		"tlo": Color(0.004, 0.009, 0.006), "nasycenie": 1.05, "kontrast": 1.1, "pochodnie": Color(1.0, 0.66, 0.38), "swiatla": 1.15, "mur_jasnosc": 1.1,
 	},
 	"crypt": {
 		"a": "kry_plyty", "a_skala": 0.36, "b": "kry_popiol", "b_skala": 0.2, "c": "kry_lawa", "c_skala": 0.3,
@@ -259,6 +277,17 @@ func _materialy() -> void:
 	_mat["zelazo"] = _mat_prosty(Color(0.1, 0.095, 0.09), 0.85, 0.5)
 	_mat["ekstrakcja"] = _mat_prosty(Color(0.05, 0.25, 0.18), 0.0, 0.4, Color(0.25, 1.0, 0.7), 3.2)
 	_mat["zar"] = _mat_prosty(Color(0.06, 0.02, 0.0), 0.0, 0.95, Color(1.0, 0.35, 0.08), 1.4)
+	if las:
+		for war in [["woda", Color(0.035, 0.08, 0.085), 0.6], ["brod", Color(0.12, 0.18, 0.16), 0.35]]:
+			var wm := ShaderMaterial.new()
+			wm.shader = preload("res://zasoby/3d/shadery/woda.gdshader")
+			wm.set_shader_parameter("szum", _szum)
+			wm.set_shader_parameter("kolor_toni", war[1])
+			wm.set_shader_parameter("kolor_polysku", Color(0.6, 0.85, 0.9))
+			wm.set_shader_parameter("skala", 0.14)
+			wm.set_shader_parameter("sila_fal", war[2])
+			wm.set_shader_parameter("predkosc", 0.05)
+			_mat[war[0]] = wm
 
 
 # ---------------------------------------------------------------- ŚRODOWISKO
@@ -358,6 +387,9 @@ func _mapa() -> void:
 				podl = "sciezka"
 			elif t == K.EKSTRAKCJA:
 				podl = "ekstrakcja"
+			if las:
+				_pole_lasu(x, y, i, t, listy, siatki)
+				continue
 			if t != K.MUR:
 				listy[podl].append([i, Basis(), 0.0])
 			match t:
@@ -422,11 +454,16 @@ func _mapa() -> void:
 				_indeks[i] = []
 			_indeks[i].append([k, n, p, wp[1], wp[2]])
 		mmi.multimesh = mm
-		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar"}.get(k, k)
+		if "@" in k:
+			var kw: PackedStringArray = k.get_slice("@", 1).split("_")
+			mmi.custom_aabb = AABB(Vector3(int(kw[0]) * KWADRAT - 4, -1.0, int(kw[1]) * KWADRAT - 4), Vector3(KWADRAT + 8, 10.0, KWADRAT + 8))
+		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga"}.get(k, k)
 		if k.begins_with("mur"):
 			mk = "mur"
 		mmi.material_override = _mat[mk]
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k.begins_with("drz_") or k.begins_with("las_") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if k.begins_with("runo_") or k.begins_with("drzg_"):
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi)
 		_mm[k] = mmi
 
@@ -594,8 +631,11 @@ static func _hash(x: int, y: int) -> int:
 
 ## Rekwizyt z modeli Meshy autora: skala do zadanej wysokości (albo długości), stopa na podłodze.
 func _rekwizyt(nazwa: String, wymiar: float, po_dlugosci := false) -> Node3D:
-	var n: Node3D = _scena("res://zasoby/3d/rekwizyty/%s.glb" % nazwa).instantiate()
+	var n: Node3D = _scena("res://zasoby/3d/%s.glb" % nazwa if nazwa.begins_with("las/") else "res://zasoby/3d/rekwizyty/%s.glb" % nazwa).instantiate()
 	add_child(n)
+	if nazwa.begins_with("las/"):
+		for mi in n.find_children("*", "MeshInstance3D", true, false):
+			(mi as MeshInstance3D).material_override = _mat_las(nazwa.substr(4))
 	if not _skala_rek.has(nazwa + str(wymiar)):
 		var ab := AABB()
 		var pierwszy := true
@@ -828,7 +868,7 @@ func _atmosfera() -> void:
 	ppm.scale_min = 0.4
 	ppm.scale_max = 1.2
 	var gr := Gradient.new()
-	var kol := Color(1.0, 0.45, 0.12) if zar else (Color(0.75, 0.8, 0.9) if id == "catacombs" else Color(0.8, 0.78, 0.74))
+	var kol := Color(1.0, 0.45, 0.12) if zar else (Color(0.75, 0.8, 0.9) if id == "catacombs" else (Color(0.78, 0.86, 0.62) if las else Color(0.8, 0.78, 0.74)))
 	gr.set_color(0, Color(kol.r, kol.g, kol.b, 0.0))
 	gr.add_point(0.2, Color(kol.r, kol.g, kol.b, 0.9 if zar else 0.45))
 	gr.add_point(0.8, Color(kol.r, kol.g, kol.b, 0.7 if zar else 0.35))
@@ -946,6 +986,336 @@ func _gruz() -> Mesh:
 	return m
 
 
+# ---------------------------------------------------------------- LAS (Czarnobór)
+## Modele lasu: drzewa ze ściany lasu i z polan (wysokość w m), głaz, runo 2D (wysokość w m).
+const DRZEWA_LASU := [["p4_spruce", 4.6, 40], ["p4_tall_pine", 5.0, 28], ["p4_birch", 4.0, 12], ["p4_dead_oak", 3.6, 6],
+	["p4_dead_spruce", 4.2, 8], ["p1_dead_tree", 3.4, 4], ["p4_hanging_tree", 3.6, 2]]
+const RUNO_BRZEGU := [["p4_ferns", 1.1], ["p0_np_fern", 1.0], ["p4_wd0", 1.0], ["p4_wd1", 1.0], ["p4_wd11", 1.1], ["p4_brambles", 0.9], ["p0_np_tall", 1.2], ["p4_wd4", 0.8]]
+const RUNO_POLANY := [["p0_np_grass", 0.5], ["p4_sp0", 0.6], ["p4_sp1", 0.55], ["p4_sp5", 0.5], ["p4_sp6", 0.5], ["p4_sp8", 0.7], ["p4_sp11", 0.6], ["p4_wd2", 0.7], ["p4_wd3", 0.7], ["p4_mushrooms", 0.4]]
+
+
+## Odległość (w polach, najwyżej 6) od najbliższego pola, po którym się chodzi albo które widać (woda).
+func _licz_odl_przejscia() -> void:
+	var mapa = rajd.mapa
+	_odl_przejscia.resize(N * N)
+	_odl_przejscia.fill(255)
+	_kotwica.resize(N * N)
+	_kotwica.fill(-1)
+	var kol: Array[int] = []
+	for i in N * N:
+		var t: int = mapa.siatka[i]
+		if t != K.MUR:
+			_odl_przejscia[i] = 0
+			_kotwica[i] = i
+			kol.append(i)
+	var g := 0
+	while g < kol.size():
+		var i: int = kol[g]
+		g += 1
+		var d: int = _odl_przejscia[i]
+		if d >= 6:
+			continue
+		var x := i % N
+		var y := i / N
+		for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var qx: int = x + s.x
+			var qy: int = y + s.y
+			if qx < 0 or qy < 0 or qx >= N or qy >= N:
+				continue
+			var j := qy * N + qx
+			if _odl_przejscia[j] > d + 1:
+				_odl_przejscia[j] = d + 1
+				_kotwica[j] = _kotwica[i]
+				kol.append(j)
+
+
+func _mat_las(nazwa: String) -> StandardMaterial3D:
+	var k := "lasmat_" + nazwa
+	if not _mat.has(k):
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = load("res://zasoby/3d/las/%s.webp" % nazwa)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.alpha_scissor_threshold = 0.45
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.roughness = 0.92
+		m.vertex_color_use_as_albedo = true
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		_mat[k] = m
+	return _mat[k]
+
+
+var _siatki_las := {}
+## [Mesh, AABB, Transform] modelu lasu (jedna siatka na model — sprawdzone dla wszystkich modeli w zasoby/3d/las).
+## lod > 0: siatka z uproszczenia, które Godot wygenerował przy imporcie (drzewo ma ok. 12,8 tys. trójkątów;
+## LOD 1 ok. 3,2 tys., LOD 2 ok. 1,3 tys.) — tysiące drzew w MultiMesh bez tego dławią kartę.
+func _siatka_las(nazwa: String, lod := 0) -> Array:
+	var klucz := "%s_%d" % [nazwa, lod]
+	if not _siatki_las.has(klucz):
+		var n: Node = _scena("res://zasoby/3d/las/%s.glb" % nazwa).instantiate()
+		var mi := n.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+		var ab: AABB = mi.transform * mi.get_aabb()
+		var mesh: Mesh = mi.mesh
+		if lod > 0:
+			var sd: Dictionary = RenderingServer.mesh_get_surface(mi.mesh.get_rid(), 0)
+			var lods: Array = sd.get("lods", [])
+			if lods.size() >= lod:
+				var dane: PackedByteArray = lods[lod - 1]["index_data"]
+				var dlugie: bool = int(sd["vertex_count"]) > 65535
+				var ind := PackedInt32Array()
+				ind.resize(dane.size() / (4 if dlugie else 2))
+				for j in ind.size():
+					ind[j] = dane.decode_u32(j * 4) if dlugie else dane.decode_u16(j * 2)
+				var tab: Array = mi.mesh.surface_get_arrays(0)
+				# zostają tylko wierzchołki używane przez uproszczenie (mniej pracy dla karty)
+				var nowy := PackedInt32Array()
+				nowy.resize(int(sd["vertex_count"]))
+				nowy.fill(-1)
+				var stare: Array[int] = []
+				for j in ind.size():
+					var v: int = ind[j]
+					if nowy[v] < 0:
+						nowy[v] = stare.size()
+						stare.append(v)
+					ind[j] = nowy[v]
+				for a in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2, Mesh.ARRAY_COLOR]:
+					if tab[a] == null:
+						continue
+					var src = tab[a]
+					var dst = src.duplicate()
+					dst.resize(stare.size())
+					for j in stare.size():
+						dst[j] = src[stare[j]]
+					tab[a] = dst
+				if tab[Mesh.ARRAY_TANGENT] != null:
+					var ts: PackedFloat32Array = tab[Mesh.ARRAY_TANGENT]
+					var td := PackedFloat32Array()
+					td.resize(stare.size() * 4)
+					for j in stare.size():
+						for c in 4:
+							td[j * 4 + c] = ts[stare[j] * 4 + c]
+					tab[Mesh.ARRAY_TANGENT] = td
+				tab[Mesh.ARRAY_INDEX] = ind
+				var am := ArrayMesh.new()
+				am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, tab)
+				mesh = am
+		_siatki_las[klucz] = [mesh, ab, mi.transform]
+		n.free()
+	return _siatki_las[klucz]
+
+
+## Jeden model lasu w MultiMesh (drzewo, głaz): skala do wysokości, losowy obrót i przesunięcie z ziarna pola.
+func _model_las(klucz: String, nazwa: String, wys: float, i: int, h: int, listy: Dictionary, siatki: Dictionary, rozrzut := 0.35, lod := 1) -> void:
+	var dane := _siatka_las(nazwa, lod)
+	var ab: AABB = dane[1]
+	klucz += _kwadrat(_kotw(i))
+	if not listy.has(klucz):
+		listy[klucz] = []
+		siatki[klucz] = dane[0]
+		_mat[klucz] = _mat_las(nazwa)
+	var s := wys / maxf(ab.size.y, 0.01) * (0.85 + float(h % 31) / 100.0)
+	var b := Basis(Vector3.UP, float(h % 628) / 100.0).scaled(Vector3.ONE * s) * (dane[2] as Transform3D).basis
+	var off := Vector3(float(h % 7 - 3) / 3.0 * rozrzut, 0.0, float((h / 7) % 7 - 3) / 3.0 * rozrzut)
+	var k := _kotw(i)
+	listy[klucz].append([k, b, -ab.position.y * s, off + _przes(i, k)])
+
+
+## Runo 2D: pionowy obrazek zwrócony do kamery izometrycznej (kamera patrzy z +x+z), podstawa na ziemi.
+func _runo(nazwa: String, wys: float, i: int, h: int, listy: Dictionary, siatki: Dictionary) -> void:
+	var klucz := "runo_" + nazwa + _kwadrat(_kotw(i))
+	if not _mat.has("runomat_" + nazwa):
+		var tex: Texture2D = load("res://zasoby/3d/las/runo/%s.webp" % nazwa)
+		var q := QuadMesh.new()
+		var asp := float(tex.get_width()) / maxf(1.0, tex.get_height())
+		q.size = Vector2(asp, 1.0)
+		q.center_offset = Vector3(0, 0.5, 0)
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = tex
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.alpha_scissor_threshold = 0.5
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.roughness = 1.0
+		m.vertex_color_use_as_albedo = true
+		q.material = m
+		_mat["runomat_" + nazwa] = m
+		_siatki_las["runo_" + nazwa] = q
+	if not listy.has(klucz):
+		listy[klucz] = []
+		siatki[klucz] = _siatki_las["runo_" + nazwa]
+		_mat[klucz] = _mat["runomat_" + nazwa]
+	var s := wys * (0.8 + float(h % 41) / 100.0)
+	var b := Basis(Vector3.UP, PI * 0.25).scaled(Vector3.ONE * s)
+	var off := Vector3(float(h % 9 - 4) * 0.1, 0.0, float((h / 9) % 9 - 4) * 0.1)
+	var k := _kotw(i)
+	listy[klucz].append([k, b, 0.0, off + _przes(i, k)])
+
+
+const KWADRAT := 16
+## Las dzielony na kwadraty 16×16 m: każdy rodzaj drzewa i runa ma osobny MultiMesh na kwadrat, więc karta
+## pomija kwadraty poza kadrem (jedna paczka na całą mapę rysowała wszystkie drzewa w każdej klatce).
+func _kwadrat(i: int) -> String:
+	return "@%d_%d" % [(i % N) / KWADRAT, (i / N) / KWADRAT]
+
+
+## Pole, od którego zależy widoczność rzeczy stojącej w polu i (w lesie: najbliższe przejście).
+func _kotw(i: int) -> int:
+	return _kotwica[i] if _kotwica.size() == N * N and _kotwica[i] >= 0 else i
+
+
+func _przes(i: int, k: int) -> Vector3:
+	return Vector3(i % N - k % N, 0.0, i / N - k / N)
+
+
+## Pole mapy w lesie: podłoże, woda i bród, drzewa ze ściany lasu, skały (moduły murów), runo.
+func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dictionary) -> void:
+	var tt: int = _teren[i]
+	var d: int = _odl_przejscia[i]
+	var h := _hash(x * 7 + 11, y * 13 + 5)
+	for k in ["woda", "brod", "dno"]:
+		if not listy.has(k):
+			listy[k] = []
+			siatki[k] = _plyta()
+	if t == K.WODA:
+		listy["dno"].append([i, Basis(), -0.5])
+		listy["woda"].append([i, Basis(), -0.1])
+		return
+	if tt == T.BROD:
+		listy["brod"].append([i, Basis(), -0.06])
+		listy["sciezka"].append([i, Basis(), -0.2])
+		return
+	if t != K.MUR or d <= 5:
+		var podl := "sciezka" if t == K.SCIEZKA else ("ekstrakcja" if t == K.EKSTRAKCJA else "podloga")
+		var kp := _kotw(i)
+		listy[podl].append([kp, Basis(), 0.0, _przes(i, kp)])
+	match t:
+		K.MUR:
+			if tt == T.SKALA:
+				if _wnetrze_skaly(x, y):
+					return
+				var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
+				var hh := (1.35 if brzeg else 1.15) + float(_hash(x, y) % 9 - 4) * 0.06
+				var maska := _maska_muru(x, y)
+				var wariant := _hash(y * 3, x * 5) % 3
+				var klucz := "mur_%d_%d" % [maska, wariant]
+				if not listy.has(klucz):
+					listy[klucz] = []
+					siatki[klucz] = _mesh_muru(maska, wariant)
+				listy[klucz].append([i, Basis().scaled(Vector3(1.0, hh, 1.0)), WYS_MURU * 0.5 * hh])
+				return
+			# ściana lasu: gęsto przy przejściu, rzadziej w głębi; runo na samym skraju
+			var co := 1 if d <= 1 else (2 if d == 2 else (3 if d <= 4 else 0))
+			if co > 0 and h % co == 0:
+				var dr: Array = _wybierz_drzewo(h)
+				if d <= 2:
+					_model_las("drz_" + dr[0], dr[0], dr[1], i, h, listy, siatki)
+				else:
+					_model_las("drzg_" + dr[0], dr[0], dr[1], i, h, listy, siatki, 0.35, 2)  # głębiej: prostsze, bez cieni
+			if d == 1:
+				var r1: Array = RUNO_BRZEGU[h % RUNO_BRZEGU.size()]
+				_runo(r1[0], r1[1], i, h, listy, siatki)
+				if h % 3 == 0:
+					var r2: Array = RUNO_BRZEGU[(h / 3) % RUNO_BRZEGU.size()]
+					_runo(r2[0], r2[1], i, h / 5, listy, siatki)
+		K.FILAR:
+			var dr2: Array = _wybierz_drzewo(h)
+			_model_las("drz_" + dr2[0], dr2[0], dr2[1] * 0.75, i, h, listy, siatki, 0.1)
+		K.GRUZ:
+			_model_las("las_glaz", "p4_mossy_boulder", 0.9, i, h, listy, siatki, 0.1)
+		K.PODLOGA:
+			var przy_wodzie := false
+			for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				if rajd.mapa.kafel(x + s.x, y + s.y) == K.WODA:
+					przy_wodzie = true
+			if przy_wodzie and h % 3 == 0:
+				_runo("p4_reeds", 1.2, i, h, listy, siatki)
+			elif h % 100 < 9:
+				var r3: Array = RUNO_POLANY[(h / 100) % RUNO_POLANY.size()]
+				_runo(r3[0], r3[1], i, h, listy, siatki)
+
+
+func _wybierz_drzewo(h: int) -> Array:
+	var suma := 0
+	for dr in DRZEWA_LASU:
+		suma += int(dr[2])
+	var q := (h / 13) % suma
+	for dr in DRZEWA_LASU:
+		q -= int(dr[2])
+		if q < 0:
+			return dr
+	return DRZEWA_LASU[0]
+
+
+## Wystrój polan wg rodzaju (tylko wygląd, nie blokuje ruchu; duże rzeczy na skraju polany).
+func _wystroj_lasu() -> void:
+	var mapa = rajd.mapa
+	var zajete := {}
+	for sk in mapa.skrzynie:
+		zajete[mapa.idx(sk["tx"], sk["ty"])] = true
+	for k in mapa.kosze:
+		zajete[mapa.idx(int(k.x), int(k.y))] = true
+	for p in mapa.polany:
+		var c: Vector2 = p["c"]
+		var rad: float = p["r"]
+		var skraj: Array = []
+		var srodek: Array = []
+		for y in range(int(c.y - rad) - 1, int(c.y + rad) + 2):
+			for x in range(int(c.x - rad) - 1, int(c.x + rad) + 2):
+				if mapa.kafel(x, y) != K.PODLOGA or zajete.has(mapa.idx(x, y)):
+					continue
+				if Vector2(x + 0.5, y + 0.5).distance_to(c) > rad + 1.0:
+					continue
+				var sciana := Vector2.ZERO
+				for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					if mapa.kafel(x + s.x, y + s.y) == K.MUR:
+						sciana = Vector2(s)
+				if sciana != Vector2.ZERO:
+					skraj.append([x, y, sciana])
+				elif Vector2(x + 0.5, y + 0.5).distance_to(c) > 2.5:
+					srodek.append([x, y])
+		var h0 := _hash(int(c.x) * 31, int(c.y) * 17)
+		var plan: Array = []  # [nazwa, wysokość, na skraju?, po długości?]
+		match String(p["typ"]):
+			"oboz":
+				plan = [["p4_cz_tent", 2.4, true], ["p4_cz_pelts", 1.5, true], ["p4_cz_firewood", 0.8, true], ["p8_pal_czaszki", 1.8, true]]
+			"kapliczka":
+				plan = [["p8_kapliczka_lesna", 2.1, true], ["p8_grzyby_blade", 0.45, false]]
+			"kurhan":
+				plan = [["p4_burial_mound", 2.6, true, true], ["p8_kamien_runiczny", 1.6, true], ["p8_czaszki", 0.5, false]]
+			"legowisko":
+				plan = [["p4_cz_bones", 1.6, false, true], ["p8_skora_kosci", 1.4, false, true], ["p8_czaszki", 0.5, false], ["p8_pal_czaszki", 1.8, true], ["p4_wolf_skull_bush", 1.0, true]]
+			"ekstrakcja":
+				plan = [["p8_menhir_runy", 2.4, true], ["p8_menhir_runy", 2.2, true]]
+			"start":
+				plan = [["p4_axe_stump", 0.6, true], ["p4_cz_firewood", 0.8, true]]
+			_:
+				var pula := [["p8_kloda", 2.0, true, true], ["p8_korzenie", 0.9, true], ["p8_grzyby_zolte", 0.45, false], ["p8_muchomory", 0.5, false],
+					["p4_axe_stump", 0.6, true], ["p8_huby_na_klodzie", 1.6, true, true], ["p8_grzyby_niebieskie", 0.45, false]]
+				for n in 2 + h0 % 3:
+					plan.append(pula[(h0 / (n + 1) + n * 3) % pula.size()])
+		for n in plan.size():
+			var e: Array = plan[n]
+			var lista: Array = skraj if (e[2] or srodek.is_empty()) else srodek
+			if lista.is_empty():
+				continue
+			var w: Array = lista[(h0 / (n + 2) + n * 7) % lista.size()]
+			lista.erase(w)
+			var i: int = mapa.idx(w[0], w[1])
+			var obr := float(_hash(w[0] * 3, w[1] * 5) % 628) / 100.0
+			if w.size() > 2 and w[2] != Vector2.ZERO:
+				obr = atan2(-(w[2] as Vector2).x, -(w[2] as Vector2).y)
+			var nd := _rekwizyt("las/" + e[0], e[1], e.size() > 3 and e[3])
+			nd.position = Vector3(w[0] + 0.5, float(nd.get_meta("y0")), w[1] + 0.5)
+			if w.size() > 2:
+				nd.position += Vector3((w[2] as Vector2).x, 0, (w[2] as Vector2).y) * 0.3
+			nd.rotation.y = obr
+			nd.visible = false
+			_dekor.append([nd, i])
+			if e[0] == "p8_kapliczka_lesna":
+				var l := _swiatlo(Color(1.0, 0.78, 0.45), 1.6, 4.5, false)
+				l.position.y = 1.2 / nd.scale.y
+				l.set_meta("migotanie", true)
+				nd.add_child(l)
+
+
 ## Mgła wojny: 0 nieznane (ukryte), 1 widziane (przygaszone), 2 widoczne. Mury przy graczu od strony kamery przezroczyste.
 func odswiez_widok() -> void:
 	var widok: PackedByteArray = rajd.widok
@@ -987,7 +1357,10 @@ func odswiez_widok() -> void:
 			if v == 0:
 				b = Basis().scaled(Vector3.ZERO)
 			# mur między kamerą a graczem obniżony do cokołu (jak w grach izometrycznych AAA)
-			if przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik") and v != 0:
+			# las: drzewo między kamerą a graczem znika (korona zasłoniłaby walkę); pień zostaje jako znak
+			if las and v != 0 and rodzaj.begins_with("drz") and dx + dy > 0.6 and dx + dy < 10.0 and absf(dx - dy) < 7.0:
+				b = Basis().scaled(Vector3.ZERO)
+			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik") and v != 0:
 				var h := 0.22
 				var pelna := WYS_MURU if rodzaj.begins_with("mur") else (WYS_MURU + 0.3 if rodzaj == "naroznik" else WYS_MURU + 0.4)
 				b = Basis(b.get_rotation_quaternion()).scaled(Vector3(1.0, h / pelna, 1.0))
@@ -1086,12 +1459,12 @@ func _rekwizyty() -> void:
 		var w: Vector2 = k
 		var kosz := Node3D.new()
 		kosz.position = Vector3(w.x, 0, w.y)
-		var misa := _rekwizyt("misa_zar", 1.05)
+		var misa := _rekwizyt("las/p8_ognisko_krag", 1.6, true) if las else _rekwizyt("misa_zar", 1.05)
 		remove_child(misa)
 		misa.position.y = float(misa.get_meta("y0"))
 		kosz.add_child(misa)
 		var ogien := _ogien(1.4, 1.6)
-		ogien.position.y = 1.05
+		ogien.position.y = 0.25 if las else 1.05
 		kosz.add_child(ogien)
 		var l := _swiatlo(Color(1.0, 0.6, 0.28), 3.6 * wyglad["swiatla"], 8.0)
 		l.position.y = 1.5
@@ -1135,9 +1508,12 @@ func _rekwizyty() -> void:
 		add_child(n)
 		sk["wezel3d"] = n
 		_skrzynie.append(sk)
-	_wystroj()
-	_wystroj_komnat()
-	_pochodnie_scienne()
+	if las:
+		_wystroj_lasu()
+	else:
+		_wystroj()
+		_wystroj_komnat()
+		_pochodnie_scienne()
 	_atmosfera()
 	_pochodnia_ziemia = Node3D.new()
 	var kij := MeshInstance3D.new()

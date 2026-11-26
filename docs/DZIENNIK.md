@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 13:40 — konto 2, rola: gamedev — las Czarnobór w rajdzie
+- Gałąź i commit: `las-w-rajdzie` (od `mapy-128`).
+- Prośba autora (12:32): „Tak” — podpięcie lasu do rajdu i wygląd 3D z magazynu NightBrand.
+- Zrobione: kraina `czarnobor` (`"typ": "las"`, ŚREDNIA, `enemyCount` 56 — robocze, do potwierdzenia; nagroda kontraktu 250; wrogowie: zwiadowca 35%, łucznik 30%, strażnik 20%, osiłek 15% — obecne typy, wilki i kłusownicy w rundzie „moby”). `Mapgen.K.WODA` (blokuje ruch, nie wzrok). `MapgenLas` oddaje rajdowi siatkę K, polany jako komnaty (tytuły: Obóz Kłusowników, Leśna Kapliczka, Kurhan, Wilcza Łąka, Legowisko). Wygląd 3D w `swiat3d.gd` (tryb `las`): podłoże z tekstur NightBrand, ściana lasu z 7 rodzajów drzew, skały, strumień i brody, runo 2D, ognisko w kamiennym kręgu, wystrój polan wg rodzaju (namiot, skóry, kapliczka, kurhan, kości, menhiry przy wyjściach), drzewo przed bohaterem znika. Optymalizacja: LOD z importu i kwadraty 16×16 m (las 0,7 → 3,0 kl/s w programowym rendererze; loch 5,6).
+- Testy: `testy.py godot` OK 100/100 (nowe: rajd w Czarnoborze — generator, wyjścia, wrogowie, woda, las 3D, przekrój); kontrola spakowanej gry OK 100/100.
+- Dostarczone: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Czarnobor.zip` (`TEST_CZARNOBOR.bat`). Uwaga: zip ma ok. 382 MB — blisko limitu wysyłki 400 MB na plik; przy kolejnych zasobach trzeba będzie wyłączyć z eksportu nieużywane pliki.
+- NIE sprawdzone: płynność na komputerze autora (las ok. 2× cięższy od lochu w środowisku agenta; ponad 2000 drzew z cieniami), pad, dźwięk, czy walka na polanach nie jest za łatwa/za trudna, czy 20 min wystarcza w lesie.
+- Następny krok: test autora; potem runda „moby” (wilki, kłusownik-łucznik, elita/boss lasu).
+
 ## 2026-11-26 12:55 — konto 2, rola: gamedev — mapy 128×128, rajd 20 min
 - Gałąź i commit: `mapy-128` (od `pilot-czarnobor`).
 - **Decyzje autora (11:40):** pilot Czarnoboru zaakceptowany; **wszystkie mapy 128×128 m, rajd 20 minut.**

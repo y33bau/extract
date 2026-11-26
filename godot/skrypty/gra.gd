@@ -45,6 +45,8 @@ func _ready() -> void:
 			_podglad_walki.call_deferred(a.substr(16))
 		if a.begins_with("--podglad-ruchu="):
 			_podglad_ruchu.call_deferred(a.substr(16))
+		if a.begins_with("--pomiar="):
+			_pomiar.call_deferred(a.substr(9))
 		if a.begins_with("--podglad-lasu="):
 			_podglad_lasu.call_deferred(a.substr(15))
 
@@ -123,6 +125,29 @@ func _podglad_walki(arg: String) -> void:
 		rajd.atak_wrecz()
 		await seria.call("w7_smierc", 10)
 	print("PODGLAD WALKI gotowy")
+	get_tree().quit(0)
+
+
+## Pomiar dla agenta: --pomiar=kraina — klatki na sekundę z całością i bez grup siatek (drzewa, runo, podłoże).
+func _pomiar(kraina: String) -> void:
+	Profil.resetuj()
+	rozpocznij_rajd(kraina, "LAS01")
+	for en in rajd.wrogowie:
+		en.uspiony = true
+	await _czekaj(3.0)
+	var s3 = rajd.swiat3d
+	for grupa in ["", "drz", "runo_", "podloga"]:
+		for k in s3._mm:
+			s3._mm[k].visible = grupa == "" or not String(k).begins_with(grupa)
+		await _czekaj(0.5)
+		var t0 := Time.get_ticks_msec()
+		var f0 := Engine.get_frames_drawn()
+		await _czekaj(3.0)
+		print("POMIAR bez [%s]: %.1f kl/s" % [grupa, (Engine.get_frames_drawn() - f0) * 1000.0 / (Time.get_ticks_msec() - t0)])
+	var ile := 0
+	for k in s3._mm:
+		ile += s3._mm[k].multimesh.instance_count
+	print("POMIAR instancji: ", ile, " siatek MM: ", s3._mm.size(), " węzłów: ", s3.get_child_count())
 	get_tree().quit(0)
 
 
@@ -205,6 +230,19 @@ func _podglad(arg: String) -> void:
 	if rajd.wrogowie.size() > 0:
 		var en = rajd.wrogowie[0]
 		miejsca.append(en.w + Vector2(1.2, 0.0))
+	# --podglad=czarnobor,ziarno,katalog,woda -> ujęcia przy brodach strumienia (las)
+	if cz.size() > 3 and cz[3] == "woda" and "teren" in rajd.mapa:
+		miejsca = []
+		var m = rajd.mapa
+		for i in m.teren.size():
+			if m.teren[i] == MapgenLas.T.BROD and i % 7 == 0 and miejsca.size() < 4:
+				var w := Vector2(i % m.ROZMIAR + 0.5, i / m.ROZMIAR + 0.5)
+				var daleko := true
+				for q in miejsca:
+					if (q as Vector2).distance_to(w) < 15.0:
+						daleko = false
+				if daleko:
+					miejsca.append(w)
 	# --podglad=kraina,ziarno,katalog,komnaty -> po jednym ujęciu z każdego rodzaju komnaty
 	if cz.size() > 3 and cz[3] == "komnaty":
 		miejsca = []
@@ -702,6 +740,51 @@ func _anim3d() -> String:
 	return rajd.swiat3d._ap_bohatera.current_animation
 
 
+## Rajd w Czarnoborze: generator lasu w rajdzie, wrogowie, wyjścia osiągalne, las w 3D (drzewa, woda, runo),
+## drzewo między kamerą a graczem znika, strumień blokuje ruch, ale nie wzrok.
+func _test_czarnoboru() -> void:
+	rozpocznij_rajd("czarnobor", "LAS01")
+	await _czekaj(0.5)
+	var m = rajd.mapa
+	_ok("Czarnobór: rajd w lesie (generator lasu 128×128)", "teren" in m and m.siatka.size() == 128 * 128 and m.komnaty.size() >= 14, "%d polan" % m.komnaty.size())
+	var d: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
+	var eks := 0
+	for e in m.ekstrakcje:
+		if d[m.idx(int(e["w"].x), int(e["w"].y))] >= 0:
+			eks += 1
+	var limit := int(rajd.kraina["enemyCount"])
+	_ok("Czarnobór: 3 wyjścia osiągalne, wrogowie wg krainy", eks == 3 and rajd.wrogowie.size() >= int(limit * 0.8) and rajd.wrogowie.size() <= limit + 8, "%d wyjść, %d/%d wrogów" % [eks, rajd.wrogowie.size(), limit])
+	_ok("Czarnobór: woda blokuje ruch, nie wzrok", Mapgen.blokuje_ruch(Mapgen.K.WODA) and not Mapgen.blokuje_wzrok(Mapgen.K.WODA) and m.siatka.has(Mapgen.K.WODA))
+	var s3 = rajd.swiat3d
+	var drzew := 0
+	var runa := 0
+	for k in s3._mm:
+		if String(k).begins_with("drz"):
+			drzew += s3._mm[k].multimesh.instance_count
+		if String(k).begins_with("runo_"):
+			runa += s3._mm[k].multimesh.instance_count
+	await _czekaj(1.5)
+	_ok("Czarnobór: ściana lasu z drzew, strumień, runo", s3.las and drzew > 800 and runa > 300 and s3._mm.has("woda"), "%d drzew, %d runa, %d FPS" % [drzew, runa, Engine.get_frames_per_second()])
+	# przekrój: stawiamy bohatera 3 pola za drzewem (patrząc od kamery) — to drzewo musi zniknąć
+	var cel := []
+	for i in s3._indeks:
+		for wpis in s3._indeks[i]:
+			if String(wpis[0]).begins_with("drz_") and cel.is_empty():
+				var p3: Vector3 = wpis[2]
+				var stan := Vector2(p3.x - 3.0, p3.z - 3.0)
+				if not Mapgen.blokuje_ruch(m.kafel(int(stan.x), int(stan.y))) and rajd.linia_wzroku(stan, Vector2(i % 128 + 0.5, i / 128 + 0.5)):
+					cel = [stan, wpis]
+	var schowane := false
+	if not cel.is_empty():
+		rajd.gracz.w = cel[0]
+		rajd._licz_widok()
+		s3.odswiez_widok()
+		var tr: Transform3D = s3._mm[cel[1][0]].multimesh.get_instance_transform(cel[1][1])
+		schowane = tr.basis.get_scale().length() < 0.01
+	_ok("Czarnobór: drzewo między kamerą a bohaterem znika", schowane, "brak takiego miejsca" if cel.is_empty() else "")
+	await _zrzut("9c_czarnobor")
+
+
 ## Pilot Czarnoboru (generator lasu, jeszcze bez rajdu): ziarno, osiągalność, szerokość przejść, wyjścia w głębi,
 ## ślepe odnogi z łupem. Pięć ziaren.
 func _test_lasu() -> void:
@@ -711,9 +794,9 @@ func _test_lasu() -> void:
 		m.generuj({"id": "czarnobor"}, z, 1)
 		var m2 = MapgenLas.new()
 		m2.generuj({"id": "czarnobor"}, z, 1)
-		if m2.siatka != m.siatka or m2.skrzynie.size() != m.skrzynie.size() or m2.spawny.size() != m.spawny.size() or m2.start != m.start:
+		if m2.teren != m.teren or m2.siatka != m.siatka or m2.skrzynie.size() != m.skrzynie.size() or m2.spawny.size() != m.spawny.size() or m2.start != m.start:
 			zle.append(z + ": inne ziarno-wynik")
-		var d: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
+		var d: PackedInt32Array = m._odl_t(Vector2i(int(m.start.x), int(m.start.y)))
 		var punkty: Array = []
 		for e in m.ekstrakcje:
 			punkty.append(e["w"])
@@ -741,7 +824,7 @@ func _test_lasu() -> void:
 				var wolne := true
 				for dy in range(-1, 2):
 					for dx in range(-1, 2):
-						if MapgenLas.blokuje_ruch(m.kafel(q.x + dx, q.y + dy)) and m.kafel(q.x + dx, q.y + dy) != MapgenLas.T.DRZEWO and m.kafel(q.x + dx, q.y + dy) != MapgenLas.T.GLAZ:
+						if MapgenLas.blok_t(m.kt(q.x + dx, q.y + dy)) and m.kt(q.x + dx, q.y + dy) != MapgenLas.T.DRZEWO and m.kt(q.x + dx, q.y + dy) != MapgenLas.T.GLAZ:
 							wolne = false
 				if wolne:
 					rdzen[m.idx(q.x, q.y)] = 1
@@ -1304,6 +1387,9 @@ func _test() -> void:
 	_ok("po śmierci: ekwipunek stracony, Relikwiarz ocalał", l["weapon"] == null and l["reliquary"].size() == 1 and l["reliquary"][0]["id"] == "runic_ring")
 	var xp_po := _suma_pd("melee")
 	_ok("po śmierci połowa doświadczenia", absf((xp_po - xp_przed) - 20.0) < 0.01, "+%.1f PD" % (xp_po - xp_przed))
+
+	# trzeci rajd: Czarnobór (las z ziarna, biotop otwarty)
+	await _test_czarnoboru()
 
 	var zle := _wyniki.count(false)
 	print("\nWYNIK (godot): ", "OK" if zle == 0 else "BŁĘDY: %d" % zle, "  (%d/%d)" % [_wyniki.size() - zle, _wyniki.size()])

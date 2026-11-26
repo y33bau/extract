@@ -19,6 +19,26 @@
   "desc": "Zniszczone katakumby pełne zwiadowców i pierwszych skrzyń. Idealne do nauki parowania."
  },
  {
+  "id": "czarnobor",
+  "typ": "las",
+  "name": "Czarnobór",
+  "subtitle": "Knieja, polany i wymuszone ścieżki",
+  "diff": "ŚREDNIA",
+  "diffColor": "text-[#e6ba63]",
+  "lootStars": "★★★",
+  "enemyCount": 56,
+  "hasBoss": false,
+  "palette": {
+   "floor1": "#2c3324",
+   "floor2": "#343c2a",
+   "moss": "#2f3d25",
+   "wallTop": "#1f2a1c",
+   "wallL": "#18211a",
+   "wallR": "#111811"
+  },
+  "desc": "Gęsty las z ziarna: polany połączone krętymi ścieżkami, strumień z brodami, obozy kłusowników. Ślepe odnogi kuszą łupem."
+ },
+ {
   "id": "outskirts",
   "name": "Kamienne Podgrodzie",
   "subtitle": "Zawalony dziedziniec i mury strażnicze",

@@ -22,7 +22,13 @@ const NAZWY_POLAN := {
 }
 const NAZWY_EKSTRAKCJI := ["Stary Trakt", "Bród Przewoźnika", "Ścieżka Smolarzy", "Krąg Menhirów"]
 
-var siatka := PackedByteArray()
+var teren := PackedByteArray()    # typy T (wygląd i generowanie)
+var siatka := PackedByteArray()   # typy Mapgen.K (logika rajdu: ruch, wzrok, mgła) — zgodne z lochem
+var wariant := PackedByteArray()
+var kosze: Array = []             # ogniska jako K.KOSZ (światło)
+var komnaty: Array = []           # polany jako {r: Rect2i, typ, srodek} — rajd: wrogowie, nazwy obszarów
+var korytarze: Array = []         # pola ścieżek (patrole)
+var komnata_startu := -1
 var polany: Array = []      # {c: Vector2, r: float, typ: String, gleb: int, stopien: int}
 var sciezki: Array = []     # {a: int, b: int, szer: float, wawoz: bool, punkty: PackedVector2Array}
 var skrzynie: Array = []    # jak w Mapgen
@@ -37,11 +43,11 @@ var rng_wrogowie := RandomNumberGenerator.new()
 var _szum := FastNoiseLite.new()
 
 
-static func blokuje_ruch(t: int) -> bool:
+static func blok_t(t: int) -> bool:
 	return t == T.LAS or t == T.SKALA or t == T.WODA or t == T.DRZEWO or t == T.GLAZ
 
 
-static func blokuje_wzrok(t: int) -> bool:
+static func wzrok_t(t: int) -> bool:
 	return t == T.LAS or t == T.SKALA or t == T.DRZEWO
 
 
@@ -49,10 +55,10 @@ func idx(x: int, y: int) -> int:
 	return y * ROZMIAR + x
 
 
-func kafel(x: int, y: int) -> int:
+func kt(x: int, y: int) -> int:
 	if x < 0 or y < 0 or x >= ROZMIAR or y >= ROZMIAR:
 		return T.LAS
-	return siatka[idx(x, y)]
+	return teren[idx(x, y)]
 
 
 func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> void:
@@ -64,13 +70,13 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 	_szum.seed = r.randi()
 	_szum.frequency = 0.045
 	_szum.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	siatka.resize(ROZMIAR * ROZMIAR)
-	siatka.fill(T.LAS)
+	teren.resize(ROZMIAR * ROZMIAR)
+	teren.fill(T.LAS)
 	# 0. Skały w gąszczu (plamy z szumu): ściany natury są różne, nie tylko drzewa.
 	for y in ROZMIAR:
 		for x in ROZMIAR:
 			if _szum.get_noise_2d(x * 1.3 + 500.0, y * 1.3) > 0.32:
-				siatka[idx(x, y)] = T.SKALA
+				teren[idx(x, y)] = T.SKALA
 	# 1. Strumień (zawsze w Czarnoborze): od krawędzi do krawędzi, kręty.
 	_strumien(r)
 	# 2. Polany: rozstawione z odstępem (między nimi zawsze pas lasu).
@@ -84,7 +90,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 		_wytnij_polane(i)
 	# 4. Start: polana najbliżej losowej krawędzi; głębokość = odległość ścieżką od startu.
 	_wybierz_start(r)
-	odl = _odleglosci(Vector2i(int(start.x), int(start.y)))
+	odl = _odl_t(Vector2i(int(start.x), int(start.y)))
 	for p in polany:
 		var c: Vector2 = p["c"]
 		p["gleb"] = odl[idx(int(c.x), int(c.y))]
@@ -93,20 +99,86 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 	# 6. Pojedyncze drzewa i głazy na polanach (osłony w walce, nigdy nie zamykają przejścia).
 	_oslony(r)
 	_tylko_osiagalne()
-	odl = _odleglosci(Vector2i(int(start.x), int(start.y)))
+	odl = _odl_t(Vector2i(int(start.x), int(start.y)))
 	# 7. Ekstrakcje, ogniska, łupy (strumień łupów), miejsca wrogów (strumień wrogów).
 	for i in polany.size():
 		var p: Dictionary = polany[i]
 		var c := Vector2i(int(p["c"].x), int(p["c"].y))
 		match String(p["typ"]):
 			"ekstrakcja":
-				siatka[idx(c.x, c.y)] = T.EKSTRAKCJA
+				teren[idx(c.x, c.y)] = T.EKSTRAKCJA
 				ekstrakcje.append({"w": Vector2(c) + Vector2(0.5, 0.5), "nazwa": NAZWY_EKSTRAKCJI[ekstrakcje.size() % NAZWY_EKSTRAKCJI.size()], "promien": 1.85})
 			"start", "oboz", "kapliczka":
 				ogniska.append(Vector2(c) + Vector2(2.5, -1.5))
 	var szczescie := (poziom_poszukiwacza - 1) * 0.04 + 0.1
 	_lupy(szczescie)
 	_wrogowie()
+	_dla_rajdu()
+
+
+const K = Mapgen.K
+const NA_K := {T.POLANA: K.PODLOGA, T.SCIEZKA: K.SCIEZKA, T.LAS: K.MUR, T.SKALA: K.MUR, T.WODA: K.WODA,
+	T.BROD: K.SCIEZKA, T.DRZEWO: K.FILAR, T.GLAZ: K.GRUZ, T.EKSTRAKCJA: K.EKSTRAKCJA}
+## Typy komnat rajdu dla polan (rozstawianie wrogów i tytuły obszarów).
+const KOMNATA_POLANY := {"start": "start", "ekstrakcja": "ekstrakcja", "polana": "polana", "laka": "laka",
+	"oboz": "oboz", "kapliczka": "kapliczka_lesna", "kurhan": "kurhan", "legowisko": "legowisko"}
+
+
+## Przekład na format lochu: siatka K, polany jako komnaty, ścieżki jako korytarze, ogniska jako kosze.
+func _dla_rajdu() -> void:
+	siatka.resize(ROZMIAR * ROZMIAR)
+	wariant.resize(ROZMIAR * ROZMIAR)
+	for i in teren.size():
+		siatka[i] = NA_K[teren[i]]
+		wariant[i] = rng_uklad.randi_range(0, 2)
+		if teren[i] == T.SCIEZKA or teren[i] == T.BROD:
+			korytarze.append(Vector2i(i % ROZMIAR, i / ROZMIAR))
+	for o in ogniska:
+		var c := Vector2i(int(o.x), int(o.y))
+		var wolne := true
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				if kafel(c.x + dx, c.y + dy) != K.PODLOGA:
+					wolne = false
+		if wolne:
+			siatka[idx(c.x, c.y)] = K.KOSZ
+			kosze.append(Vector2(c) + Vector2(0.5, 0.5))
+	for i in polany.size():
+		var p: Dictionary = polany[i]
+		var c: Vector2 = p["c"]
+		var rad := int(float(p["r"]) * 0.8)
+		komnaty.append({"r": Rect2i(int(c.x) - rad, int(c.y) - rad, rad * 2 + 1, rad * 2 + 1), "typ": KOMNATA_POLANY[p["typ"]], "srodek": c})
+		if p["typ"] == "start":
+			komnata_startu = i
+
+
+## Logika rajdu (typy K), jak w Mapgen.
+func kafel(x: int, y: int) -> int:
+	if x < 0 or y < 0 or x >= ROZMIAR or y >= ROZMIAR:
+		return K.MUR
+	return siatka[idx(x, y)]
+
+
+func _odleglosci(od: Vector2i) -> PackedInt32Array:
+	var d := PackedInt32Array()
+	d.resize(ROZMIAR * ROZMIAR)
+	d.fill(-1)
+	var kolejka: Array[Vector2i] = [od]
+	d[idx(od.x, od.y)] = 0
+	var g := 0
+	while g < kolejka.size():
+		var p: Vector2i = kolejka[g]
+		g += 1
+		for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var q: Vector2i = p + s
+			if q.x < 0 or q.y < 0 or q.x >= ROZMIAR or q.y >= ROZMIAR:
+				continue
+			var i := idx(q.x, q.y)
+			if d[i] >= 0 or Mapgen.blokuje_ruch(siatka[i]):
+				continue
+			d[i] = d[idx(p.x, p.y)] + 1
+			kolejka.append(q)
+	return d
 
 
 # ---------------------------------------------------------------- TEREN
@@ -247,11 +319,11 @@ func _wytnij_polane(i: int) -> void:
 			var kat := d.angle()
 			var brzeg := rad * (1.0 + 0.22 * _szum.get_noise_2d(cos(kat) * 40.0 + c.x * 7.0, sin(kat) * 40.0 + c.y * 7.0))
 			if d.length() <= brzeg:
-				var t := siatka[idx(x, y)]
+				var t := teren[idx(x, y)]
 				if t == T.WODA or t == T.BROD:
-					siatka[idx(x, y)] = T.BROD
+					teren[idx(x, y)] = T.BROD
 				else:
-					siatka[idx(x, y)] = T.POLANA
+					teren[idx(x, y)] = T.POLANA
 
 
 func _maluj_kolo(c: Vector2, rad: float, typ: int, na: Array) -> void:
@@ -259,8 +331,8 @@ func _maluj_kolo(c: Vector2, rad: float, typ: int, na: Array) -> void:
 		for x in range(int(floor(c.x - rad)), int(ceil(c.x + rad)) + 1):
 			if x < 2 or y < 2 or x >= ROZMIAR - 2 or y >= ROZMIAR - 2:
 				continue
-			if Vector2(x + 0.5, y + 0.5).distance_to(c) <= rad and siatka[idx(x, y)] in na:
-				siatka[idx(x, y)] = typ
+			if Vector2(x + 0.5, y + 0.5).distance_to(c) <= rad and teren[idx(x, y)] in na:
+				teren[idx(x, y)] = typ
 
 
 func _wybierz_start(r: RandomNumberGenerator) -> void:
@@ -366,14 +438,14 @@ func _oslony(r: RandomNumberGenerator) -> void:
 				var wolno := true
 				for dy in range(-1, 2):
 					for dx in range(-1, 2):
-						if kafel(x + dx, y + dy) != T.POLANA:
+						if kt(x + dx, y + dy) != T.POLANA:
 							wolno = false
 				if wolno:
-					siatka[idx(x, y)] = T.DRZEWO if r.randf() < 0.6 else T.GLAZ
+					teren[idx(x, y)] = T.DRZEWO if r.randf() < 0.6 else T.GLAZ
 
 
 ## BFS po polach przechodnich od startu: odległość w krokach (-1 = nieosiągalne).
-func _odleglosci(od: Vector2i) -> PackedInt32Array:
+func _odl_t(od: Vector2i) -> PackedInt32Array:
 	var d := PackedInt32Array()
 	d.resize(ROZMIAR * ROZMIAR)
 	d.fill(-1)
@@ -388,7 +460,7 @@ func _odleglosci(od: Vector2i) -> PackedInt32Array:
 			if q.x < 0 or q.y < 0 or q.x >= ROZMIAR or q.y >= ROZMIAR:
 				continue
 			var i := idx(q.x, q.y)
-			if d[i] >= 0 or blokuje_ruch(siatka[i]):
+			if d[i] >= 0 or blok_t(teren[i]):
 				continue
 			d[i] = d[idx(p.x, p.y)] + 1
 			kolejka.append(q)
@@ -396,11 +468,11 @@ func _odleglosci(od: Vector2i) -> PackedInt32Array:
 
 
 func _tylko_osiagalne() -> void:
-	var d := _odleglosci(Vector2i(int(start.x), int(start.y)))
-	for i in siatka.size():
-		var t := siatka[i]
+	var d := _odl_t(Vector2i(int(start.x), int(start.y)))
+	for i in teren.size():
+		var t := teren[i]
 		if (t == T.POLANA or t == T.SCIEZKA or t == T.BROD) and d[i] < 0:
-			siatka[i] = T.LAS
+			teren[i] = T.LAS
 
 
 # ---------------------------------------------------------------- ŁUPY I WROGOWIE
@@ -437,7 +509,7 @@ func _lupy(szczescie: float) -> void:
 			for proba in 16:
 				var lx := int(c.x + rng_lup.randf_range(-rad * 0.7, rad * 0.7))
 				var ly := int(c.y + rng_lup.randf_range(-rad * 0.7, rad * 0.7))
-				if kafel(lx, ly) != T.POLANA or odl[idx(lx, ly)] < 0 or _zajete(lx, ly):
+				if kt(lx, ly) != T.POLANA or odl[idx(lx, ly)] < 0 or _zajete(lx, ly):
 					continue
 				_dodaj_skrzynie(lx, ly, rodzaje[rng_lup.randi_range(0, rodzaje.size() - 1)], szczescie + bonus)
 				break
@@ -448,7 +520,7 @@ func _lupy(szczescie: float) -> void:
 		var p: Vector2 = pts[rng_lup.randi_range(pts.size() / 4, pts.size() * 3 / 4)]
 		var cx := int(p.x)
 		var cy := int(p.y)
-		if kafel(cx, cy) == T.SCIEZKA and not _zajete(cx, cy):
+		if kt(cx, cy) == T.SCIEZKA and not _zajete(cx, cy):
 			_dodaj_skrzynie(cx, cy, "loot_knight", szczescie)
 
 
@@ -480,7 +552,7 @@ func _wrogowie() -> void:
 		for n in ile:
 			for proba in 12:
 				var w := c + Vector2(rng_wrogowie.randf_range(-3.5, 3.5), rng_wrogowie.randf_range(-3.5, 3.5))
-				if blokuje_ruch(kafel(int(w.x), int(w.y))):
+				if blok_t(kt(int(w.x), int(w.y))):
 					continue
 				spawny.append({"w": w, "grupa": grupa, "gleb": p["gleb"]})
 				break
@@ -512,13 +584,13 @@ func _dodaj_skrzynie(x: int, y: int, rodzaj: String, szczescie: float) -> void:
 	skrzynie.append({"tx": x, "ty": y, "w": Vector2(x + 0.5, y + 0.5), "rodzaj": rodzaj, "nazwa": Mapgen.NAZWY[rodzaj], "przedmioty": lista})
 
 
-## Zapis do podglądu (JSON): siatka jako tekst cyfr, polany, ścieżki, łupy, wrogowie.
+## Zapis do podglądu (JSON): teren jako tekst cyfr, polany, ścieżki, łupy, wrogowie.
 func do_slownika() -> Dictionary:
 	var wiersze: Array = []
 	for y in ROZMIAR:
 		var s := ""
 		for x in ROZMIAR:
-			s += str(siatka[idx(x, y)])
+			s += str(teren[idx(x, y)])
 		wiersze.append(s)
 	var pol: Array = []
 	for p in polany:
@@ -541,5 +613,5 @@ func do_slownika() -> Dictionary:
 	var og: Array = []
 	for o in ogniska:
 		og.append([o.x, o.y])
-	return {"rozmiar": ROZMIAR, "siatka": wiersze, "polany": pol, "sciezki": sc, "skrzynie": sk, "ekstrakcje": ek,
+	return {"rozmiar": ROZMIAR, "teren": wiersze, "polany": pol, "sciezki": sc, "skrzynie": sk, "ekstrakcje": ek,
 		"wrogowie": wr, "ogniska": og, "start": [start.x, start.y]}
