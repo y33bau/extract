@@ -17,6 +17,16 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 10:45 — konto 2, rola: gamedev — runda `namierzanie` ZAMKNIĘTA
+- Gałąź **`namierzanie`** — najnowsza. main nietknięty (`97c0c22`).
+- Wpis 02:40 („W TOKU”) zawierał błąd składni w `rajd.gd` (wstawiona linia rozbiła `if/elif` — rajd by nie ruszył). Testy z nocy przerwało wyłączenie sesji, więc commit `024413a` poszedł bez potwierdzenia. **Naprawione**; wniosek: commitu „w toku” nie traktować jako sprawdzonego.
+- Test „doskok do wroga dopływa płynnie” czekał sztywne 0,6 s i w spakowanej grze (wyższy FPS) wypadał na granicy (0,03 m) → czeka teraz, aż obraz dogoni logikę (max 1,5 s); kryterium bez zmian.
+- Testy: 94/94 OK, kontrola spakowanej gry Linux 94/94 OK.
+- Dostawa: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Namierzanie.zip` (`TEST_NAMIERZANIE.bat`).
+- Pytanie autora (10:18): „Czy jest potrzeba takich testów? Mogę sam to robić.” Odpowiedź: testy robi agent (nie zabierają czasu autora), łapią awarie, nie wyczucie; dziś złapały rajd, który by się nie uruchomił. Propozycja: pełna kontrola spakowanej gry tylko przed dostawą (jak w ZASADY). Decyzji autora jeszcze brak.
+- NIE sprawdzone: wyczucie ruchu, parowania i namierzania na żywo, prawdziwy pad (R3, L3), dźwięk.
+- Następny krok: ocena autora (namierzanie, płynny ruch, parowanie, szybszy chód w Warowni, mniejsze znaczniki); na „publikuj” scal `namierzanie` do main (zawiera wszystkie rundy od 26.11).
+
 ## 2026-11-26 02:40 — konto 2, rola: gamedev — W TOKU (autor wyłącza komputer)
 - Gałąź **`namierzanie`** (od `hud-nightbrand`) — najnowsza, od niej zaczynaj.
 - Zlecenia autora (02:12–02:24): 1) namierzanie wroga, postać „pływa” przy ciosach i uderza w ścianę; 2) kursor nie może obracać postaci — ruch klawiaturą, klik na wroga = atak na niego; 3) riposta w najbliższego wroga; 4) opcja namierzania; 5) poprawić animacje parowania i ruchu w walce („dziwne, nienaturalne”), w Warowni chód „sensowny, trochę za wolny”; 6) płynny kierunek chodu i zmiana kierunku; 7) mniejsze znaczniki parowania na wrogach.

@@ -7,7 +7,7 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 ## 1. Stan w jednym akapicie
 
 `main` = `97c0c22` (opublikowano 26.11 o 00:06 całą linię do `mapy-runda-2`). Od tego czasu powstały **4 nieopublikowane rundy na gałęziach, każda zawiera poprzednią**:
-`walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → `hud-nightbrand` → **`namierzanie` (najnowsza, W TOKU — od niej zaczynaj; szczegóły: wpis dziennika 02:40)**. Testy na `hud-nightbrand`: **88/88 OK**, kontrola spakowanej gry Linux 88/88 OK. Ostatnia paczka dla autora: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_HUD.zip` (`TEST_HUD.bat`). Autor nie powiedział jeszcze „publikuj” dla żadnej z 4 rund — na „publikuj” scal `hud-nightbrand` do main (`--ff-only`; zawiera wszystkie poprzednie).
+`walka-oprawa` → `menu-i-pauza` → `mocny-cios-sklep` → `hud-nightbrand` → **`namierzanie` (najnowsza — od niej zaczynaj)**. Testy: **94/94 OK**, kontrola spakowanej gry Linux 94/94 OK. Ostatnia paczka dla autora: `NIGHTBRAND\WAROWNIA_POPIOLOW\Warownia_Namierzanie.zip` (`TEST_NAMIERZANIE.bat`). Autor nie powiedział jeszcze „publikuj” dla żadnej z tych rund — na „publikuj” scal `namierzanie` do main (`--ff-only`; zawiera wszystkie poprzednie).
 
 ## 2. Co zrobiono (chronologicznie)
 
@@ -19,7 +19,7 @@ Dla agenta na innym koncie, który nic nie wie o tej sesji. Przeczytaj najpierw 
 | 01:00 | `walka-oprawa` | Kamera Warowni (Przystań) dalej: `przystan.gd` ZOOM 1,85 → 1,35 | decyzja autora: w Warowni dalej, w misjach bez zmian |
 | 01:02–01:35 | `menu-i-pauza` | **Pauza** (`pauza.gd`, Esc / P / pad Start), **sterowanie jak NightBrand**, **menu w grafikach NightBrand** + Cinzel, bez emoji | „jak na betę jest OK, później dopracujemy”; czcionka: **Cinzel** |
 | 01:36–01:50 | `mocny-cios-sklep` | **Mocny cios** (przytrzymaj cios ≥ 0,35 s, puść), **Kram Margi** (kup/sprzedaj, karty, szczegóły z porównaniem), RB na liście sterowania | zlecenie autora; oceny jeszcze brak |
-| 02:12–02:40 | `namierzanie` | **Namierzanie** (R / środkowy / R3), klik na wroga = cios w niego, riposta w najbliższego ogłuszonego, kursor nie obraca postaci, doskok tylko do celu, płynny ruch i parowanie, Warownia szybciej, mniejsze znaczniki | W TOKU (autor wyłączył komputer); paczki Windows brak |
+| 02:12–02:40 | `namierzanie` | **Namierzanie** (R / środkowy / R3), klik na wroga = cios w niego, riposta w najbliższego ogłuszonego, kursor nie obraca postaci, doskok tylko do celu, płynny ruch i parowanie, Warownia szybciej, mniejsze znaczniki | zamknięta 10:45 (naprawiony błąd składni z nocy), paczka dostarczona; oceny brak |
 | 01:57–02:10 | `hud-nightbrand` | **HUD jak NightBrand** (kule życia i wytrzymałości, pasek akcji, zegar, minimapa w ramie) + **dopracowane wskaźniki walki** | zlecenie autora; oceny jeszcze brak |
 
 ## 3. Decyzje autora z tej sesji (obowiązują)
@@ -68,13 +68,14 @@ W menu: A zatwierdza, B wraca, LB/RB zakładki.
 - Zbuforowany zwykły cios z poprzedniego kroku testu potrafi odpalić się na starcie kolejnego — w testach czyść `rajd.bufor_ataku`.
 - Tryb `--test` renderuje w trybie lekkim (pikseloza) — do oceny wyglądu używaj podglądów `--podglad-*` z Vulkanem.
 - Esc to jednocześnie `pauza` i `ui_cancel`: okna (łupy, menu Warowni) obsługują Esc pierwsze, pauza otwiera się tylko, gdy nic nie jest otwarte.
+- Commit „w toku” bez zakończonych testów nie jest sprawdzony: w nocy taki commit miał błąd składni w `rajd.gd` (rajd by nie ruszył).
 - Dostarczanie plików do folderu autora: `SendUserFile` → `device_commit_files` z `fileUuid` (ścieżka `stagedPath` nie działa dla dużych plików).
 
 ## 8. NIE sprawdzone (całość sesji)
 Prawdziwy pad (Start, RT jako oś przy przytrzymaniu, ikony pada w HUD), dźwięk, wygląd i płynność na komputerze autora (iskry 3D, wiele wrogów), inne rozdzielczości ekranu niż 1280×720.
 
 ## 9. Otwarte sprawy / następne kroki (do decyzji autora)
-1. Ocena i „publikuj” dla `hud-nightbrand` (zawiera 4 rundy).
+1. Ocena i „publikuj” dla `namierzanie` (zawiera wszystkie rundy od 26.11).
 2. Aktywne umiejętności jak w NightBrand (sloty Q/E/F/R/G, mana) — NIE wdrożone (nowa mechanika; założenie: tylko wygląd zakładki). Czeka na decyzję.
 3. Menu „do dopracowania później” (autor: OK jak na betę).
 4. Liczby do strojenia (§4).

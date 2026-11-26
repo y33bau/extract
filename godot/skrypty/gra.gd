@@ -822,9 +822,10 @@ func _test_plynnosci(p) -> void:
 	if _zrzuty != "":  # sekwencja ciosu do oceny ruchu (co klatkę gry, 0,05 s)
 		for i in 10:
 			await _zrzut("seq_atak_%02d" % i)
-	await _czekaj(0.6)
+	# czekamy, aż obraz dogoni logikę (nie sztywne 0,6 s — przy wyższym FPS spakowanej gry wynik wypadał na granicy)
+	await _czekaj_az(func(): return Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w) < 0.03, 1.5)
 	var po: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
-	_ok("doskok do wroga dopływa płynnie", skok > 0.05 and po < 0.03, "po ciosie %.2f m od logiki, po 0,6 s %.2f m" % [skok, po])
+	_ok("doskok do wroga dopływa płynnie", skok > 0.05 and po < 0.03, "po ciosie %.2f m od logiki, potem %.2f m" % [skok, po])
 	en_d.w = en_d_w
 	await _czekaj(0.6)
 	# 3. kroki zgodne z kierunkiem ruchu względem twarzy

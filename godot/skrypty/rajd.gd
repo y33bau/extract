@@ -1211,13 +1211,13 @@ func _wejscie() -> void:
 	_pilnuj_namierzania()
 	if Input.is_action_just_pressed("namierz"):
 		przelacz_namierzanie()
+	p.celuje_drazkiem = cel.length() > 0.3
 	if cel_namierzony != null and p.unik_czas <= 0.0:
 		var dn: Vector2 = cel_namierzony.w - p.w
 		p.kat = atan2(dn.y, dn.x)
 	elif cel.length() > 0.3:
 		var c := Iso.ekran_na_swiat_kierunek(cel)
 		p.kat = atan2(c.y, c.x)
-	p.celuje_drazkiem = cel.length() > 0.3
 	elif ruch.length() > 0.3 and p.atak_czas <= 0.0:
 		var c2 := p.predkosc if p.predkosc.length() > 0.3 else Iso.ekran_na_swiat_kierunek(ruch)
 		p.kat = atan2(c2.y, c2.x)
