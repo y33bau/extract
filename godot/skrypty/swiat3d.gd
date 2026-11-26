@@ -12,6 +12,7 @@ const T = MapgenLas.T
 const N := Mapgen.ROZMIAR
 const PX_NA_M := 45.254834  # 32 * sqrt(2): pole świata -> piksele ekranu (zgodnie z Iso)
 const WYS_MURU := 1.7
+const WYS_COKOLU := 0.22  # wysokość muru obniżonego w przekroju przed bohaterem
 
 const GLB_BOHATERA := "res://zasoby/3d/postacie/hadraen.glb"
 const ZESTAW_ANIM := {"dwureczny": "dwureczny", "glewia": "dwureczny", "topor": "topor",
@@ -176,6 +177,7 @@ const WYGLAD := {
 		"mur": "las_skala", "mur_skala": 0.3, "akcent": "las_mchy", "wys_akcentu": 0.85, "sila_akcentu": 0.95, "mur_ton": Color(0.9, 0.95, 0.9), "mur_zar": 0.0,
 		"otoczenie": Color(0.26, 0.34, 0.3), "otoczenie_sila": 0.5, "mgla": Color(0.34, 0.44, 0.42, 0.5), "ksiezyc": Color(0.55, 0.68, 0.9), "ksiezyc_sila": 0.95,
 		"tlo": Color(0.004, 0.009, 0.006), "nasycenie": 1.05, "kontrast": 1.1, "pochodnie": Color(1.0, 0.66, 0.38), "swiatla": 1.15, "mur_jasnosc": 1.1,
+		"sciezka_jasn": 1.55, "sciezka_czysta": 0.85,  # autor 26.11: widoczna, wydeptana ścieżka (do strojenia)
 	},
 	"crypt": {
 		"a": "kry_plyty", "a_skala": 0.36, "b": "kry_popiol", "b_skala": 0.2, "c": "kry_lawa", "c_skala": 0.3,
@@ -249,6 +251,8 @@ func _materialy() -> void:
 	var id: String = rajd.kraina["id"]
 	wyglad = WYGLAD.get(id, WYGLAD["catacombs"])
 	var w := wyglad
+	_mgla_obraz = Image.create(N, N, false, Image.FORMAT_L8)
+	_mgla_tex = ImageTexture.create_from_image(_mgla_obraz)
 	_szum = _tekstura_szumu()
 	_maska = _tekstura_maski()
 	var t := ShaderMaterial.new()
@@ -264,6 +268,9 @@ func _materialy() -> void:
 	for k in ["b_ilosc", "c_ilosc", "c_przy_murach", "sciezka_b", "kaluze", "zar", "jasnosc"]:
 		t.set_shader_parameter(k, w[k])
 	t.set_shader_parameter("ton", w["ton"])
+	t.set_shader_parameter("sciezka_jasn", float(w.get("sciezka_jasn", 1.0)))
+	t.set_shader_parameter("sciezka_czysta", float(w.get("sciezka_czysta", 0.0)))
+	_mgla_do(t)
 	_mat["podloga"] = t
 	_mat["sciezka"] = t
 	var m := ShaderMaterial.new()
@@ -280,6 +287,7 @@ func _materialy() -> void:
 	m.set_shader_parameter("sila_akcentu", w["sila_akcentu"])
 	m.set_shader_parameter("zar", w["mur_zar"])
 	m.set_shader_parameter("jasnosc", w["mur_jasnosc"])
+	_mgla_do(m)
 	_mat["mur"] = m
 	var f: ShaderMaterial = m.duplicate()
 	f.set_shader_parameter("skala", w["mur_skala"] * 1.3)
@@ -391,6 +399,7 @@ func _mapa() -> void:
 	var siatki := {
 		"podloga": _plyta(), "sciezka": _plyta(), "ekstrakcja": _plyta(),
 		"filar": _filar(), "gruz": _gruz(), "kamyki": _kamyk(), "naroznik": _naroznik(),
+		"cokol": _box(Vector3(1.0, WYS_COKOLU, 1.0)),
 	}
 	var listy := {}
 	for k in siatki.keys():
@@ -426,6 +435,7 @@ func _mapa() -> void:
 						listy[klucz] = []
 						siatki[klucz] = _mesh_muru(maska, wariant)
 					listy[klucz].append([i, Basis().scaled(Vector3(1.0, h, 1.0)), WYS_MURU * 0.5 * h])
+					listy["cokol"].append([i, Basis(), WYS_COKOLU * 0.5])  # pokazywany zamiast muru w przekroju przed bohaterem
 					# filar w zewnętrznym narożniku: rytm architektury jak w ruinach Diablo II
 					for nr in [[1, 2, Vector2(0.5, 0.5)], [2, 4, Vector2(-0.5, 0.5)], [4, 8, Vector2(-0.5, -0.5)], [8, 1, Vector2(0.5, -0.5)]]:
 						if (maska & nr[0]) and (maska & nr[1]) and _hash(x * 13, y * 7) % 2 == 0:
@@ -481,7 +491,7 @@ func _mapa() -> void:
 		if "@" in k:
 			var kw: PackedStringArray = k.get_slice("@", 1).split("_")
 			mmi.custom_aabb = AABB(Vector3(int(kw[0]) * KWADRAT - 4, -1.0, int(kw[1]) * KWADRAT - 4), Vector3(KWADRAT + 8, 10.0, KWADRAT + 8))
-		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga"}.get(k, k)
+		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga", "cokol": "mur"}.get(k, k)
 		if k.begins_with("mur"):
 			mk = "mur"
 		elif k.begins_with("wierzch"):
@@ -1229,6 +1239,10 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 					listy[klucz] = []
 					siatki[klucz] = _mesh_muru(maska, wariant)
 				listy[klucz].append([i, Basis().scaled(Vector3(1.0, hh, 1.0)), WYS_MURU * 0.5 * hh])
+				if not listy.has("cokol"):
+					listy["cokol"] = []
+					siatki["cokol"] = _box(Vector3(1.0, WYS_COKOLU, 1.0))
+				listy["cokol"].append([i, Basis(), WYS_COKOLU * 0.5])
 				return
 			# ściana lasu: gęsto przy przejściu, rzadziej w głębi; runo na samym skraju
 			var co := 1 if d <= 1 else (2 if d == 2 else (3 if d <= 4 else 0))
@@ -1391,7 +1405,12 @@ func odswiez_widok() -> void:
 			if v == 0:
 				b = Basis().scaled(Vector3.ZERO)
 			# mur między kamerą a graczem obniżony do cokołu (jak w grach izometrycznych AAA)
-			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik"):
+			elif rodzaj == "cokol":
+				if not przezr:
+					b = Basis().scaled(Vector3.ZERO)
+			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "naroznik"):
+				b = Basis().scaled(Vector3.ZERO)  # zamiast ściśniętych ruin (drobna „pikseloza”) równy cokół
+			elif przezr and rodzaj == "filar":
 				var h := 0.22
 				var pelna := WYS_MURU if rodzaj.begins_with("mur") else (WYS_MURU + 0.3 if rodzaj == "naroznik" else WYS_MURU + 0.4)
 				b = Basis(b.get_rotation_quaternion()).scaled(Vector3(1.0, h / pelna, 1.0))
@@ -1404,6 +1423,14 @@ func odswiez_widok() -> void:
 			_fade[i] = true
 	_ciete_ost = ciete_teraz
 	_przekroj_wysokich(g)
+	# mapa znanych pól dla miękkiego brzegu mgły (raz na przeliczenie widoku)
+	var zmiana := false
+	for i in rajd.zmienione_widoku:
+		if widok[i] > 0 and _mgla_obraz.get_pixel(i % N, i / N).r < 0.5:
+			_mgla_obraz.set_pixel(i % N, i / N, Color.WHITE)
+			zmiana = true
+	if zmiana:
+		_mgla_tex.update(_mgla_obraz)
 	for sk in _skrzynie:
 		var v2: int = widok[rajd.mapa.idx(sk["tx"], sk["ty"])]
 		sk["wezel3d"].visible = v2 > 0
@@ -1648,7 +1675,7 @@ func _bohater() -> void:
 	_blysk_bohatera.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_blysk_bohatera.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_blysk_bohatera.albedo_color = Color(1, 1, 1, 0)
-	var cialo_b: MeshInstance3D = bohater.find_child("cialo", true, false)
+	var cialo_b: MeshInstance3D = bohater.find_child("cialo*", true, false)
 	if cialo_b:
 		cialo_b.material_overlay = _blysk_bohatera
 	_krag_bohatera = _krag(Color(1.0, 0.75, 0.4), 0.42)  # autor 26.11: krąg mniejszy (było 0,6)
@@ -1796,6 +1823,8 @@ func _aktualizuj_bohatera(dt: float) -> void:
 			"bron_pochodnia": b.visible = p.pochodnia_w_rece and not p.martwy
 	_swiatlo_pochodni.visible = p.pochodnia_w_rece and not p.martwy
 	_plomien_bohatera.emitting = _swiatlo_pochodni.visible
+	# nietykalność po otrzymanym ciosie: postać miga (jak w NightBrand), po bloku i parowaniu bez migania
+	bohater.visible = not (p.niet_miganie and p.niet > 0.0 and fmod(Time.get_ticks_msec() / 1000.0, 0.12) < 0.05)
 	_poswiata.visible = not p.pochodnia_w_rece and not p.martwy
 
 
@@ -1821,9 +1850,17 @@ func _wrog3d(en) -> Dictionary:
 	blysk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	WygladPostaci.ozyw(n)
 	WygladPostaci.swiatlo_postaci(n, 1.0 if not en.boss else 1.3, 3.6 * s if en.boss else 3.6, 2.3 * s)
-	var cialo: MeshInstance3D = n.find_child("cialo", true, false)
+	var cialo: MeshInstance3D = n.find_child("cialo*", true, false)
 	if cialo:
 		cialo.material_overlay = blysk
+	# obrys wroga w walce (NightBrand: wróg odróżnialny od tła; ostrzeżenie = podświetlenie, nie ikona):
+	# odwrócona powłoka (grow + cull front) jako następny przebieg nakładki błysku
+	var obrys := StandardMaterial3D.new()
+	obrys.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	obrys.cull_mode = BaseMaterial3D.CULL_FRONT
+	obrys.grow = true
+	obrys.grow_amount = GRUBOSC_OBRYSU
+	obrys.albedo_color = KOLOR_OBRYSU
 	_cienie(n)
 	# zapowiedź ciosu na ziemi: klin zasięgu wypełniający się aż do uderzenia
 	var znak := MeshInstance3D.new()
@@ -1877,7 +1914,7 @@ func _wrog3d(en) -> Dictionary:
 	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
-		"krag": krag, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
+		"krag": krag, "obrys": obrys, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
 	return d
 
@@ -2069,6 +2106,7 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 		if en.zamach <= 0.0 or en.ogluszenie > 0.0:
 			_zgas_zapowiedz(d, dt)
 		_reakcja_wroga(en, d, n, dt)
+		_obrys_wroga(en, d)
 		var krag: MeshInstance3D = d["krag"]
 		var namierzony: bool = rajd.cel_namierzony == en
 		krag.visible = n.visible and (en.stan == "walka" or namierzony) and not lekki_krag
@@ -2128,6 +2166,32 @@ func _aktualizuj_rekwizyty(czas: float) -> void:
 
 
 
+const GRUBOSC_OBRYSU := 0.035  # m (cieńszy ginie w izometrii)
+const KOLOR_OBRYSU := Color(0.9, 0.2, 0.1)
+
+
+## Obrys: włączony, gdy wróg walczy (albo jest namierzony); w zamachu jaśnieje barwą ciosu
+## (złoty = paruj, czerwony = ciężki / tylko unik, błękitny = strzała), ogłuszony = złoty puls (riposta).
+func _obrys_wroga(en, d: Dictionary) -> void:
+	var blysk: StandardMaterial3D = d["blysk"]
+	var obrys: StandardMaterial3D = d["obrys"]
+	var wl: bool = en.hp > 0.0 and (en.stan == "walka" or rajd.cel_namierzony == en)
+	if wl != bool(d["obrys_wl"]):
+		d["obrys_wl"] = wl
+		blysk.next_pass = obrys if wl else null
+	if not wl:
+		return
+	var t := Time.get_ticks_msec() / 1000.0
+	var k := KOLOR_OBRYSU
+	if en.ogluszenie > 0.0:
+		k = Color(1.0, 0.78, 0.3).lerp(Color(1.0, 0.95, 0.7), 0.5 + 0.5 * sin(t * 12.0))
+	elif en.zamach > 0.0 and en.zamach_dl > 0.0:
+		var f: float = 1.0 - en.zamach / en.zamach_dl
+		var kz := Color(1.0, 0.18, 0.08) if en.ciezki else (Color(0.6, 0.82, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.8, 0.25))
+		k = KOLOR_OBRYSU.lerp(kz, 0.35 + 0.65 * f)
+	obrys.albedo_color = k
+
+
 # ---------------------------------------------------------------- MIĘSO TRAFIEŃ (tylko wygląd)
 ## Reakcja na trafienie trwa dłużej niż okno logiki (en.trafiony 0,15 s), żeby cios był widoczny:
 ## błysk ciała, wzdrygnięcie (klip „trafienie”), odchylenie do tyłu na sprężynie i krótki „przysiad” sylwetki.
@@ -2167,7 +2231,7 @@ func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
 	if en.zamach > 0.0 and en.ogluszenie <= 0.0 and en.zamach_dl > 0.0:
 		var t: float = 1.0 - en.zamach / en.zamach_dl
 		var kz := Color(1.0, 0.2, 0.1) if en.ciezki else (Color(0.6, 0.8, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.78, 0.25))
-		var az: float = 0.12 + 0.38 * t * t + 0.08 * sin(Time.get_ticks_msec() / 1000.0 * 28.0)
+		var az: float = 0.06 + 0.26 * t * t + 0.05 * sin(Time.get_ticks_msec() / 1000.0 * 28.0)  # obrys niesie główny sygnał
 		if az > kol.a:
 			kol = Color(kz, az)
 	d["tint_zamachu"] = kol.a if en.zamach > 0.0 else 0.0
@@ -2469,12 +2533,22 @@ func _otoczenie_materialy() -> void:
 		# jasność wierzchu: ciemniejszy od oświetlonej podłogi, ale z czytelną fakturą (unshaded w shaderze)
 		m.set_shader_parameter("ton", Color(0.3, 0.4, 0.27) if rodz == "korona" else Color(0.4 * ton_muru.r, 0.38 * ton_muru.g, 0.4 * ton_muru.b))
 		m.set_shader_parameter("rozmiar_mapy", float(N))
+		_mgla_do(m)
 		_mat[rodz] = m
 
 
 ## Płaszczyzna poza mapą: skała (loch) albo korony (las) ciągną się dalej i gasną w tło (autor 26.11:
 ## „czarne tło odcina się brzydko”). Wewnątrz granic mapy płaszczyzna jest czarna (nie zdradza układu).
 var _plaszczyzna_otoczenia: MeshInstance3D
+var _mgla_obraz: Image
+var _mgla_tex: ImageTexture
+
+
+func _mgla_do(m: ShaderMaterial) -> void:
+	m.set_shader_parameter("mgla_znane", _mgla_tex)
+	m.set_shader_parameter("rozmiar_mgly", float(N))
+
+
 func _otoczenie() -> void:
 	var zew: ShaderMaterial = (_mat["korona"] if las else _mat["wierzch"]).duplicate()
 	zew.set_shader_parameter("poza_mapa", 1.0)

@@ -22,6 +22,20 @@ uniform vec3 kolor_zaru : source_color = vec3(1.0, 0.3, 0.06);
 varying vec3 swiat;
 varying vec3 nsw;
 
+// Miękki brzeg mgły wojny (autor 26.11): mapa znanych pól (1 = odkryte) próbkowana z rozmyciem,
+// odkryty teren ciemnieje łagodnie ku granicy z nieznanym zamiast urywać się schodkiem.
+// Bez przypisanej tekstury (np. Przystań) — biała = brak efektu.
+uniform sampler2D mgla_znane : hint_default_white, filter_linear, repeat_disable;
+uniform float rozmiar_mgly = 128.0;
+float brzeg_mgly(vec2 p) {
+	vec2 uv = p / rozmiar_mgly;
+	float d = 0.75 / rozmiar_mgly;
+	float s = texture(mgla_znane, uv).r * 0.36
+		+ (texture(mgla_znane, uv + vec2(d, 0.0)).r + texture(mgla_znane, uv - vec2(d, 0.0)).r
+		+ texture(mgla_znane, uv + vec2(0.0, d)).r + texture(mgla_znane, uv - vec2(0.0, d)).r) * 0.16;
+	return smoothstep(0.3, 0.92, s);
+}
+
 void vertex() {
 	swiat = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	nsw = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
@@ -57,7 +71,8 @@ void fragment() {
 	vec3 kolm = alb * ton * makro * kontakt * jasnosc;
 	float pamiec = 1.0 - smoothstep(0.6, 0.95, COLOR.r);
 	kolm = mix(kolm, vec3(dot(kolm, vec3(0.3, 0.59, 0.11))) * vec3(0.8, 0.88, 1.05), pamiec * 0.75);
-	ALBEDO = kolm * COLOR.rgb;
+	float brzeg = brzeg_mgly(swiat.xz);
+	ALBEDO = kolm * COLOR.rgb * brzeg;
 	ROUGHNESS = mix(rh.r, 1.0, 0.2);
 	NORMAL_MAP = nrm;
 	NORMAL_MAP_DEPTH = normalna;
@@ -65,6 +80,6 @@ void fragment() {
 	AO_LIGHT_AFFECT = 0.35;
 	if (zar > 0.0) {
 		float g = clamp((alb.r - alb.b * 1.4 - 0.1) * 4.0, 0.0, 1.0) * (1.0 - smoothstep(0.0, 0.8, h));
-		EMISSION = kolor_zaru * g * zar * (0.7 + 0.3 * sin(TIME * 1.3 + n.r * 9.0)) * COLOR.r;
+		EMISSION = kolor_zaru * g * zar * (0.7 + 0.3 * sin(TIME * 1.3 + n.r * 9.0)) * COLOR.r * brzeg;
 	}
 }

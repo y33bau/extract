@@ -17,6 +17,25 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 19:20 — nowe konto, rola: gamedev — walka uczciwa i czytelność (punkty 5–14 listy mentora)
+- Gałąź: `walka-i-czytelnosc` (od `mapa-mgla-i-wczytywanie`, która czeka na „publikuj”).
+- **Zlecenie autora (18:19): „Rób od 5 do 14”** = zgoda na zmiany odczucia walki (5, 6) i na zastąpienie trójkąta „!” obrysem (7). Punkt 8 (ocena walki) należy do autora.
+- Zrobione:
+  - **5. Walka uczciwa** (`rajd.gd`, stałe na górze): nietykalność 0,45 s po otrzymanym ciosie (postać miga), 0,18 s po bloku, 0,7 s po parowaniu; stamina nie odnawia się 0,55 s po ciosie, uniku, strzale i zablokowanym ciosie; najwyżej 2 wrogów wręcz naraz w zamachu (trzeci czeka 0,25 s); wspólna przerwa strzelców 1,1 s.
+  - **6. Cios w fazach**: zamach 0,10 s (ciężki 0,14, mocny po naładowaniu 0,12) → cięcie 0,09 s (trafienie, doskok, efekt) → powrót do końca odnowienia. Unik w zamachu i cięciu nie działa (bufor uniku odpala go po cięciu), w powrocie przerywa cios. Wróg, który ruszył się w zamachu, dostaje cios tam, gdzie stoi (bez namierzania).
+  - **7+10. Obrys wroga** zamiast trójkąta „!”: odwrócona powłoka 0,035 m na ciele wroga, gdy walczy lub jest namierzony; w zamachu jaśnieje barwą ciosu (złoty = paruj, czerwony = ciężki, błękitny = strzała), ogłuszony = złoty puls. Barwa sylwetki w zamachu złagodzona (obrys niesie główny sygnał).
+  - **Błąd naprawiony przy okazji**: siatka ciała wrogów nazywa się `cialo_001`, a kod szukał `cialo` — błysk przy trafieniu i barwa zamachu NIGDY nie działały na wrogach (testy sprawdzały tylko liczby). Teraz `find_child("cialo*")` + test, że nakładka siedzi na siatce.
+  - **9. Ścieżka w Czarnoborze**: wydeptana, jaśniejsza (×1,55) i z mniejszą ilością liści/mchu (`sciezka_jasn`, `sciezka_czysta` w `teren.gdshader`, `WYGLAD.czarnobor`).
+  - **11. „Pikselowe ściany”**: to były mury ściśnięte do 0,22 m w przekroju przed bohaterem (poszarpany model ruin → drobna szachownica). Teraz mur w przekroju znika, a w jego miejscu stoi równy cokół (`cokol`, `WYS_COKOLU`).
+  - **12. Miękki brzeg mgły**: mapa znanych pól (`_mgla_tex`, L8 128×128) próbkowana z rozmyciem w shaderach terenu i muru — odkryty teren łagodnie ciemnieje ku nieznanemu (bez schodków). Wierzch skały bez brzegu (wyłania się z przejściem).
+  - **13. Pasek bossa**: u dołu nad paskiem akcji, 16 px w ramie, nazwa Cinzel 22 jasna, wyśrodkowana.
+  - **14. Minimapa**: jaśniejsze, ciepłe kolory (ściany, ścieżki, woda, wyjścia; las zielony), wyjścia jako romby, poza oknem zielone strzałki na brzegu.
+- Liczby do strojenia: wszystkie z punktu 5–6, grubość/kolor obrysu, jasność ścieżki, szerokość brzegu mgły.
+- Testy: `testy.py godot` OK **145/145** (nowe: cios w fazach, unik zablokowany w zamachu, nietykalność, przerwa staminy, limit zamachów, przerwa strzelców, obrys, nakładka na ciele, pasek bossa, minimapa). Kontrola spakowanej gry OK 145/145. Testy, które zakładały trafienie w chwili wciśnięcia, czekają teraz na cięcie (`_po_cieciu`); próg barwy zamachu w teście 0,2 → 0,12 (świadome złagodzenie barwy na rzecz obrysu).
+- Dostarczone: `Warownia_WalkaCzytelnosc.zip` (137 MB, `TEST_WALKA_CZYTELNOSC.bat`), `Walka_czytelnosc_zrzuty.png`.
+- NIE sprawdzone: wyczucie walki na komputerze autora (fazy ciosu i nietykalność zmieniają odczucie!), każda broń osobno (test tylko jedną bronią), prawdziwy pad, dźwięk; wygląd obrysu na prawdziwej karcie (w chwili renderu programowego bywa poszarpany).
+- Następny krok: ocena autora (także punkt 8: czy walka „już nie kuleje”), „publikuj” dla rundy mapy i tej; potem Spalona Osada.
+
 ## 2026-11-26 18:15 — nowe konto, rola: agent główny — ocena rundy mapy
 - **Ocena autora (18:13):** runda `mapa-mgla-i-wczytywanie` — „ocena pozytywna, są rzeczy do zmiany, ale to na później”. Bez „publikuj” (czeka). Lista poprawek autora: do zebrania później.
 

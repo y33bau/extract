@@ -13,6 +13,20 @@ uniform float zasieg_gasniecia = 40.0;
 uniform float jasnosc_poza = 1.6;   // poza mapą jaśniej niż wierzch w mapie: głębia ma być czytelna, nie czarna smuga
 varying vec3 swiat;
 
+// Miękki brzeg mgły wojny (autor 26.11): mapa znanych pól (1 = odkryte) próbkowana z rozmyciem,
+// odkryty teren ciemnieje łagodnie ku granicy z nieznanym zamiast urywać się schodkiem.
+// Bez przypisanej tekstury (np. Przystań) — biała = brak efektu.
+uniform sampler2D mgla_znane : hint_default_white, filter_linear, repeat_disable;
+uniform float rozmiar_mgly = 128.0;
+float brzeg_mgly(vec2 p) {
+	vec2 uv = p / rozmiar_mgly;
+	float d = 0.75 / rozmiar_mgly;
+	float s = texture(mgla_znane, uv).r * 0.36
+		+ (texture(mgla_znane, uv + vec2(d, 0.0)).r + texture(mgla_znane, uv - vec2(d, 0.0)).r
+		+ texture(mgla_znane, uv + vec2(0.0, d)).r + texture(mgla_znane, uv - vec2(0.0, d)).r) * 0.16;
+	return smoothstep(0.3, 0.92, s);
+}
+
 void vertex() {
 	swiat = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -34,5 +48,7 @@ void fragment() {
 	}
 	// kontrast faktury: kamień/liście widać jako fakturę, nie płaską plamę
 	vec3 f = pow(a, vec3(0.85)) * (0.55 + 0.9 * dot(a, vec3(0.33)));
+	// wierzch skały / korony: bez miękkiego brzegu — sama skała nigdy nie jest „odkryta” (wzrok staje na murze);
+	// wyłania się płynnie razem z przejściem, przy którym leży (COLOR)
 	ALBEDO = f * ton.rgb * plamy * jasn;
 }

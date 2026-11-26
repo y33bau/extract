@@ -35,6 +35,22 @@ uniform float normalna = 1.0;
 
 varying vec3 swiat;
 
+// Miękki brzeg mgły wojny (autor 26.11): mapa znanych pól (1 = odkryte) próbkowana z rozmyciem,
+// odkryty teren ciemnieje łagodnie ku granicy z nieznanym zamiast urywać się schodkiem.
+// Bez przypisanej tekstury (np. Przystań) — biała = brak efektu.
+uniform sampler2D mgla_znane : hint_default_white, filter_linear, repeat_disable;
+uniform float rozmiar_mgly = 128.0;
+float brzeg_mgly(vec2 p) {
+	vec2 uv = p / rozmiar_mgly;
+	float d = 0.75 / rozmiar_mgly;
+	float s = texture(mgla_znane, uv).r * 0.36
+		+ (texture(mgla_znane, uv + vec2(d, 0.0)).r + texture(mgla_znane, uv - vec2(d, 0.0)).r
+		+ texture(mgla_znane, uv + vec2(0.0, d)).r + texture(mgla_znane, uv - vec2(0.0, d)).r) * 0.16;
+	return smoothstep(0.3, 0.92, s);
+}
+uniform float sciezka_jasn = 1.0;     // las: wydeptana ścieżka jaśniejsza od runa (czytelność ponad nastrój)
+uniform float sciezka_czysta = 0.0;   // las: na ścieżce mniej liści i mchu (warstwa C)
+
 void vertex() {
 	swiat = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -69,7 +85,7 @@ void fragment() {
 	vec2 uc = p * c_skala;
 	vec3 cc = texture(c_alb, uc).rgb;
 	vec2 crh = texture(c_rh, uc).rg;
-	float mc = clamp((n2.r - (1.0 - c_ilosc)) * 3.0 + mk.r * c_przy_murach, 0.0, 1.0);
+	float mc = clamp((n2.r - (1.0 - c_ilosc)) * 3.0 + mk.r * c_przy_murach - mk.g * sciezka_czysta, 0.0, 1.0);
 	float tc = smoothstep(rh.g - 0.2, rh.g + 0.1, mc * 1.2 - 0.1 + (1.0 - rh.g) * 0.25);
 	alb = mix(alb, cc, tc);
 	nrm = nrm_mix(nrm, texture(c_nrm, uc).rgb, tc);
@@ -79,6 +95,7 @@ void fragment() {
 	float makro = mix(0.78, 1.12, n1.g) * mix(0.92, 1.05, n2.b);
 	float ao = 1.0 - mk.r * ao_murow;
 	vec3 kol = alb * ton * makro * ao * jasnosc;
+	kol *= mix(1.0, sciezka_jasn, smoothstep(0.15, 0.75, mk.g));
 	float szorst = rh.r;
 
 	// kałuże w zagłębieniach: ciemne, gładkie (odbicia SSR)
@@ -93,7 +110,8 @@ void fragment() {
 	float pamiec = 1.0 - smoothstep(0.6, 0.95, COLOR.r);
 	float szar = dot(kol, vec3(0.3, 0.59, 0.11));
 	kol = mix(kol, vec3(szar) * vec3(0.8, 0.88, 1.05), pamiec * 0.75);
-	ALBEDO = kol * COLOR.rgb;
+	float brzeg = brzeg_mgly(p);
+	ALBEDO = kol * COLOR.rgb * brzeg;
 	ROUGHNESS = szorst;
 	SPECULAR = 0.35;
 	NORMAL_MAP = nrm;
@@ -105,6 +123,6 @@ void fragment() {
 		// gorące piksele warstwy C (pomarańczowe w teksturze) świecą i pulsują w szumie
 		float goraco = clamp((cc.r - cc.b * 1.3 - 0.12) * 4.0, 0.0, 1.0) * tc;
 		float puls = 0.65 + 0.35 * sin(TIME * 1.7 + n2.r * 12.0);
-		EMISSION = kolor_zaru * goraco * zar * puls * COLOR.r;
+		EMISSION = kolor_zaru * goraco * zar * puls * COLOR.r * brzeg;
 	}
 }

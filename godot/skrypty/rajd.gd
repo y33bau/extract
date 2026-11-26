@@ -72,6 +72,20 @@ const DOSKOK_RIPOSTY := 1.4      # m: tyle doskoku domyka ripostę w ogłuszoneg
 const CD_PAROWANIA := 0.5        # s: przerwa między próbami parowania (było 0,65)
 const V_W_CIOSIE := 0.9          # m/s w chwili cięcia (było 0,5)
 const V_PO_CIOSIE := 2.3         # m/s do końca odnowienia ciosu (było 1,6 przez całą animację)
+# Runda „walka i czytelność” (autor 26.11: „rób”) — walka trudna, ale uczciwa (wzór NightBrand), do strojenia:
+const NIET_PO_TRAFIENIU := 0.45  # s nietykalności po otrzymanym ciosie (postać miga)
+const NIET_PO_BLOKU := 0.18
+const NIET_PO_PAROWANIU := 0.7
+const PRZERWA_STAMINY := 0.55    # s bez odnowy staminy po akcji (cios, unik, strzał, zablokowany cios)
+const MAX_ZAMACHOW := 2          # najwyżej tylu wrogów wręcz naraz w zamachu
+const PRZERWA_LUCZNIKOW := 1.1   # s wspólnej przerwy strzelców po każdym strzale
+# Cios w fazach: zamach -> cięcie (trafienie) -> powrót; unik przerywa tylko powrót.
+const ZAMACH_CIOSU := 0.1        # s (uderzenie animacji wypada ~0,1 s po wciśnięciu — ATAK_PLAN w swiat3d.gd)
+const ZAMACH_CIEZKIEGO := 0.14
+const ZAMACH_MOCNEGO := 0.12     # po naładowaniu (przytrzymanie) zamach już trwał
+const CIECIE := 0.09
+var przerwa_lucznikow := 0.0
+var ostatnie_trafienie := {}  # {hitstop, kop} ostatniego cięcia, które trafiło (dla testów i strojenia)
 var bufor_uniku := 0.0
 
 var podloga: Node2D
@@ -608,6 +622,7 @@ func atak_wrecz(mocny := false) -> void:
 		napis(p.w - Vector2(0.6, 0.6), "BRAK STAMINY!", Color("a8a29e"), 10)
 		return
 	p.stamina = maxf(0.0, p.stamina - float(bron["stamina"]))
+	p.stamina_przerwa = PRZERWA_STAMINY
 	p.blok = false
 	# cel ciosu: ogłuszony (riposta) > namierzony > kliknięty > najbliższy przed postacią
 	_cel_doskoku = cel_ciosu(float(bron["range"]))
@@ -630,6 +645,25 @@ func atak_wrecz(mocny := false) -> void:
 	p.atak_licznik += 1
 	p.zamach_anim_max = maxf(0.46, p.atak_cd * 1.35)
 	p.zamach_anim = p.zamach_anim_max
+	# fazy: zamach (bez trafienia, bez uniku) -> cięcie (trafienie w _ciecie) -> powrót (unik przerywa)
+	p.faza_ciosu = "zamach"
+	p.faza_czas = ZAMACH_MOCNEGO if mocny else (ZAMACH_CIEZKIEGO if ciezki else ZAMACH_CIOSU)
+	p.atak_czas = p.faza_czas + CIECIE
+	p.cios_ciezki = ciezki
+	p.cios_bron = bron
+	Dzwiek.zamach(ciezki)
+
+
+## Chwila cięcia: doskok do celu, efekt i trafienie (wołane, gdy kończy się zamach).
+func _ciecie() -> void:
+	var p := gracz
+	var bron: Dictionary = p.cios_bron
+	var ciezki: bool = p.cios_ciezki
+	if not _zywy(_cel_doskoku):
+		_cel_doskoku = null
+	if _cel_doskoku != null and cel_namierzony == null:
+		var dc0: Vector2 = _cel_doskoku.w - p.w
+		p.atak_kat = atan2(dc0.y, dc0.x)  # cel przesunął się w zamachu: cios idzie za nim (bez śledzenia po cięciu)
 	# doskok tylko do celu i tylko tyle, by domknąć dystans (nie w ścianę, nie w pustkę)
 	var doskok := Vector2.ZERO
 	# riposta (autor 26.11: „parowanie/riposta kuleje”): ogłuszony cel w zasięgu doskoku zawsze dostaje cios —
@@ -643,9 +677,8 @@ func atak_wrecz(mocny := false) -> void:
 	przesun(p, doskok)
 	if swiat3d != null:
 		swiat3d.impuls(p, p.w - przed_doskokiem)
-	Dzwiek.zamach(ciezki)
 	if swiat3d != null:
-		swiat3d.efekt("ciecie_zar" if ciezki else "ciecie", p.w + Vector2(cos(p.kat), sin(p.kat)) * 0.75, 1.05, p.kat, 1.5 if ciezki else 1.25, 0.24, 0.08)
+		swiat3d.efekt("ciecie_zar" if ciezki else "ciecie", p.w + Vector2(cos(p.atak_kat), sin(p.atak_kat)) * 0.75, 1.05, p.atak_kat, 1.5 if ciezki else 1.25, 0.24, 0.0)
 	var kuznia := 1.0 + Profil.budynek("forge") * 0.12
 	var bieglosc := 1.0 + (Profil.poziom("melee") - 1) * 0.06
 	var trafil := false
@@ -700,6 +733,8 @@ func atak_wrecz(mocny := false) -> void:
 		trafil = true
 		if en.hp <= 0.0:
 			zabij(en)
+	if trafil:
+		ostatnie_trafienie = {"hitstop": hitstop, "kop": kop_kamery.length()}
 	if trafil and ciezki:
 		xp("melee", 6)
 
@@ -863,6 +898,7 @@ func strzal_z_luku() -> void:
 		if znaleziono:
 			break
 	p.stamina -= float(luk["stamina"])
+	p.stamina_przerwa = PRZERWA_STAMINY
 	p.luk_cd = 0.58
 	Dzwiek.cieciwa()
 	var lucznictwo := Profil.poziom("archery") - 1
@@ -880,16 +916,20 @@ func unik(kierunek_ruchu: Vector2) -> void:
 	var p := gracz
 	if okno_otwarte or p.unik_cd > 0.0 or p.unik_czas > 0.0 or p.martwy:
 		return
+	if p.faza_ciosu == "zamach" or p.faza_ciosu == "ciecie":
+		return  # cios zobowiązuje: unik przerywa tylko powrót (bufor uniku odpali go zaraz po cięciu)
 	var koszt := maxf(12.0, 22.0 - (Profil.poziom("endurance") - 1) * 1.2)
 	if p.stamina < koszt:
 		return
 	p.stamina -= koszt
+	p.stamina_przerwa = PRZERWA_STAMINY
 	# bez kierunku: odskok w tył (od wroga), nie przewrót prosto pod jego cios
 	p.unik_kier = kierunek_ruchu.normalized() if kierunek_ruchu != Vector2.ZERO else -Vector2(cos(p.kat), sin(p.kat))
 	p.unik_czas = p.UNIK_DLUGOSC
 	# unik przerywa wybrzmienie ciosu i ładowanie (płynne wyjście z walki)
 	p.zamach_anim = 0.0
 	p.atak_czas = 0.0
+	p.faza_ciosu = ""
 	p.trzyma_atak = false
 	p.ladowanie = 0.0
 	p.unik_cd = 0.62
@@ -1006,7 +1046,7 @@ func uzyj_mikstury(rodzaj: String) -> void:
 ## Cios wroga w gracza. en == null dla strzał.
 func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 	var p := gracz
-	if p.martwy or p.riposta_niet > 0.0:
+	if p.martwy or p.riposta_niet > 0.0 or p.niet > 0.0:
 		return
 	if p.unik_czas > 0.0:
 		napis(p.w - Vector2(0.7, 0.7), "UNIK!", Color("6ee7b7"), 11)
@@ -1031,6 +1071,8 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 				swiat3d.efekt("parowanie", (p.w + en.w) / 2.0, 1.25, 0.0, 1.7, 0.42, 0.0)
 			napis(p.w - Vector2(0.75, 0.75), "PAROWANIE!", Color("ffd166"), 13)  # nad bohaterem: nie zasłania rombu riposty nad wrogiem
 			xp("parry", 30)
+			p.niet = NIET_PO_PAROWANIU
+			p.niet_miganie = false
 			return
 	var obr := surowe
 	if not dystansowe and en != null and not en.ciezki and not p.pochodnia_w_rece:
@@ -1041,6 +1083,9 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		var redukcja: float = 0.3 if p.pochodnia_w_rece else (float(Dane.p(p.rynsztunek["shield"]["id"])["blockRed"]) if p.rynsztunek["shield"] else 0.45)
 		p.stamina = maxf(0.0, p.stamina - surowe * 0.65 * (1.8 if (en != null and en.ciezki) else 1.0))
 		obr *= 1.0 - redukcja
+		p.stamina_przerwa = PRZERWA_STAMINY
+		p.niet = NIET_PO_BLOKU
+		p.niet_miganie = false
 		Dzwiek.blok()
 		efekty.czastki_dodaj(p.w, 7, Color("d4c3a3"), 2.4, 0.25)
 		napis(p.w - Vector2(0.65, 0.65), "BLOK -%d" % roundi(obr), Color("7dd3fc"), 11)
@@ -1054,6 +1099,8 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 			zbroja["durability"] = maxf(0.0, float(zbroja["durability"]) - poch * 0.75)
 			obr = maxf(2.0, obr - poch)
 		Dzwiek.bol()
+		p.niet = NIET_PO_TRAFIENIU
+		p.niet_miganie = true
 		blysk_trafienia = 0.85
 		wstrzas = minf(12.0, wstrzas + 6.0)
 		if en != null:
@@ -1313,12 +1360,28 @@ func _aktualizuj(dt: float) -> void:
 					zmiana_ekwipunku.emit()
 				break
 
-	for pole in ["atak_czas", "atak_cd", "combo_reset", "okno_parowania", "parowanie_cd", "unik_cd", "luk_cd", "dopalacz_staminy", "zamach_anim", "riposta_niet"]:
+	for pole in ["atak_czas", "atak_cd", "combo_reset", "okno_parowania", "parowanie_cd", "unik_cd", "luk_cd", "dopalacz_staminy", "zamach_anim", "riposta_niet", "niet"]:
 		p.set(pole, maxf(0.0, p.get(pole) - dt))
+	if p.faza_ciosu != "":
+		p.faza_czas -= dt
+		if p.faza_czas <= 0.0:
+			match p.faza_ciosu:
+				"zamach":
+					p.faza_ciosu = "ciecie"
+					p.faza_czas = CIECIE
+					_ciecie()
+				"ciecie":
+					p.faza_ciosu = "powrot"
+					p.faza_czas = maxf(0.0, p.atak_cd)
+				_:
+					p.faza_ciosu = ""
+	if p.stamina_przerwa > 0.0:
+		p.stamina_przerwa = maxf(0.0, p.stamina_przerwa - dt)
 	var odnowa := 24.0 * (1.0 + (Profil.poziom("endurance") - 1) * 0.08) * (1.65 if p.dopalacz_staminy > 0.0 else 1.0)
 	var mnoznik := 0.35 if p.blok else (0.2 if p.atak_czas > 0.0 else 1.0)
 	var ciezar := maxf(0.55, 1.0 - sakwa_obciazenie() * 0.035)
-	p.stamina = minf(p.stamina_max, p.stamina + odnowa * mnoznik * ciezar * dt)
+	if p.stamina_przerwa <= 0.0:
+		p.stamina = minf(p.stamina_max, p.stamina + odnowa * mnoznik * ciezar * dt)
 
 	p.w_ruchu = false
 	p.ruch_wektor = Vector2.ZERO
@@ -1411,9 +1474,19 @@ func _aktualizuj(dt: float) -> void:
 	strzaly_wezel.queue_redraw()
 
 
+## Ilu wrogów wręcz jest teraz w zamachu.
+func _zamachy_wrecz() -> int:
+	var n := 0
+	for en in wrogowie:
+		if en.zamach > 0.0 and en.rodzaj != "archer" and en.ogluszenie <= 0.0:
+			n += 1
+	return n
+
+
 func _wrogowie(dt: float) -> void:
 	var p := gracz
 	_licz_pole()
+	przerwa_lucznikow = maxf(0.0, przerwa_lucznikow - dt)
 	for en in wrogowie.duplicate():
 		if en.uspiony:
 			continue
@@ -1435,6 +1508,7 @@ func _wrogowie(dt: float) -> void:
 			en.zamach -= dt
 			if en.zamach <= 0.0:
 				if en.rodzaj == "archer":
+					przerwa_lucznikow = PRZERWA_LUCZNIKOW
 					Dzwiek.cieciwa()
 					var kier := Vector2(cos(en.kat), sin(en.kat))
 					strzaly.append({"w": en.w + kier * 0.4, "v": kier * 18.0, "dmg": en.dmg, "zasieg": 12.0, "od_gracza": false})
@@ -1467,14 +1541,21 @@ func _wrogowie(dt: float) -> void:
 					przesun(en, -kier2 * en.spd * 0.8 * dt)
 					en.krok_anim += dt * 5.0
 				if widzi and dist <= en.zasieg and en.atak_timer <= 0.0:
-					en.zamach = en.zamach_dl
+					if przerwa_lucznikow > 0.0:
+						en.atak_timer = przerwa_lucznikow + 0.1  # inny strzelec właśnie strzelał
+					else:
+						en.zamach = en.zamach_dl
+						przerwa_lucznikow = PRZERWA_LUCZNIKOW
 			else:
 				if dist > en.zasieg - 0.15:
 					var v: float = en.spd * (1.25 if (en.boss and en.hp < en.hp_max * 0.5) else 1.0)
 					przesun(en, kier2 * v * dt)
 					en.krok_anim += dt * 7.0
 				elif en.atak_timer <= 0.0:
-					en.zamach = en.zamach_dl
+					if _zamachy_wrecz() >= MAX_ZAMACHOW:
+						en.atak_timer = 0.25  # dwóch już się zamachuje: ten czeka (gracz nie dostaje ciosów z trzech stron naraz)
+					else:
+						en.zamach = en.zamach_dl
 			if dist > 15.0:
 				en.stan = "patrol"
 		else:

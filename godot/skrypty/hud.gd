@@ -67,12 +67,13 @@ func _ready() -> void:
 	winieta_parowanie = _winieta(Color(0.92, 0.75, 0.3))
 	korzen.add_child(winieta_parowanie)
 	# dół środek: pasek bossa (jak w Soulsach) — imię, życie z cieniem utraty, postura
+	# pasek bossa u dołu nad paskiem akcji, gruby, z jasną nazwą (wzór soulsów / NightBrand)
 	pasek_bossa = Control.new()
-	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	pasek_bossa.offset_left = -280.0
-	pasek_bossa.offset_right = 280.0
-	pasek_bossa.offset_top = 92.0
-	pasek_bossa.offset_bottom = 156.0
+	pasek_bossa.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	pasek_bossa.offset_left = -300.0
+	pasek_bossa.offset_right = 300.0
+	pasek_bossa.offset_bottom = -(241.0 * SKALA_PASKA + 30.0)
+	pasek_bossa.offset_top = pasek_bossa.offset_bottom - 58.0
 	pasek_bossa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pasek_bossa.draw.connect(_rysuj_pasek_bossa)
 	korzen.add_child(pasek_bossa)
@@ -310,15 +311,20 @@ func _rysuj_pasek_bossa() -> void:
 	var a := _boss_alfa
 	var f := Ui.czcionka(700)
 	var szer := pasek_bossa.size.x
-	pasek_bossa.draw_string_outline(f, Vector2(0, 20), str(b.nazwa).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, 5, Color(0, 0, 0, 0.9 * a))
-	pasek_bossa.draw_string(f, Vector2(0, 20), str(b.nazwa).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.95, 0.78, 0.5, a))
-	Ui.rysuj_pasek(pasek_bossa, Rect2(0, 30, szer, 10), maxf(0.0, b.hp) / b.hp_max, maxf(0.0, b.hp_cien) / b.hp_max, Color("b8321c"), a)
+	var nazwa := str(b.nazwa).to_upper()
+	pasek_bossa.draw_string_outline(f, Vector2(0, 20), nazwa, HORIZONTAL_ALIGNMENT_CENTER, szer, 22, 6, Color(0, 0, 0, 0.95 * a))
+	pasek_bossa.draw_string(f, Vector2(0, 20), nazwa, HORIZONTAL_ALIGNMENT_CENTER, szer, 22, Color(Ui.M_JASNY, a))
+	# rama paska: ciemne tło, mosiężny brzeg, gruby pasek życia (16 px) z cieniem utraty
+	var r := Rect2(0, 28, szer, 16)
+	pasek_bossa.draw_rect(r.grow(4.0), Color(0.02, 0.015, 0.015, 0.75 * a))
+	pasek_bossa.draw_rect(r.grow(3.0), Color(Ui.M_BELKA_RAMA, a), false, 1.0)
+	Ui.rysuj_pasek(pasek_bossa, r, maxf(0.0, b.hp) / b.hp_max, maxf(0.0, b.hp_cien) / b.hp_max, Color("b8321c"), a)
 	var zuzyte := 1.0 - clampf(b.postura / b.postura_max, 0.0, 1.0)
 	if zuzyte > 0.01 and b.ogluszenie <= 0.0:
 		var sz := szer * 0.6 * zuzyte
 		var kp := Color("f2c14e").lerp(Color("ff5a1f"), smoothstep(0.5, 1.0, zuzyte))
-		pasek_bossa.draw_rect(Rect2(szer * 0.2, 46, szer * 0.6, 3), Color(0.05, 0.035, 0.04, 0.8 * a))
-		pasek_bossa.draw_rect(Rect2(szer / 2.0 - sz / 2.0, 46, sz, 3), Color(kp, a))
+		pasek_bossa.draw_rect(Rect2(szer * 0.2, 51, szer * 0.6, 4), Color(0.05, 0.035, 0.04, 0.8 * a))
+		pasek_bossa.draw_rect(Rect2(szer / 2.0 - sz / 2.0, 51, sz, 4), Color(kp, a))
 
 
 # ---------------------------------------------------------------- HUD NightBrand: kule, pasek akcji, zegar
@@ -487,16 +493,27 @@ var _mm_mapa = null
 var _mm_numer := -1
 
 
+## Kolory minimapy (autor 26.11 wg oceny NightBrand: „prawie pusta i ciemna”): jaśniej, ciepło, czytelne przejścia.
 func _kolor_pola(r, i: int) -> Color:
 	var v: int = r.widok[i]
 	if v == 0:
 		return Color("08070a")
 	var t: int = r.mapa.siatka[i]
+	var las: bool = str(r.kraina.get("typ", "")) == "las"
+	var k: Color
 	if t == Mapgen.K.MUR or t == Mapgen.K.FILAR:
-		return Color("594e5c") if v == 2 else Color("2c262e")
-	if t == Mapgen.K.KOSZ:
-		return Color("b45309") if v == 2 else Color("5a2d0c")
-	return Color("29242c") if v == 2 else Color("161318")
+		k = Color("2f4a2a") if las else Color("8a7a66")
+	elif t == Mapgen.K.KOSZ:
+		k = Color("e07a38")
+	elif t == Mapgen.K.WODA:
+		k = Color("2f5e6e")
+	elif t == Mapgen.K.EKSTRAKCJA:
+		k = Color("34d399")
+	elif t == Mapgen.K.SCIEZKA:
+		k = Color("9a8466") if las else Color("6a5e52")
+	else:
+		k = Color("5a5046") if not las else Color("4a5a3c")
+	return k if v == 2 else k.darkened(0.5)
 
 
 func _odswiez_obraz_minimapy(r) -> void:
@@ -530,10 +547,23 @@ func _rysuj_minimape() -> void:
 	var o := Vector2(clampf(r.gracz.w.x - okno * 0.5, 0.0, n - okno), clampf(r.gracz.w.y - okno * 0.5, 0.0, n - okno))
 	minimapa.draw_rect(Rect2(0, 0, bok, bok), Color("08070a"))
 	minimapa.draw_texture_rect_region(_mm_tex, Rect2(0, 0, bok, bok), Rect2(o, Vector2(okno, okno)))
+	# wyjścia: znacznik w oknie, a poza nim zielona strzałka na brzegu okrągłego okna (kierunek do kręgu)
+	var c := Vector2(bok, bok) * 0.5
+	var r_okna := bok * 0.43
 	for e in r.mapa.ekstrakcje:
 		var pe: Vector2 = ((e["w"] as Vector2) - o) * s
-		pe = pe.clamp(Vector2(3, 3), Vector2(bok - 3, bok - 3))
-		minimapa.draw_rect(Rect2(pe.x - 2.5, pe.y - 2.5, 5, 5), Color("34d399"))
+		var rel := pe - c
+		if rel.length() <= r_okna:
+			var romb := PackedVector2Array([pe + Vector2(0, -5), pe + Vector2(5, 0), pe + Vector2(0, 5), pe + Vector2(-5, 0)])
+			minimapa.draw_colored_polygon(romb, Color("34d399"))
+			minimapa.draw_polyline(romb + PackedVector2Array([romb[0]]), Color(0, 0, 0, 0.8), 1.0)
+		else:
+			var kier := rel.normalized()
+			var czub := c + kier * (r_okna + 2.0)
+			var bok_k := Vector2(-kier.y, kier.x)
+			var strz := PackedVector2Array([czub, czub - kier * 9.0 + bok_k * 5.0, czub - kier * 9.0 - bok_k * 5.0])
+			minimapa.draw_colored_polygon(strz, Color("34d399"))
+			minimapa.draw_polyline(strz + PackedVector2Array([strz[0]]), Color(0, 0, 0, 0.85), 1.0)
 	for en in r.wrogowie:
 		if r.widoczne(en.w) == 2:
 			var pw: Vector2 = (en.w - o) * s

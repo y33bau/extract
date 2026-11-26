@@ -802,6 +802,7 @@ func _test_namierzania(p, en) -> void:
 		p.atak_cd = 0.0
 		p.stamina = p.stamina_max
 		rajd.atak_wrecz()
+		await _po_cieciu()
 		_ok("riposta trafia najbliższego ogłuszonego wroga", drugi.ogluszenie <= 0.0 and drugi.hp < hp_d, "HP %.0f → %.0f" % [hp_d, drugi.hp])
 		drugi.w = Vector2(2.5, 2.5)
 		drugi.hp = drugi.hp_max
@@ -844,6 +845,7 @@ func _test_mocnego_ciosu(p, en) -> void:
 	var licznik: int = p.atak_licznik
 	_przycisk(JOY_BUTTON_X, false)
 	await _czekaj_az(func(): return p.atak_licznik > licznik, 3.0)
+	await _po_cieciu()
 	_ok("mocny cios: puszczenie = ciężki cios (combo 3, łamie posturę mocniej)", p.atak_licznik > licznik and p.combo == 2 and (en.postura < post0 or en.ogluszenie > 0.0),
 		"combo %d, postura %.0f → %.0f" % [p.combo, post0, en.postura])
 	await _czekaj(0.5)
@@ -866,9 +868,12 @@ func _test_oprawy_walki(p, en) -> void:
 	p.stamina = p.stamina_max
 	var dzieci_przed := s3.get_child_count()
 	var licznik_przed: int = d3["traf_licznik"]
+	rajd.ostatnie_trafienie = {}
 	rajd.atak_wrecz()
-	_ok("trafienie: zatrzymanie klatki i kopnięcie obrazu", rajd.hitstop >= 0.05 and rajd.kop_kamery.length() > 1.0,
-		"hitstop %.3f s, kop %.1f px" % [rajd.hitstop, rajd.kop_kamery.length()])
+	await _po_cieciu()
+	var ot: Dictionary = rajd.ostatnie_trafienie
+	_ok("trafienie: zatrzymanie klatki i kopnięcie obrazu", float(ot.get("hitstop", 0.0)) >= 0.05 and float(ot.get("kop", 0.0)) > 1.0,
+		"hitstop %.3f s, kop %.1f px" % [float(ot.get("hitstop", 0.0)), float(ot.get("kop", 0.0))])
 	_ok("trafienie: iskry/krople krwi w 3D (nie piksele 2D)", s3.get_child_count() > dzieci_przed)
 	await _klatka()
 	_ok("pasek HP: jasny ślad utraconego życia zostaje chwilę za paskiem", en.hp_cien > en.hp, "hp %d, ślad %d" % [en.hp, en.hp_cien])
@@ -900,6 +905,8 @@ func _test_oprawy_walki(p, en) -> void:
 	boss.widoczny_dla_gracza = true
 	await _czekaj_az(func(): return hud.pasek_bossa.visible, 1.5)
 	_ok("pasek bossa na dole ekranu, gdy boss walczy", hud.pasek_bossa.visible)
+	_ok("pasek bossa u dołu nad paskiem akcji, gruby (16 px), jasna nazwa", is_equal_approx(hud.pasek_bossa.anchor_top, 1.0) and hud.pasek_bossa.size.y >= 50.0,
+		"wys. %.0f px" % hud.pasek_bossa.size.y)
 	await _zrzut("8b_pasek_bossa")
 	boss.stan = "patrol"
 	boss.w = boss_w
@@ -929,7 +936,13 @@ func _test_walki_i_oznaczen(p, en) -> void:
 	for i in 6:
 		await _klatka()
 		tint = maxf(tint, float(d3.get("tint_zamachu", 0.0)))
-	_ok("zapowiedź: sylwetka wroga świeci w zamachu (znak nad głową)", tint > 0.2, "barwa %.2f" % tint)
+	_ok("zapowiedź: sylwetka wroga świeci w zamachu", tint > 0.12, "barwa %.2f (główny sygnał niesie obrys)" % tint)
+	var cialo_w: MeshInstance3D = (d3["wezel"] as Node3D).find_child("cialo*", true, false)
+	_ok("błysk, barwa zamachu i obrys naprawdę na ciele wroga (siatka cialo_001)", cialo_w != null and cialo_w.material_overlay == d3["blysk"],
+		"brak siatki ciała" if cialo_w == null else str(cialo_w.name))
+	var ob: StandardMaterial3D = d3["obrys"]
+	_ok("obrys wroga w walce, w zamachu jaśnieje barwą ciosu (bez ikony „!”)", (d3["blysk"] as StandardMaterial3D).next_pass == ob and ob.albedo_color.r > 0.8,
+		str(ob.albedo_color))
 	await _zrzut("9d_znak_zamachu")
 	en.zamach = 0.0
 	# riposta: ogłuszony wróg 2,3 m z boku — doskok domyka dystans, cios trafia
@@ -943,6 +956,7 @@ func _test_walki_i_oznaczen(p, en) -> void:
 	p.atak_cd = 0.0
 	p.stamina = p.stamina_max
 	rajd.atak_wrecz()
+	await _po_cieciu()
 	_ok("riposta: doskok do ogłuszonego 2,3 m obok i pewne trafienie", en.hp < hp0 and en.ogluszenie <= 0.0 and p.w.distance_to(w0) > 0.4,
 		"HP %.0f → %.0f, doskok %.2f m" % [hp0, en.hp, p.w.distance_to(w0)])
 	en.hp = en.hp_max
@@ -954,11 +968,15 @@ func _test_walki_i_oznaczen(p, en) -> void:
 	p.stamina = p.stamina_max
 	rajd.atak_wrecz()
 	var przod := Vector2(cos(p.kat), sin(p.kat))
+	rajd.unik(Vector2.ZERO)
+	_ok("cios zobowiązuje: w zamachu unik nie działa", p.unik_czas <= 0.0 and p.faza_ciosu == "zamach", p.faza_ciosu)
+	await _czekaj_az(func(): return p.faza_ciosu == "powrot", 2.0)
 	await _czekaj_az(func(): return rajd.hitstop <= 0.0, 2.0)
 	rajd.unik(Vector2.ZERO)
 	_ok("unik bez kierunku: odskok w tył, przerywa cios", p.unik_kier.dot(przod) < -0.9 and p.zamach_anim <= 0.0, "kierunek·przód %.2f" % p.unik_kier.dot(przod))
 	await _czekaj_az(func(): return p.unik_czas <= 0.0, 2.0)
 	_ok("ruch po ciosie szybszy niż dawniej (do strojenia)", rajd.V_PO_CIOSIE > 1.6 and rajd.V_W_CIOSIE > 0.5)
+	await _test_walki_uczciwej(p, en)
 	_ok("trafienie: mocniejsze zatrzymanie klatki", rajd.HITSTOP_CIOS > 0.055 and rajd.HITSTOP_CIEZKI > 0.085)
 	# oznaczenia: mniejszy HUD i kręgi
 	_ok("HUD mniejszy: kule, minimapa, pasek akcji", hud.kula_hp.size.x <= 130.0 and hud.pasek.size.x <= 724.0 * 0.65,
@@ -972,6 +990,85 @@ func _test_walki_i_oznaczen(p, en) -> void:
 	p.w = start_w  # kolejne testy zakładają miejsce startu (otwarta przestrzeń)
 	p.kat = start_kat
 	p.predkosc = Vector2.ZERO
+
+
+## Walka „trudna, ale uczciwa” (autor 26.11: „rób”): cios w fazach, nietykalność, przerwa staminy,
+## najwyżej 2 wrogów w zamachu naraz, wspólna przerwa strzelców.
+func _test_walki_uczciwej(p, en) -> void:
+	# cios w fazach: w zamachu jeszcze bez trafienia, po zamachu cios trafia
+	en.ogluszenie = 0.0
+	en.hp = en.hp_max
+	en.uspiony = true
+	_ustaw_wroga_przed(en, 1.0)
+	p.atak_cd = 0.0
+	p.combo_reset = 0.0
+	p.stamina = p.stamina_max
+	var hp0: float = en.hp
+	rajd.atak_wrecz()
+	var w_zamachu: bool = p.faza_ciosu == "zamach" and is_equal_approx(en.hp, hp0)
+	await _po_cieciu()
+	_ok("cios w fazach: zamach bez trafienia, trafia w chwili cięcia", w_zamachu and en.hp < hp0, "HP %.0f → %.0f" % [hp0, en.hp])
+	await _czekaj_az(func(): return p.faza_ciosu == "" and rajd.hitstop <= 0.0, 3.0)
+	en.hp = en.hp_max
+	# nietykalność po otrzymanym ciosie: drugi cios w tym czasie nie zadaje obrażeń; postać miga
+	p.niet = 0.0
+	p.unik_czas = 0.0
+	p.okno_parowania = 0.0
+	p.blok = false
+	p.riposta_niet = 0.0
+	var hp_g: float = p.hp
+	rajd.trafienie_gracza(en, 10.0)
+	var po1: float = p.hp
+	rajd.trafienie_gracza(en, 10.0)
+	_ok("nietykalność 0,45 s po otrzymanym ciosie (miganie)", po1 < hp_g and is_equal_approx(p.hp, po1) and p.niet > 0.3 and p.niet_miganie,
+		"HP %.0f → %.0f → %.0f" % [hp_g, po1, p.hp])
+	p.hp = p.hp_max
+	p.niet = 0.0
+	await _czekaj_az(func(): return rajd.hitstop <= 0.0, 2.0)
+	# stamina stoi chwilę po akcji
+	p.stamina = 40.0
+	p.stamina_przerwa = rajd.PRZERWA_STAMINY
+	await _czekaj(0.15)
+	var st1: float = p.stamina
+	await _czekaj_az(func(): return p.stamina_przerwa <= 0.0, 3.0)
+	await _czekaj(0.3)
+	_ok("stamina nie odnawia się ok. 0,55 s po akcji", is_equal_approx(st1, 40.0) and p.stamina > 40.5, "%.1f → %.1f" % [st1, p.stamina])
+	p.stamina = p.stamina_max
+	# najwyżej 2 wrogów wręcz w zamachu naraz
+	var wrecz: Array = []
+	for w in rajd.wrogowie:
+		if w.rodzaj != "archer" and not w.boss and wrecz.size() < 3:
+			wrecz.append(w)
+	if wrecz.size() == 3:
+		var pozycje: Array = []
+		for j in 3:
+			var w = wrecz[j]
+			pozycje.append(w.w)
+			w.w = p.w + Vector2(cos(p.kat + j * 2.1), sin(p.kat + j * 2.1)) * 1.0
+			w.uspiony = false
+			w.stan = "walka"
+			w.ogluszenie = 0.0
+		wrecz[0].zamach = 5.0
+		wrecz[1].zamach = 5.0
+		wrecz[2].zamach = 0.0
+		wrecz[2].atak_timer = 0.0
+		rajd._wrogowie(0.016)
+		_ok("najwyżej 2 wrogów naraz w zamachu", wrecz[2].zamach <= 0.0 and wrecz[2].atak_timer > 0.0, "w zamachu: %d" % rajd._zamachy_wrecz())
+		for j in 3:
+			wrecz[j].zamach = 0.0
+			wrecz[j].atak_timer = 99.0
+			wrecz[j].uspiony = true
+			wrecz[j].w = pozycje[j]
+	# wspólna przerwa strzelców
+	var luk = rajd._dodaj_wroga("archer", p.w + Vector2(cos(p.kat), sin(p.kat)) * 5.0, 0.0)
+	luk.stan = "walka"
+	luk.atak_timer = 0.0
+	rajd.przerwa_lucznikow = 0.8
+	rajd._wrogowie(0.016)
+	_ok("wspólna przerwa strzelców: łucznik czeka, gdy inny właśnie strzelał", luk.zamach <= 0.0 and luk.atak_timer > 0.5)
+	rajd.wrogowie.erase(luk)
+	luk.queue_free()
+	rajd.przerwa_lucznikow = 0.0
 
 
 ## Pauza: Start na padzie otwiera i zatrzymuje grę, lista sterowania z mapy akcji, LB/RB zakładki, B wraca; Esc też otwiera.
@@ -1016,6 +1113,11 @@ func _test_pauzy(gdzie: String, zrzut: String) -> void:
 	_ok("%s: Esc otwiera pauzę" % gdzie, pauza.visible)
 	pauza.zamknij()
 	await _klatka()
+
+
+## Cios w fazach: trafienie następuje po zamachu (w chwili cięcia).
+func _po_cieciu() -> void:
+	await _czekaj_az(func(): return rajd.gracz.faza_ciosu != "zamach", 2.0)
 
 
 func _ustaw_wroga_przed(en, odl := 1.0) -> void:
@@ -1204,6 +1306,15 @@ func _test_duzej_mapy() -> void:
 			podlogi += 1
 	var gestosc := float(przeszkody) / maxf(1.0, float(podlogi))
 	_ok("mniej przeszkód w komnatach (gruz + filary)", gestosc < 0.05, "%.1f%% podłogi" % (gestosc * 100.0))
+	# minimapa: odkryta podłoga czytelna (nie prawie czarna)
+	var pole_pod := -1
+	for i in m.siatka.size():
+		if m.siatka[i] == Mapgen.K.PODLOGA and rajd.widok[i] == 2:
+			pole_pod = i
+			break
+	if pole_pod >= 0:
+		var kp: Color = hud._kolor_pola(rajd, pole_pod)
+		_ok("minimapa: odkryta podłoga jaśniejsza i czytelna", kp.get_luminance() > 0.25, "jasność %.2f" % kp.get_luminance())
 	var s3 = rajd.swiat3d
 	if s3 != null:
 		var wierzch := 0
@@ -1348,6 +1459,7 @@ func _test_plynnosci(p) -> void:
 		en_d.w = p.w - Vector2(cos(p.kat), sin(p.kat)) * 1.9
 	en_d.widoczny_dla_gracza = true
 	rajd.atak_wrecz()
+	await _po_cieciu()  # doskok następuje w chwili cięcia (po zamachu)
 	await _klatka()
 	var skok: float = Vector2(s3.bohater.position.x, s3.bohater.position.z).distance_to(p.w)
 	if _zrzuty != "":  # sekwencja ciosu do oceny ruchu (co klatkę gry, 0,05 s)
@@ -1651,6 +1763,7 @@ func _test() -> void:
 	p.okno_parowania = 0.0
 	p.parowanie_cd = 0.3
 	p.riposta_niet = 0.0
+	p.niet = 0.0  # po parowaniu trwa nietykalność 0,7 s — tu sprawdzamy sam napis
 	p.unik_czas = 0.0
 	var en_ciezki_byl: bool = en.ciezki
 	en.ciezki = false
