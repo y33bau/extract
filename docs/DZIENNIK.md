@@ -17,6 +17,12 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 — Codex, agent główny — publikacja Poprawek 2
+- Na „publikuj” autora przesunięto main fast-forward z 32087d1 do bb4ff3e. Boss odłożony.
+- Priorytet autora: efekty walki zwykłych przeciwników (zwłaszcza ataki i parowanie) i ikony przedmiotów. Przegląd źródeł i materiałów z gry. Dwa arkusze kierunku graficznego: 25 ikon katalogowych oraz cięcie, parowanie, blok i trafienie po cztery klatki. Do oceny przed integracją.
+- Testy: ostatni wynik poprzedniej rundy 157/157. W tej sesji nie powtórzono testu ze źródeł ani próby na padzie.
+- Następny krok: porównanie jednego starcia przed/po, kontrola efektów przy kamerze 40° i ikon w docelowych slotach.
+
 ## 2026-11-26 23:30 — nowe konto, rola: agent główny — przekazanie dla ChatGPT
 - **Decyzja autora (23:15):** do niedzieli projekt przejmuje ChatGPT (także Codex), pilnuje formy graficznej i spójności kodu (jak przy NightBrand).
 - Zrobione: `docs/PRZEKAZANIE_CHATGPT_2026-11-26.md` (gra, NightBrand, repo i ścieżki, zasady, jak pracujemy, mapa kodu, środowisko, stan, raport, otwarte sprawy, pułapki) + instrukcje ról w `docs/chatgpt/` (agent główny, gamedev, grafik, recenzent, mentor NightBrand). Kopie w `NIGHTBRAND\WAROWNIA_POPIOLOW\PRZEKAZANIE_CHATGPT\`.
