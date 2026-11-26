@@ -82,6 +82,9 @@ Sceny budujemy **w kodzie** (węzły tworzone w `_ready`), a nie w edytorze. Dzi
 | Ten sam przycisk zamyka okno i robi unik (B) | po zamknięciu okna postać robi unik | `blokada_wejscia` w `rajd.gd` i `_blokada` w `okno_lupu.gd` |
 | JSON nie trafia do eksportu | gra po eksporcie nie ma danych | `include_filter="dane/*.json"` w obu presetach; kontrola Linux z `--test` |
 | Brak znaków w czcionce | kwadraciki zamiast emoji (np. 🛡) | Sprawdzaj zrzuty; używaj znaków, które się wyświetlają, albo tekstu |
+| Mgła wojny przez skalę 0 instancji | rzeczy wyskakują przy odkryciu („doczytywanie”) | Nieznane zostaje skalą 0, ale jasność rośnie płynnie (`swiat3d._krok_mgly`); przekrój wysokich rzeczy liczony wg prawdziwej pozycji (`_przekroj_wysokich`) |
+| Tekstury 3D bezstratne | paczka ~400 MB | Tekstury `zasoby/3d`: `compress/mode=1`, `lossy_quality=0.82` (nowe pliki ustaw tak samo) |
+| Tło sceny turkusowe | mgła powietrzna barwi tło | `fog_sky_affect = 0` |
 | Ostrzeżenia ALSA/audio w środowisku agenta | błąd sterownika audio | Normalne pod `xvfb`; Godot przechodzi na sterownik zastępczy |
 
 ## 5. Jak dodać…

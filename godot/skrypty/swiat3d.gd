@@ -65,6 +65,18 @@ var las := false     # biotop otwarty (Czarnobór): drzewa zamiast murów, strum
 var _teren := PackedByteArray()
 var _odl_przejscia := PackedByteArray()  # las: odległość (w polach, do 6) od najbliższego pola przechodniego
 var _kotwica := PackedInt32Array()        # las: najbliższe pole przechodnie — od niego zależy widoczność drzewa (mgła wojny)
+var _kotwica_pelna := PackedInt32Array()  # najbliższe pole przechodnie bez limitu odległości (wierzch skały, korony lasu)
+# Mgła wojny płynnie (autor 26.11: „assety długo się ładują przy odsłanianiu”): nieznane jest niewidoczne
+# (jak dotąd — nie zdradza mapy), a odsłonięte wyłania się z czerni i rozjaśnia w ~0,3 s zamiast wyskakiwać.
+var _jasn := PackedFloat32Array()
+var _cel_jasn := PackedFloat32Array()
+var _fade := {}
+var _indeks_wys := {}   # pole, na którym rzecz NAPRAWDĘ stoi -> [[rodzaj, nr, p, basis, y]] (drzewa, korony, wierzch skały)
+var _maska_widocznych := {} # pole -> bity widocznych wpisów (odkryta kotwica i nie w przekroju przed bohaterem)
+var _do_sprawdzenia := {}    # pola wysokich rzeczy, których kotwica zmieniła stan widoku
+const CZAS_ODSLONY := 0.3
+const CZAS_PRZYGASZENIA := 0.7
+const SHADER_OTOCZENIA := preload("res://zasoby/3d/shadery/otoczenie.gdshader")
 
 
 func zbuduj(r) -> void:
@@ -87,10 +99,15 @@ func zbuduj(r) -> void:
 	if las:
 		_teren = rajd.mapa.teren
 		_licz_odl_przejscia()
+	_licz_kotwice_pelna()
+	_jasn.resize(N * N)
+	_cel_jasn.resize(N * N)
 	_materialy()
 	_srodowisko()
 	_kamera()
+	_otoczenie_materialy()
 	_mapa()
+	_otoczenie()
 	_rekwizyty()
 	_bohater()
 	_wyostrzenie()
@@ -321,6 +338,7 @@ func _srodowisko() -> void:
 	e.fog_density = 0.004
 	e.fog_height = 0.35
 	e.fog_height_density = 0.9
+	e.fog_sky_affect = 0.0  # tło (nieodkryte) zostaje czarne; głębię dają wierzch skały, korony i płaszczyzna poza mapą
 	e.adjustment_enabled = true
 	e.adjustment_contrast = wyglad["kontrast"]
 	e.adjustment_saturation = wyglad["nasycenie"]
@@ -394,8 +412,9 @@ func _mapa() -> void:
 				listy[podl].append([i, Basis(), 0.0])
 			match t:
 				K.MUR:
-					# lita skała bez żadnego odsłoniętego sąsiada (także po skosie) — niewidoczna, bez bryły
+					# lita skała bez żadnego odsłoniętego sąsiada: zamiast czarnej dziury płaski wierzch skały (głębia)
 					if _wnetrze_skaly(x, y):
+						_wierzch(i, WYS_MURU * 0.98, listy, siatki, "wierzch")
 						continue
 					# ruiny: nierówna wysokość murów (wyższe na obwodzie), moduł wg odsłoniętych boków
 					var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
@@ -426,7 +445,7 @@ func _mapa() -> void:
 				for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 					if mapa.kafel(x + d.x, y + d.y) != K.MUR:
 						continue
-					var ile := _hash(x * 3 + d.x, y * 5 + d.y) % 4
+					var ile := 1 if _hash(x * 3 + d.x, y * 5 + d.y) % 3 == 0 else 0  # autor 26.11: mniej osypanych kamieni (było 0–3)
 					for k in ile:
 						var hh := _hash(x * 31 + k * 7 + d.x, y * 17 + k * 3 + d.y)
 						var wzdluz := float(hh % 100) / 100.0 - 0.5
@@ -448,11 +467,16 @@ func _mapa() -> void:
 			var p := Vector3(i % N + 0.5, 0.0, i / N + 0.5)
 			if wp.size() > 3:
 				p += wp[3]
-			mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))
-			mm.set_instance_color(n, Color(0, 0, 0, 0))
+			mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))  # nieznane: niewidoczne
+			mm.set_instance_color(n, Color(0, 0, 0, 1))  # po odkryciu wyłania się z czerni (_krok_mgly)
 			if not _indeks.has(i):
 				_indeks[i] = []
 			_indeks[i].append([k, n, p, wp[1], wp[2]])
+			if k.begins_with("drz") or k.begins_with("korona") or k.begins_with("wierzch"):
+				var tp := clampi(int(p.z), 0, N - 1) * N + clampi(int(p.x), 0, N - 1)
+				if not _indeks_wys.has(tp):
+					_indeks_wys[tp] = []
+				_indeks_wys[tp].append([k, n, p, wp[1], wp[2], i])
 		mmi.multimesh = mm
 		if "@" in k:
 			var kw: PackedStringArray = k.get_slice("@", 1).split("_")
@@ -460,9 +484,13 @@ func _mapa() -> void:
 		var mk: String = {"sciezka": "podloga", "ekstrakcja": "podloga", "kamyki": "gruz", "naroznik": "filar", "dno": "podloga"}.get(k, k)
 		if k.begins_with("mur"):
 			mk = "mur"
+		elif k.begins_with("wierzch"):
+			mk = "wierzch"
+		elif k.begins_with("korona"):
+			mk = "korona"
 		mmi.material_override = _mat[mk]
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (k.begins_with("mur") or k.begins_with("drz_") or k.begins_with("las_") or k in ["filar", "gruz", "naroznik"]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		if k.begins_with("runo_") or k.begins_with("drzg_"):
+		if k.begins_with("runo_") or k.begins_with("drzg_") or k.begins_with("wierzch") or k.begins_with("korona"):
 			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi)
 		_mm[k] = mmi
@@ -680,7 +708,7 @@ func _wystroj() -> void:
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 				if mapa.kafel(x + d.x, y + d.y) == K.MUR:
 					sciana = Vector2(d)
-			if sciana == Vector2.ZERO or _hash(x, y) % 9 != 0:
+			if sciana == Vector2.ZERO or _hash(x, y) % 17 != 0:  # autor 26.11: mniej rekwizytów (było co 9.)
 				continue
 			var wybor: Array = [["kandelabr", 1.25], ["lancuchy", 1.5], ["nagrobek", 0.95], ["beczka", 0.95], ["kosci", 0.35], ["kandelabr", 1.25]][_hash(y, x) % 6]
 			var n := _postaw(mapa.idx(x, y), wybor[0], wybor[1], atan2(-sciana.x, -sciana.y))
@@ -716,15 +744,15 @@ func _wystroj_komnat() -> void:
 				var n: Node3D = null
 				match typ:
 					"krypta":
-						if sciana != Vector2.ZERO and h % 3 == 0:
+						if sciana != Vector2.ZERO and h % 5 == 0:
 							n = _postaw(i, "nagrobek" if h % 2 == 0 else "sarkofag", 0.95 if h % 2 == 0 else 0.8, obr)
 					"legowisko":
-						if h % 5 == 0:
+						if h % 10 == 0:
 							n = _postaw(i, "kosci", 0.35, obr)
-						elif sciana != Vector2.ZERO and h % 7 == 0:
+						elif sciana != Vector2.ZERO and h % 13 == 0:
 							n = _postaw(i, "lancuchy", 1.5, obr)
 					"skarbiec":
-						if sciana != Vector2.ZERO and h % 3 == 0:
+						if sciana != Vector2.ZERO and h % 4 == 0:
 							n = _postaw(i, "kufer" if h % 2 == 0 else "beczka", 0.7 if h % 2 == 0 else 0.95, obr)
 					"sala_filarow":
 						if sciana != Vector2.ZERO and h % 9 == 0:
@@ -734,7 +762,7 @@ func _wystroj_komnat() -> void:
 							l.set_meta("migotanie", true)
 							n.add_child(l)
 					"dziedziniec":
-						if h % 11 == 0:
+						if h % 23 == 0:
 							n = _postaw(i, "glaz" if h % 2 == 0 else "kolumna_lezaca", 0.6, obr)
 				if n != null and sciana != Vector2.ZERO:
 					n.position += Vector3(sciana.x, 0, sciana.y) * 0.28
@@ -1190,6 +1218,7 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 		K.MUR:
 			if tt == T.SKALA:
 				if _wnetrze_skaly(x, y):
+					_wierzch(i, WYS_MURU * 1.12, listy, siatki, "wierzch")
 					return
 				var brzeg := x == 0 or y == 0 or x == N - 1 or y == N - 1
 				var hh := (1.35 if brzeg else 1.15) + float(_hash(x, y) % 9 - 4) * 0.06
@@ -1203,6 +1232,8 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 				return
 			# ściana lasu: gęsto przy przejściu, rzadziej w głębi; runo na samym skraju
 			var co := 1 if d <= 1 else (2 if d == 2 else (3 if d <= 4 else 0))
+			if d >= 4:
+				_wierzch(i, 3.1, listy, siatki, "korona")  # głęboki las: zwarte korony zamiast czarnej pustki
 			if co > 0 and h % co == 0:
 				var dr: Array = _wybierz_drzewo(h)
 				if d <= 2:
@@ -1227,7 +1258,7 @@ func _pole_lasu(x: int, y: int, i: int, t: int, listy: Dictionary, siatki: Dicti
 					przy_wodzie = true
 			if przy_wodzie and h % 3 == 0:
 				_runo("p4_reeds", 1.2, i, h, listy, siatki)
-			elif h % 100 < 9:
+			elif h % 100 < 5:  # autor 26.11: mniej runa na polanach (było 9%)
 				var r3: Array = RUNO_POLANY[(h / 100) % RUNO_POLANY.size()]
 				_runo(r3[0], r3[1], i, h, listy, siatki)
 
@@ -1289,7 +1320,7 @@ func _wystroj_lasu() -> void:
 			_:
 				var pula := [["p8_kloda", 2.0, true, true], ["p8_korzenie", 0.9, true], ["p8_grzyby_zolte", 0.45, false], ["p8_muchomory", 0.5, false],
 					["p4_axe_stump", 0.6, true], ["p8_huby_na_klodzie", 1.6, true, true], ["p8_grzyby_niebieskie", 0.45, false]]
-				for n in 2 + h0 % 3:
+				for n in 1 + h0 % 2:  # autor 26.11: mniej przedmiotów na polanach (było 2–4)
 					plan.append(pula[(h0 / (n + 1) + n * 3) % pula.size()])
 		for n in plan.size():
 			var e: Array = plan[n]
@@ -1349,28 +1380,30 @@ func odswiez_widok() -> void:
 		_stan_widoku[i] = klucz
 		for wpis in _indeks[i]:
 			var rodzaj: String = wpis[0]
+			if rodzaj.begins_with("drz") or rodzaj.begins_with("korona") or rodzaj.begins_with("wierzch"):
+				var pw: Vector3 = wpis[2]
+				_do_sprawdzenia[clampi(int(pw.z), 0, N - 1) * N + clampi(int(pw.x), 0, N - 1)] = true
+				continue  # drzewa i wierzch: widoczność i przekrój wg prawdziwej pozycji (_przekroj_wysokich)
 			var mm: MultiMesh = _mm[rodzaj].multimesh
-			var jasn := 0.0 if v == 0 else (1.0 if v == 2 else 0.3)
 			var p: Vector3 = wpis[2]
 			var b: Basis = wpis[3]
 			var y: float = wpis[4]
 			if v == 0:
 				b = Basis().scaled(Vector3.ZERO)
 			# mur między kamerą a graczem obniżony do cokołu (jak w grach izometrycznych AAA)
-			# las: drzewo między kamerą a graczem znika (korona zasłoniłaby walkę); pień zostaje jako znak
-			if las and v != 0 and rodzaj.begins_with("drz") and dx + dy > 0.6 and dx + dy < 10.0 and absf(dx - dy) < 7.0:
-				b = Basis().scaled(Vector3.ZERO)
-			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik") and v != 0:
+			elif przezr and (rodzaj.begins_with("mur") or rodzaj == "filar" or rodzaj == "naroznik"):
 				var h := 0.22
 				var pelna := WYS_MURU if rodzaj.begins_with("mur") else (WYS_MURU + 0.3 if rodzaj == "naroznik" else WYS_MURU + 0.4)
 				b = Basis(b.get_rotation_quaternion()).scaled(Vector3(1.0, h / pelna, 1.0))
 				y = h * 0.5
-			if rodzaj == "ekstrakcja":
-				mm.set_instance_color(wpis[1], Color(jasn * 0.7, jasn * 1.0, jasn * 0.85, 1.0))
-			else:
-				mm.set_instance_color(wpis[1], Color(jasn, jasn, jasn, 1.0))
 			mm.set_instance_transform(wpis[1], Transform3D(b, Vector3(p.x, y, p.z)))
+		# jasność nie skacze: cel dla płynnego przejścia (_krok_mgly co klatkę)
+		var cel := 0.0 if v == 0 else (1.0 if v == 2 else 0.3)
+		if not is_equal_approx(_cel_jasn[i], cel):
+			_cel_jasn[i] = cel
+			_fade[i] = true
 	_ciete_ost = ciete_teraz
+	_przekroj_wysokich(g)
 	for sk in _skrzynie:
 		var v2: int = widok[rajd.mapa.idx(sk["tx"], sk["ty"])]
 		sk["wezel3d"].visible = v2 > 0
@@ -2349,6 +2382,7 @@ func _aktualizuj_efekty(dt: float) -> void:
 
 func aktualizuj(dt: float, czas: float) -> void:
 	_ustaw_kamere()
+	_krok_mgly(dt)
 	_aktualizuj_efekty(dt)
 	if _pyl:
 		_pyl.position = Vector3(rajd.gracz.w.x, 1.2, rajd.gracz.w.y)
@@ -2356,3 +2390,154 @@ func aktualizuj(dt: float, czas: float) -> void:
 	_aktualizuj_blysk_bohatera()
 	_aktualizuj_wrogow(dt, czas)
 	_aktualizuj_rekwizyty(czas)
+
+
+# ---------------------------------------------------------------- MGŁA PŁYNNIE I GŁĘBIA (runda mapa-mgla-i-wczytywanie)
+## Jasność pól zmienia się płynnie do celu: odsłonięcie ~0,3 s, przygaszenie do „widzianego” ~0,7 s.
+func _krok_mgly(dt: float) -> void:
+	if _fade.is_empty():
+		return
+	var gotowe: Array = []
+	for i in _fade:
+		var c: float = _jasn[i]
+		var cel: float = _cel_jasn[i]
+		c = move_toward(c, cel, dt / (CZAS_ODSLONY if cel > c else CZAS_PRZYGASZENIA))
+		_jasn[i] = c
+		if is_equal_approx(c, cel):
+			gotowe.append(i)
+		if not _indeks.has(i):
+			continue
+		for wpis in _indeks[i]:
+			var mm: MultiMesh = _mm[wpis[0]].multimesh
+			if wpis[0] == "ekstrakcja":
+				mm.set_instance_color(wpis[1], Color(c * 0.7, c, c * 0.85, 1.0))
+			else:
+				mm.set_instance_color(wpis[1], Color(c, c, c, 1.0))
+	for i in gotowe:
+		_fade.erase(i)
+
+
+## Najbliższe pole przechodnie dla każdego pola mapy (BFS bez limitu): wierzch skały i korony lasu
+## odsłaniają się razem z przejściem, przy którym leżą (nie zdradzają układu mapy w mgle).
+func _licz_kotwice_pelna() -> void:
+	var mapa = rajd.mapa
+	_kotwica_pelna.resize(N * N)
+	_kotwica_pelna.fill(-1)
+	var kol := PackedInt32Array()
+	for i in N * N:
+		if mapa.siatka[i] != K.MUR:
+			_kotwica_pelna[i] = i
+			kol.append(i)
+	var g := 0
+	while g < kol.size():
+		var i: int = kol[g]
+		g += 1
+		var x := i % N
+		var y := i / N
+		for s in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var qx: int = x + s.x
+			var qy: int = y + s.y
+			if qx < 0 or qy < 0 or qx >= N or qy >= N:
+				continue
+			var j := qy * N + qx
+			if _kotwica_pelna[j] < 0:
+				_kotwica_pelna[j] = _kotwica_pelna[i]
+				kol.append(j)
+
+
+## Płaski wierzch (skały albo koron) na polu i, w kwadracie 16×16 m, widoczny wg najbliższego przejścia.
+func _wierzch(i: int, wys: float, listy: Dictionary, siatki: Dictionary, rodzaj: String) -> void:
+	var k: int = _kotwica_pelna[i] if _kotwica_pelna[i] >= 0 else i
+	var klucz := rodzaj + _kwadrat(i)
+	if not listy.has(klucz):
+		listy[klucz] = []
+		siatki[klucz] = _plyta()
+	listy[klucz].append([k, Basis().scaled(Vector3(1.02, 1.0, 1.02)), wys, _przes(i, k)])
+
+
+## Materiały głębi: wierzch litej skały (tekstura muru krainy) i zwarte korony lasu (liście z ziemi lasu, ciemne).
+func _otoczenie_materialy() -> void:
+	var w := wyglad
+	for rodz in ["wierzch", "korona"]:
+		var m := ShaderMaterial.new()
+		m.shader = SHADER_OTOCZENIA
+		var tex: String = w["c"] if rodz == "korona" else w["mur"]
+		m.set_shader_parameter("alb", _tsw(tex, "alb"))
+		m.set_shader_parameter("szum", _szum)
+		m.set_shader_parameter("skala", 0.22 if rodz == "korona" else float(w["mur_skala"]) * 0.6)
+		var ton_muru: Color = w["mur_ton"]
+		# jasność wierzchu: ciemniejszy od oświetlonej podłogi, ale z czytelną fakturą (unshaded w shaderze)
+		m.set_shader_parameter("ton", Color(0.3, 0.4, 0.27) if rodz == "korona" else Color(0.4 * ton_muru.r, 0.38 * ton_muru.g, 0.4 * ton_muru.b))
+		m.set_shader_parameter("rozmiar_mapy", float(N))
+		_mat[rodz] = m
+
+
+## Płaszczyzna poza mapą: skała (loch) albo korony (las) ciągną się dalej i gasną w tło (autor 26.11:
+## „czarne tło odcina się brzydko”). Wewnątrz granic mapy płaszczyzna jest czarna (nie zdradza układu).
+var _plaszczyzna_otoczenia: MeshInstance3D
+func _otoczenie() -> void:
+	var zew: ShaderMaterial = (_mat["korona"] if las else _mat["wierzch"]).duplicate()
+	zew.set_shader_parameter("poza_mapa", 1.0)
+	var plaszcz := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	var marg := 70.0
+	pm.size = Vector2(N + marg * 2.0, N + marg * 2.0)
+	plaszcz.mesh = pm
+	plaszcz.material_override = zew
+	plaszcz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	plaszcz.position = Vector3(N * 0.5, 3.1 if las else WYS_MURU * 1.15, N * 0.5)
+	add_child(plaszcz)
+	_plaszczyzna_otoczenia = plaszcz
+
+
+
+## Przekrój wysokich rzeczy przed bohaterem (od strony kamery) wg miejsca, w którym NAPRAWDĘ stoją:
+## drzewa i korony w lesie znikają (korona zasłoniłaby walkę), wierzch skały w lochu znika jak obniżony mur.
+## Poza przekrojem rzecz jest widoczna, gdy jej kotwica (najbliższe przejście) jest odkryta.
+func _przekroj_wysokich(g: Vector2) -> void:
+	var widok: PackedByteArray = rajd.widok
+	var gx := int(g.x)
+	var gy := int(g.y)
+	var sprawdz := _do_sprawdzenia
+	_do_sprawdzenia = {}
+	for yy in range(maxi(0, gy - 16), mini(N, gy + 17)):
+		for xx in range(maxi(0, gx - 16), mini(N, gx + 17)):
+			var t := yy * N + xx
+			if _indeks_wys.has(t):
+				sprawdz[t] = true
+	for t in _przekroj_ost:
+		sprawdz[t] = true
+	var w_przekroju := {}
+	for t in sprawdz:
+		if not _indeks_wys.has(t):
+			continue
+		var dx := float(t % N) + 0.5 - g.x
+		var dy := float(t / N) + 0.5 - g.y
+		var maska := 0
+		var lista: Array = _indeks_wys[t]
+		for n in lista.size():
+			var rodzaj: String = lista[n][0]
+			var tnij := false
+			if rodzaj.begins_with("wierzch"):
+				tnij = dx + dy > 0.6 and absf(dx) < 9.5 and absf(dy) < 9.5 and absf(dx - dy) < 11.0
+			elif las:
+				tnij = dx + dy > 0.6 and dx + dy < 15.0 and absf(dx - dy) < 7.5
+			if tnij:
+				w_przekroju[t] = true
+			elif widok[int(lista[n][5])] > 0:
+				maska |= 1 << n
+		if maska == int(_maska_widocznych.get(t, 0)):
+			continue
+		for n in lista.size():
+			var wpis: Array = lista[n]
+			var p: Vector3 = wpis[2]
+			var b: Basis = (wpis[3] as Basis) if (maska & (1 << n)) else Basis().scaled(Vector3.ZERO)
+			(_mm[wpis[0]].multimesh as MultiMesh).set_instance_transform(wpis[1], Transform3D(b, Vector3(p.x, wpis[4], p.z)))
+		if maska == 0:
+			_maska_widocznych.erase(t)
+		else:
+			_maska_widocznych[t] = maska
+	_przekroj_ost = w_przekroju
+
+
+var _przekroj_ost := {}

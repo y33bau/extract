@@ -17,6 +17,23 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 18:30 — nowe konto, rola: gamedev — mapa: mgła, głębia, szersze korytarze, mniej przedmiotów, lżejsza paczka
+- Gałąź: `mapa-mgla-i-wczytywanie` (od `main` `78dbfb4`).
+- Zlecenie: zadanie mentora `ZADANIE_WAROWNIA_MGLA_I_WCZYTYWANIE_2026-11-26.md` + prośby autora (17:14): szersze korytarze, mniej przedmiotów, głębia poza mapą zamiast czarnego tła.
+- Diagnoza: nieodkryte pola miały skalę 0 i przy odkryciu wyskakiwały w jednej klatce (w lesie wzrok zatrzymuje pierwsze drzewo → dużo wyskoków na ekranie) = „doczytywanie”. Płynność rysowania bez zmian względem `main` (`--pomiar=czarnobor`, Vulkan programowy: 0,7 kl/s przed i po).
+- Zrobione:
+  - **Mgła płynnie** (`swiat3d.gd`: `_krok_mgly`, `_cel_jasn`): nieodkryte nadal niewidoczne (nie zdradza mapy), odkryte wyłania się z czerni i rozjaśnia w 0,3 s; przygaszenie do „widzianego” 0,7 s.
+  - **Przekrój drzew i wierzchu wg prawdziwej pozycji** (`_przekroj_wysokich`, `_indeks_wys`): wcześniej liczony od pola-kotwicy; zasięg dla drzew dx+dy < 15 (było < 10 od kotwicy).
+  - **Głębia zamiast czarnej pustki**: wierzch litej skały w lochu (kotwica = najbliższe przejście, BFS bez limitu: `_licz_kotwice_pelna`), zwarte korony w głębokim lesie (d ≥ 4), płaszczyzna poza mapą (skała / las gasnące z odległością). Shader `zasoby/3d/shadery/otoczenie.gdshader` (unshaded, faktura z tekstur krainy). Tło sceny nie łapie mgły powietrznej (`fog_sky_affect = 0`) — wcześniej było turkusowe.
+  - **Szersze przejścia**: korytarze lochu 3 pola (było 2), ścieżki lasu 5–6,5 m (było 4–6). Test lasu pilnuje nowych granic.
+  - **Mniej przedmiotów**: gruz/filary w komnatach ok. o połowę (teraz 2,5% podłogi), rekwizyty przy ścianach co 17. pole (było 9.), mniej nagrobków, kości, łańcuchów, głazów, osypanych kamieni (0–1 zamiast 0–3), mniej rzeczy i runa na polanach.
+  - **Lżejsza paczka**: 259 tekstur 3D z kompresji bezstratnej na stratną (jakość 0,82; wygląd porównany na zrzutach). Exe 477 → 210 MB, zip 405 → **137 MB** (jeden plik).
+- Liczby do strojenia: czasy odsłony 0,3 / 0,7 s, jasność wierzchu i koron, gęstości wystroju.
+- Testy: `testy.py godot` OK **135/135** (nowe: korytarze 3 pola, gęstość przeszkód < 5%, wierzch skały + skała poza mapą, płynne odsłanianie, korony lasu). Kontrola spakowanej gry OK 135/135.
+- Dostarczone: `Warownia_MapaMgla.zip` (`TEST_MAPA_MGLA.bat`), `Mapa_przed_po.png`.
+- NIE sprawdzone: odczucie odsłaniania na komputerze autora (Forward+, prawdziwa karta), jasność wierzchu skały i koron na jego monitorze, pad, dźwięk; czy szersze korytarze nie ułatwiają za bardzo otaczania gracza.
+- Następny krok: ocena autora; potem biotop Spalona Osada (pilot map z góry).
+
 ## 2026-11-26 17:15 — nowe konto, rola: agent główny — publikacja menu i nowe zlecenia
 - **Decyzja autora (17:11):** nowe menu „jak na obecny etap świetne”. **(17:14) „tak”** na plan mentora (`NIGHTBRAND\WAROWNIA_POPIOLOW\CO_DALEJ_WAROWNIA_2026-11-26.md`): publikacja + runda „mgła i wczytywanie”, potem Spalona Osada.
 - **Opublikowano na main: `e93aa0e`** (łańcuch `walka-i-oznaczenia` → `szlif-menu-ui` → `menu-etap2`).

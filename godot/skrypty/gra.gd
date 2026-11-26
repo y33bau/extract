@@ -1093,6 +1093,11 @@ func _test_czarnoboru() -> void:
 		var tr: Transform3D = s3._mm[cel[1][0]].multimesh.get_instance_transform(cel[1][1])
 		schowane = tr.basis.get_scale().length() < 0.01
 	_ok("Czarnobór: drzewo między kamerą a bohaterem znika", schowane, "brak takiego miejsca" if cel.is_empty() else "")
+	var korony := 0
+	for k in s3._mm:
+		if String(k).begins_with("korona"):
+			korony += s3._mm[k].multimesh.instance_count
+	_ok("Czarnobór: głęboki las z koron i las poza mapą (zamiast czarnej pustki)", korony > 1000 and s3._plaszczyzna_otoczenia != null, "%d pól koron" % korony)
 	await _zrzut("9c_czarnobor")
 
 
@@ -1153,7 +1158,7 @@ func _test_lasu() -> void:
 			if pl["typ"] in ["kurhan", "legowisko"]:
 				odnogi += 1
 		for sc in m.sciezki:
-			if sc["szer"] < 4.0 or sc["szer"] > 6.0:
+			if sc["szer"] < 5.0 or sc["szer"] > 6.5:  # autor 26.11: szersze ścieżki (było 4–6 m)
 				zle.append(z + ": ścieżka %.1f m" % sc["szer"])
 		if m.ekstrakcje.size() != 3:
 			zle.append(z + ": wyjść %d" % m.ekstrakcje.size())
@@ -1175,6 +1180,50 @@ func _test_duzej_mapy() -> void:
 		if d[m.idx(int(e["w"].x), int(e["w"].y))] < 0:
 			eks_ok = false
 	_ok("duża mapa: 3+ kręgi ekstrakcji osiągalne od startu", eks_ok, "%d kręgów" % m.ekstrakcje.size())
+	# runda mapa-mgla-i-wczytywanie (autor 26.11): szersze korytarze, mniej przeszkód, płynna mgła, głębia zamiast czerni
+	var waskie := 0
+	for q in m.korytarze.slice(0, mini(400, m.korytarze.size())):
+		var ok3 := false
+		for oy in range(-2, 1):
+			for ox in range(-2, 1):
+				var wolne := true
+				for dy in 3:
+					for dx in 3:
+						if m.kafel(q.x + ox + dx, q.y + oy + dy) == Mapgen.K.MUR:
+							wolne = false
+				ok3 = ok3 or wolne
+		if not ok3:
+			waskie += 1
+	_ok("korytarze lochu szerokości 3 pól (autor: szersze)", waskie == 0, "%d za wąskich miejsc" % waskie)
+	var przeszkody := 0
+	var podlogi := 0
+	for t in m.siatka:
+		if t == Mapgen.K.GRUZ or t == Mapgen.K.FILAR:
+			przeszkody += 1
+		elif t == Mapgen.K.PODLOGA:
+			podlogi += 1
+	var gestosc := float(przeszkody) / maxf(1.0, float(podlogi))
+	_ok("mniej przeszkód w komnatach (gruz + filary)", gestosc < 0.05, "%.1f%% podłogi" % (gestosc * 100.0))
+	var s3 = rajd.swiat3d
+	if s3 != null:
+		var wierzch := 0
+		for k in s3._mm:
+			if String(k).begins_with("wierzch"):
+				wierzch += s3._mm[k].multimesh.instance_count
+		_ok("głębia: wierzch skały w lochu i skała poza mapą (zamiast czarnego tła)", wierzch > 500 and s3._plaszczyzna_otoczenia != null, "%d pól wierzchu" % wierzch)
+		var cel_i := -1
+		for i in s3._indeks:
+			if rajd.widok[i] == 0 and float(s3._cel_jasn[i]) == 0.0:
+				cel_i = i
+				break
+		if cel_i >= 0:
+			rajd.widok[cel_i] = 2
+			rajd.zmienione_widoku = PackedInt32Array([cel_i])
+			s3.odswiez_widok()
+			s3._krok_mgly(0.1)
+			var posrednio: float = s3._jasn[cel_i]
+			s3._krok_mgly(0.5)
+			_ok("mgła: odkryte pole wyłania się płynnie (nie w jednej klatce)", posrednio > 0.05 and posrednio < 0.9 and is_equal_approx(s3._jasn[cel_i], 1.0), "po 0,1 s jasność %.2f" % posrednio)
 	var sk_ok := true
 	for sk in m.skrzynie:
 		if d[m.idx(sk["tx"], sk["ty"])] < 0:

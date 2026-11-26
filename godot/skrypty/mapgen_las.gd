@@ -279,7 +279,7 @@ func _koliduje(a: int, b: int, krawedzie: Array) -> bool:
 	return false
 
 
-## Kręta ścieżka (krzywa Béziera z wychyleniem na boki), szerokość 4–6 m; czasem wąwóz (skalne ściany).
+## Kręta ścieżka (krzywa Béziera z wychyleniem na boki), szerokość 5–6,5 m (autor 26.11: szersze; było 4–6); czasem wąwóz.
 func _sciezka(a: int, b: int, r: RandomNumberGenerator) -> void:
 	var pa: Vector2 = polany[a]["c"]
 	var pb: Vector2 = polany[b]["c"]
@@ -287,7 +287,7 @@ func _sciezka(a: int, b: int, r: RandomNumberGenerator) -> void:
 	var bok := (pb - pa).orthogonal().normalized()
 	var k1 := pa.lerp(pb, 0.33) + bok * r.randf_range(-0.22, 0.22) * dl
 	var k2 := pa.lerp(pb, 0.66) + bok * r.randf_range(-0.22, 0.22) * dl
-	var szer := r.randf_range(4.0, 6.0)
+	var szer := r.randf_range(5.0, 6.5)
 	var wawoz := r.randf() < 0.25 and dl > 20.0
 	var punkty := PackedVector2Array()
 	var n := int(dl * 2.0) + 2
@@ -297,7 +297,7 @@ func _sciezka(a: int, b: int, r: RandomNumberGenerator) -> void:
 		p.x = clampf(p.x, 3.0, ROZMIAR - 4.0)
 		p.y = clampf(p.y, 3.0, ROZMIAR - 4.0)
 		punkty.append(p)
-		var s := maxf(szer * 0.5 + 0.45 * _szum.get_noise_2d(p.x * 3.0, p.y * 3.0), 2.25)   # min. 4,5 m (także po skosie)
+		var s := maxf(szer * 0.5 + 0.45 * _szum.get_noise_2d(p.x * 3.0, p.y * 3.0), 2.5)   # min. 5 m (także po skosie)
 		if wawoz:
 			_maluj_kolo(p, s + 2.2, T.SKALA, [T.LAS])
 		_maluj_kolo(p, s, T.SCIEZKA, [T.LAS, T.SKALA])

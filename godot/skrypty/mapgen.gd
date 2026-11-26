@@ -273,7 +273,7 @@ func _drzewo(lista: Array) -> Array:
 	return wynik
 
 
-## Korytarz w kształcie L (z losowym zagięciem w połowie), szerokość 2; drzwi w murze komnaty.
+## Korytarz w kształcie L (z losowym zagięciem w połowie), szerokość 3 (autor 26.11: szersze korytarze; było 2).
 func _korytarz(a: Dictionary, b: Dictionary, r: RandomNumberGenerator) -> void:
 	var pa := _punkt_w(a, r)
 	var pb := _punkt_w(b, r)
@@ -299,7 +299,7 @@ func _odcinek(a: Vector2i, b: Vector2i) -> void:
 	var p := a
 	var krok := Vector2i(signi(b.x - a.x), signi(b.y - a.y))
 	while true:
-		for d in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+		for d in PEDZEL_KORYTARZA:
 			var q: Vector2i = p + d
 			if q.x >= 1 and q.y >= 1 and q.x < ROZMIAR - 1 and q.y < ROZMIAR - 1:
 				var t := siatka[idx(q.x, q.y)]
@@ -309,6 +309,9 @@ func _odcinek(a: Vector2i, b: Vector2i) -> void:
 		if p == b:
 			break
 		p += krok
+
+
+const PEDZEL_KORYTARZA := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)]
 
 
 ## Wnętrze komnaty bez pasa przy ścianach (pas 1 pola zostaje wolny — gwarancja przejścia).
@@ -335,9 +338,9 @@ func _urzadz(i: int, r: RandomNumberGenerator) -> void:
 			for y in range(w.position.y, w.end.y):
 				for x in range(w.position.x, w.end.x):
 					var q := r.randf()
-					if q < 0.05:
+					if q < 0.022:  # autor 26.11: mniej gruzu (było 5% gruzu + 2,5% kolumn)
 						siatka[idx(x, y)] = K.GRUZ
-					elif q < 0.075:
+					elif q < 0.035:
 						siatka[idx(x, y)] = K.FILAR
 			_kosz_w(w.position.x, w.position.y)
 			_kosz_w(w.end.x - 1, w.end.y - 1)
@@ -350,7 +353,7 @@ func _urzadz(i: int, r: RandomNumberGenerator) -> void:
 		"legowisko":
 			for y in range(w.position.y, w.end.y):
 				for x in range(w.position.x, w.end.x):
-					if r.randf() < 0.06:
+					if r.randf() < 0.03:  # autor 26.11: mniej gruzu (było 6%)
 						siatka[idx(x, y)] = K.GRUZ
 			_kosz_w(w.position.x + w.size.x / 2, w.position.y + w.size.y / 2)
 		"skarbiec":
@@ -362,9 +365,9 @@ func _urzadz(i: int, r: RandomNumberGenerator) -> void:
 			for y in range(w.position.y, w.end.y):
 				for x in range(w.position.x, w.end.x):
 					var q := r.randf()
-					if q < 0.035:
+					if q < 0.015:  # autor 26.11: mniej filarów i gruzu (było 3,5% + 3,5%)
 						siatka[idx(x, y)] = K.FILAR
-					elif q < 0.07:
+					elif q < 0.03:
 						siatka[idx(x, y)] = K.GRUZ
 			if r.randf() < 0.55:
 				_kosz_w(w.position.x + r.randi_range(0, w.size.x - 1), w.position.y + r.randi_range(0, w.size.y - 1))
