@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 12:10 — konto 2, rola: gamedev — pilot Czarnoboru (mapy z góry)
+- Gałąź i commit: `pilot-czarnobor` (od `magazyn-nightbrand`).
+- Prośba autora: „Zrób pilot”.
+- Zrobione: generator lasu `mapgen_las.gd` (polany + kręte ścieżki 4,5–6 m, drzewo rozpinające + 2–3 pętle, ślepe odnogi z łupem, strumień z brodami, wąwozy, wyjścia w głębi i przy skraju lasu, osłony na polanach, łupy i miejsca wrogów z osobnych strumieni ziarna). Podgląd `--podglad-lasu=` + `narzedzia/podglad_lasu.py`. Opis i obrazy: `docs/pilot_czarnobor/`. Generator NIE jest podpięty do rajdu.
+- Testy: `testy.py godot` → OK 95/95 (nowy test `_test_lasu`, 5 ziaren).
+- NIE sprawdzone: las w 3D i w kamerze gry; walka na tych polanach (czy otwarte polany nie dają otaczania); czas przejścia mapy.
+- Decyzje autora: czeka na ocenę układu (szerokość ścieżek, wielkość polan, liczba pętli, wielkość mapy 96 m).
+- Następny krok: po akceptacji podpięcie lasu do rajdu i wygląd 3D z magazynu NightBrand (tekstury podłoża, drzewa, runo).
+
 ## 2026-11-26 11:40 — konto 2, rola: grafik — magazyn zasobów NightBrand
 - Gałąź i commit: `magazyn-nightbrand` (od `namierzanie`).
 - Prośba autora: przejrzeć wszystkie zasoby NightBrand (setki plików) i wyciągnąć tekstury i obiekty potrzebne do budowania poziomów.
