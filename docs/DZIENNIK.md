@@ -17,6 +17,12 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 01:05 — konto 2, rola: grafik
+- Gałąź `walka-oprawa`. **Ocena autora (00:59): „Jest o wiele lepiej.”** Zatrzymanie klatki i reszta oprawy walki zostają (brak zastrzeżeń autora).
+- **Decyzja autora:** w Warowni (Przystań) postacie mniejsze / kamera dalej; w misjach bez zmian. Zrobione: `przystan.gd` ZOOM 1,85 → 1,35. Rajd bez zmian.
+- Testy: 67/67 OK, kontrola spakowanej gry Linux 67/67 OK. Podgląd Przystani obejrzany (widać cały plac, pomost, palisadę).
+- NIE sprawdzone: wygląd na monitorze autora.
+
 ## 2026-11-26 00:45 — konto 2, rola: grafik
 - Gałąź `walka-oprawa` (od main `97c0c22`). main nietknięty.
 - Zlecenie autora (00:08): przed liczbami do strojenia dopracować walkę, świat i menu; „walka wygląda średnio, ikony nad wrogami jak ze SNES-a, menu też”. Kolejność wybrana przez autora: **najpierw oprawa walki**; w walce przeszkadza mu wszystko: brak mięsa trafień, znaczki nad wrogami, animacje wrogów, słaba widoczność, „animacje walki miałkie, nie czuć ciosów”.
