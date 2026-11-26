@@ -27,6 +27,8 @@ float brzeg_mgly(vec2 p) {
 	return smoothstep(0.3, 0.92, s);
 }
 
+#include "res://zasoby/3d/shadery/mgla_gladka.gdshaderinc"
+
 void vertex() {
 	swiat = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -37,7 +39,7 @@ void fragment() {
 	vec3 n = texture(szum, p * 0.018).rgb;
 	// plamy i przebarwienia: nie powtarza się w kratkę
 	float plamy = 0.62 + 0.55 * n.r + 0.25 * (n.g - 0.5);
-	float jasn = COLOR.r;
+	float jasn = mgla_gladka ? jas_gladka(p) : COLOR.r;
 	if (poza_mapa > 0.5) {
 		vec2 d = max(vec2(0.0) - p, p - vec2(rozmiar_mapy));
 		float odl = length(max(d, vec2(0.0)));

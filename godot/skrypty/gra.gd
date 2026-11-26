@@ -992,7 +992,7 @@ func _test_walki_i_oznaczen(p, en) -> void:
 	for i in 6:
 		await _klatka()
 		tint = maxf(tint, float(d3.get("tint_zamachu", 0.0)))
-	_ok("zapowiedź: sylwetka wroga świeci w zamachu", tint > 0.12, "barwa %.2f (główny sygnał niesie obrys)" % tint)
+	_ok("zapowiedź: sylwetka wroga świeci w zamachu", tint > 0.06, "barwa %.2f (główny sygnał niesie obrys; autor 26.11: lekko i złotawo)" % tint)
 	var cialo_w: MeshInstance3D = (d3["wezel"] as Node3D).find_child("cialo*", true, false)
 	_ok("błysk, barwa zamachu i obrys naprawdę na ciele wroga (siatka cialo_001)", cialo_w != null and cialo_w.material_overlay == d3["blysk"],
 		"brak siatki ciała" if cialo_w == null else str(cialo_w.name))
@@ -1986,9 +1986,8 @@ func _test() -> void:
 		var d3: Dictionary = rajd.swiat3d._wrogowie.get(en.get_instance_id(), {})
 		var ap3: AnimationPlayer = d3.get("ap")
 		var l3: OmniLight3D = d3.get("swiatlo")
-		var pw3: ShaderMaterial = d3.get("poswiata")
-		var sila3: float = float(pw3.get_shader_parameter("sila")) if pw3 else 0.0
-		_ok("3D: zapowiedź ciosu wroga (zamach + poświata sylwetki, bez słupa światła)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy < 0.01 and sila3 > 0.2,
+		var sila3: float = float(d3.get("tint_zamachu", 0.0))
+		_ok("3D: zapowiedź ciosu wroga (zamach + lekka poświata sylwetki, bez słupa światła)", ap3 != null and ap3.current_animation == "zamach" and l3.light_energy < 0.01 and sila3 > 0.04,
 			"%s, światło %.1f, poświata %.2f" % [ap3.current_animation if ap3 else "-", l3.light_energy if l3 else 0.0, sila3])
 		var zn: MeshInstance3D = d3.get("znak")
 		var przod := Vector2(zn.global_transform.basis.x.x, zn.global_transform.basis.x.z).normalized() if zn else Vector2.ZERO

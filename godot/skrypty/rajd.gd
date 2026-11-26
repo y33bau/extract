@@ -20,7 +20,7 @@ const N := Mapgen.ROZMIAR
 const CZAS_RAJDU := 1200.0  # decyzja autora 26.11.2026: rajd 20 min na mapach 128×128 (było 15 min na 96×96)
 const CZAS_EKSTRAKCJI := 6.0
 const GRAFIKA_3D := true   # świat i postacie w 3D (Forward+); 2D zostaje dla nakładek
-const ZOOM_3D := 1.45      # bliższa kamera dla modeli 3D (tylko wygląd)
+const ZOOM_3D := 1.23      # autor 26.11: kamera dalej, wszystko ok. 15% mniejsze (było 1,45); kąt w Iso.KAT_KAMERY
 
 var kraina: Dictionary
 var ziarno := ""

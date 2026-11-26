@@ -48,21 +48,7 @@ float brzeg_mgly(vec2 p) {
 		+ texture(mgla_znane, uv + vec2(0.0, d)).r + texture(mgla_znane, uv - vec2(0.0, d)).r) * 0.16;
 	return smoothstep(0.3, 0.92, s);
 }
-// Gładka mgła wojny (autor 26.11: „odsłanianie mapy to parada kwadratów”): jasność pól (0 nieznane, 0,3 pamięć,
-// 1 widoczne) z tekstury mapy, rozmyta i z falującym brzegiem z szumu — podłoga stoi zawsze, a mrok rysuje shader.
-uniform sampler2D jasnosc_mapy : hint_default_white, filter_linear, repeat_disable;
-uniform bool mgla_gladka = false;
-float jas_gladka(vec2 p) {
-	vec2 fala = (texture(szum, p * 0.085 + vec2(0.13, 0.71)).rg - 0.5) * 1.5;
-	vec2 uv = (p + fala) / rozmiar_mgly;
-	float d = 1.05 / rozmiar_mgly;
-	float s = texture(jasnosc_mapy, uv).r * 0.25;
-	s += (texture(jasnosc_mapy, uv + vec2(d, 0.0)).r + texture(jasnosc_mapy, uv - vec2(d, 0.0)).r
-		+ texture(jasnosc_mapy, uv + vec2(0.0, d)).r + texture(jasnosc_mapy, uv - vec2(0.0, d)).r) * 0.125;
-	s += (texture(jasnosc_mapy, uv + vec2(d, d)).r + texture(jasnosc_mapy, uv - vec2(d, d)).r
-		+ texture(jasnosc_mapy, uv + vec2(d, -d)).r + texture(jasnosc_mapy, uv - vec2(d, -d)).r) * 0.0625;
-	return smoothstep(0.02, 0.98, s);
-}
+#include "res://zasoby/3d/shadery/mgla_gladka.gdshaderinc"
 uniform float sciezka_jasn = 1.0;     // las: wydeptana ścieżka jaśniejsza od runa (czytelność ponad nastrój)
 uniform float sciezka_czysta = 0.0;   // las: na ścieżce mniej liści i mchu (warstwa C)
 

@@ -17,6 +17,26 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 23:00 — nowe konto, rola: gamedev + grafik — poprawki autora, tura 2
+- **Uwagi autora (22:37):**
+  - nadal kwadraty przy mgle („mgła tylko nad kwadratami”);
+  - ciszej SFX;
+  - wrogowie migając powodują lekkie zacięcia; podświetlenie bardziej złotawe i lekkie;
+  - drzewa: brak dużej różnicy, dalej zasłaniają;
+  - kamera: oddalić, zwiększyć kąt, skala −15%.
+- Zrobione:
+  - **Mgła:** przyczyną kwadratów była podłoga pokazywana kaflami. Warstwa chmur mgły (shader z głębią) leżała tylko nad nimi. Teraz podłoga, wierzch skał i korony stoją zawsze, a mrok rysują shadery z gładkiej mapy jasności. Wspólny plik `mgla_gladka.gdshaderinc` (teren, mur, otoczenie).
+  - **SFX:** wszystkie próbki −5 dB, syntezator −5 dB.
+  - **Zapowiedź ciosu:** usunięty osobny shader poświaty (kompilacja przy pierwszym użyciu = prawdopodobne zacięcie) i szybkie miganie (28 Hz). Zamiast nich lekki, złotawy odcień ciała narastający płynnie (0,05–0,22) i złotawy obrys. Ogłuszenie pulsuje wolno. Próg testu barwy 0,12 → 0,06 na prośbę autora („lekkie”).
+  - **Drzewa:** przekrój przed bohaterem szerszy (18 / 9 m, było 15 / 7,5).
+  - **Kamera:** kąt 30° → 40° (`Iso.KAT_KAMERY`, `KAFEL_H` = 64·sin 40° = 41,14; rzut 2D i kamera 3D zgodne), zoom 1,45 → 1,23 (−15%). Przystań bez zmian.
+- Testy: `--test` → OK 157/157 (3 min 22 s).
+- NIE sprawdzone:
+  - zacięcia u autora (przyczyna to przypuszczenie);
+  - celowanie myszą przy nowym kącie (rachunek zgodny, nie sprawdzone ręcznie);
+  - wygląd drzew u autora;
+  - głośność.
+
 ## 2026-11-26 22:25 — nowe konto, rola: gamedev + grafik — poprawki autora (chód, poświata, drzewa, mgła, dźwięki)
 - Gałąź: `poprawki-autora-1` (od main po publikacji osady).
 - **Uwagi autora (21:31–21:36):**

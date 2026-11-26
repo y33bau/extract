@@ -3,28 +3,28 @@ extends Node
 ## ostrze, trafienie, blok, parowanie, przewrót, kroki, ból, leczenie, łup, UI, warkot wroga, śmierć wroga).
 ## Gdzie próbki nie ma (cięciwa, błysk przed parowaniem), gra syntezator (port z wersji JS).
 
-## nazwa zdarzenia -> [pliki (losowo jeden), głośność dB]; do strojenia
+## nazwa zdarzenia -> [pliki (losowo jeden), głośność dB]; do strojenia (autor 26.11: ciszej, wszystko −5 dB)
 const PROBKI := {
-	"zamach": [["sword_attack_1", "sword_attack_2"], -3.0],
-	"zamach_c": [["sword_attack_3"], -2.0],
-	"trafienie": [["sword_hit_1", "sword_hit_2"], -2.0],
-	"blok": [["sword_blocked_1", "sword_blocked_2"], -2.0],
-	"parowanie": [["sword_parry_1", "sword_parry_2"], 0.0],
-	"riposta": [["sword_hit_3"], 0.0],
-	"unik": [["przewrot"], -6.0],
-	"krok": [["krok_1", "krok_2", "krok_3", "krok_4", "krok_5"], -16.0],
-	"bol": [["bol"], -3.0],
-	"picie": [["leczenie"], -5.0],
-	"lup": [["lup_1", "lup_2"], -6.0],
-	"ui": [["ui"], -8.0],
-	"tik": [["tik"], -10.0],
-	"ekstrakcja": [["dzwon"], -3.0],
-	"zapowiedz": [["warkot_1", "warkot_2"], -9.0],
-	"zapowiedz_c": [["ostrzezenie_ciezki"], -4.0],
-	"smierc_wroga": [["smierc_wroga"], -6.0],
-	"postawa": [["postawa"], -3.0],
-	"monety": [["monety_1", "monety_2"], -6.0],
-	"wstecz": [["wstecz"], -8.0],
+	"zamach": [["sword_attack_1", "sword_attack_2"], -8.0],
+	"zamach_c": [["sword_attack_3"], -7.0],
+	"trafienie": [["sword_hit_1", "sword_hit_2"], -7.0],
+	"blok": [["sword_blocked_1", "sword_blocked_2"], -7.0],
+	"parowanie": [["sword_parry_1", "sword_parry_2"], -5.0],
+	"riposta": [["sword_hit_3"], -5.0],
+	"unik": [["przewrot"], -11.0],
+	"krok": [["krok_1", "krok_2", "krok_3", "krok_4", "krok_5"], -21.0],
+	"bol": [["bol"], -8.0],
+	"picie": [["leczenie"], -10.0],
+	"lup": [["lup_1", "lup_2"], -11.0],
+	"ui": [["ui"], -13.0],
+	"tik": [["tik"], -15.0],
+	"ekstrakcja": [["dzwon"], -8.0],
+	"zapowiedz": [["warkot_1", "warkot_2"], -14.0],
+	"zapowiedz_c": [["ostrzezenie_ciezki"], -9.0],
+	"smierc_wroga": [["smierc_wroga"], -11.0],
+	"postawa": [["postawa"], -8.0],
+	"monety": [["monety_1", "monety_2"], -11.0],
+	"wstecz": [["wstecz"], -13.0],
 }
 var _probki := {}   # nazwa -> [Array[AudioStream], dB]
 
@@ -38,7 +38,7 @@ var _nastepny := 0
 func _ready() -> void:
 	for i in 10:
 		var g := AudioStreamPlayer.new()
-		g.volume_db = -4.0
+		g.volume_db = -9.0
 		add_child(g)
 		_gracze.append(g)
 	_bufory["zamach"] = _miks([_szum(0.14, 880, 0.15, "bp", true), _ton(280, 90, 0.10, "tri", 0.08)])
@@ -84,7 +84,7 @@ func _graj(nazwa: String) -> void:
 		g.pitch_scale = randf_range(0.95, 1.05)
 	else:
 		g.stream = _bufory[nazwa]
-		g.volume_db = -4.0
+		g.volume_db = -9.0
 		g.pitch_scale = 1.0
 	g.play()
 

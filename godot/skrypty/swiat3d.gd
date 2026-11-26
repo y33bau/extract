@@ -81,7 +81,6 @@ var _do_sprawdzenia := {}    # pola wysokich rzeczy, których kotwica zmieniła 
 const CZAS_ODSLONY := 0.3
 const CZAS_PRZYGASZENIA := 0.7
 const SHADER_OTOCZENIA := preload("res://zasoby/3d/shadery/otoczenie.gdshader")
-const SHADER_POSWIATY := preload("res://zasoby/3d/shadery/poswiata.gdshader")
 
 
 func zbuduj(r) -> void:
@@ -311,6 +310,8 @@ func _materialy() -> void:
 	m.set_shader_parameter("zar", w["mur_zar"])
 	m.set_shader_parameter("jasnosc", w["mur_jasnosc"])
 	_mgla_do(m)
+	m.set_shader_parameter("jasnosc_mapy", _jasn_tex)
+	m.set_shader_parameter("mgla_gladka", true)
 	_mat["mur"] = m
 	var f: ShaderMaterial = m.duplicate()
 	f.set_shader_parameter("skala", w["mur_skala"] * 1.3)
@@ -429,7 +430,8 @@ func _ustaw_kamere() -> void:
 	var srodek: Vector2 = k2.get_screen_center_position()
 	var w := Iso.swiat(srodek)
 	var cel := Vector3(w.x, 0.0, w.y)
-	var kier := Vector3(cos(deg_to_rad(30.0)) / sqrt(2.0), sin(deg_to_rad(30.0)), cos(deg_to_rad(30.0)) / sqrt(2.0))
+	var kat := deg_to_rad(Iso.KAT_KAMERY)   # ten sam kąt co rzut 2D (nakładki, mysz)
+	var kier := Vector3(cos(kat) / sqrt(2.0), sin(kat), cos(kat) / sqrt(2.0))
 	kamera.position = cel + kier * 40.0
 	kamera.look_at(cel, Vector3.UP)
 	kamera.size = get_viewport().get_visible_rect().size.y / (PX_NA_M * zoom)
@@ -521,10 +523,10 @@ func _mapa() -> void:
 			var p := Vector3(i % N + 0.5, 0.0, i / N + 0.5)
 			if wp.size() > 3:
 				p += wp[3]
-			if k in PODLOGI:
-				# podłoga: pojawia się z zapasem 2 pól wokół odkrytego (_odslon_podloge), a mrok i brzeg
-				# odsłaniania rysuje shader terenu z gładkiej mapy jasności (bez kwadratów)
-				mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))
+			if k in PODLOGI or k.begins_with("wierzch") or k.begins_with("korona"):
+				# podłoga i płaskie wierzchy stoją zawsze; mrok i brzeg odsłaniania rysują shadery z gładkiej mapy
+				# jasności (autor 26.11: bez kwadratów; mgła nad mapą leży równo, nie tylko nad odkrytymi polami)
+				mm.set_instance_transform(n, Transform3D(wp[1], Vector3(p.x, wp[2], p.z)))
 				mm.set_instance_color(n, Color(0.7, 1.0, 0.85, 1.0) if k == "ekstrakcja" else Color.WHITE)
 			else:
 				mm.set_instance_transform(n, Transform3D(Basis().scaled(Vector3.ZERO), p))  # nieznane: niewidoczne
@@ -1673,7 +1675,6 @@ func odswiez_widok() -> void:
 			_fade[i] = true
 	_ciete_ost = ciete_teraz
 	_przekroj_wysokich(g)
-	_odslon_podloge(widok)
 	# mapa znanych pól dla miękkiego brzegu mgły (raz na przeliczenie widoku)
 	var zmiana := false
 	for i in rajd.zmienione_widoku:
@@ -2123,9 +2124,6 @@ func _wrog3d(en) -> Dictionary:
 	obrys.grow = true
 	obrys.grow_amount = GRUBOSC_OBRYSU
 	obrys.albedo_color = KOLOR_OBRYSU
-	var poswiata := ShaderMaterial.new()
-	poswiata.shader = SHADER_POSWIATY
-	obrys.next_pass = poswiata
 	_cienie(n)
 	# zapowiedź ciosu na ziemi: klin zasięgu wypełniający się aż do uderzenia
 	var znak := MeshInstance3D.new()
@@ -2179,7 +2177,7 @@ func _wrog3d(en) -> Dictionary:
 	add_child(krag)
 	var d := {"wezel": n, "ap": ap, "swiatlo": l, "blysk": blysk, "martwy": false, "smierc": 0.0, "wrog": weakref(en), "kat": en.kat, "rodzaj": en.rodzaj,
 		"znak": znak, "znak_mat": zm, "glint": gw, "pierscien": pr, "pierscien_mat": prm, "bron": bron, "zamach_byl": false, "glint_byl": false,
-		"krag": krag, "obrys": obrys, "poswiata": poswiata, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
+		"krag": krag, "obrys": obrys, "obrys_wl": false, "skala": s, "ost_traf": en.licznik_trafien, "reakcja": 0.0, "flash": 0.0, "odchyl": 0.0, "odchyl_v": 0.0, "ost_hp": en.hp, "traf_licznik": 0}
 	_wrogowie[id] = d
 	return d
 
@@ -2542,10 +2540,10 @@ func _obrys_wroga(en, d: Dictionary) -> void:
 	var t := Time.get_ticks_msec() / 1000.0
 	var k := KOLOR_OBRYSU
 	if en.ogluszenie > 0.0:
-		k = Color(1.0, 0.78, 0.3).lerp(Color(1.0, 0.95, 0.7), 0.5 + 0.5 * sin(t * 12.0))
+		k = Color(1.0, 0.8, 0.45).lerp(Color(1.0, 0.92, 0.7), 0.5 + 0.5 * sin(t * 4.0))   # ogłuszony: wolny, łagodny puls
 	elif en.zamach > 0.0 and en.zamach_dl > 0.0:
 		var f: float = 1.0 - en.zamach / en.zamach_dl
-		var kz := Color(1.0, 0.18, 0.08) if en.ciezki else (Color(0.6, 0.82, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.8, 0.25))
+		var kz := Color(0.95, 0.25, 0.12) if en.ciezki else (Color(0.65, 0.82, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.82, 0.48))
 		k = KOLOR_OBRYSU.lerp(kz, 0.35 + 0.65 * f)
 	obrys.albedo_color = k
 
@@ -2586,14 +2584,15 @@ func _reakcja_wroga(en, d: Dictionary, n: Node3D, dt: float) -> void:
 	var kol := Color(1.0, 0.93, 0.82, 0.85 * f * f)
 	# zapowiedź ciosu na ciele (autor 26.11: „nie widzę ciosu wroga”): sylwetka nabiera barwy aż do uderzenia —
 	# złota = do sparowania, czerwona = ciężki (tylko unik), błękitna = strzała
-	var pw: ShaderMaterial = d["poswiata"]
+	# zapowiedź ciosu: lekka, złotawa poświata całej sylwetki narastająca płynnie (autor 26.11: „bardziej
+	# złotawe, lekkie”; bez migania i bez osobnego shadera, który zacinał grę przy pierwszym użyciu)
 	var sila_p := 0.0
 	if en.zamach > 0.0 and en.ogluszenie <= 0.0 and en.zamach_dl > 0.0:
 		var t: float = 1.0 - en.zamach / en.zamach_dl
-		var kz := Color(1.0, 0.2, 0.1) if en.ciezki else (Color(0.6, 0.8, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.78, 0.25))
-		sila_p = 0.35 + 0.9 * t * t + 0.08 * sin(Time.get_ticks_msec() / 1000.0 * 22.0)  # do strojenia
-		pw.set_shader_parameter("kolor", kz)
-	pw.set_shader_parameter("sila", sila_p)
+		var kz := Color(0.95, 0.32, 0.18) if en.ciezki else (Color(0.7, 0.82, 1.0) if en.rodzaj == "archer" else Color(1.0, 0.84, 0.52))
+		sila_p = 0.05 + 0.17 * t * t   # do strojenia
+		if sila_p > kol.a:
+			kol = Color(kz, sila_p)
 	d["tint_zamachu"] = sila_p
 	b.albedo_color = kol
 
@@ -2952,6 +2951,8 @@ func _otoczenie_materialy() -> void:
 		m.set_shader_parameter("ton", Color(0.3, 0.4, 0.27) if rodz == "korona" else w.get("wierzch_ton", Color(0.4 * ton_muru.r, 0.38 * ton_muru.g, 0.4 * ton_muru.b)))
 		m.set_shader_parameter("rozmiar_mapy", float(N))
 		_mgla_do(m)
+		m.set_shader_parameter("jasnosc_mapy", _jasn_tex)
+		m.set_shader_parameter("mgla_gladka", true)
 		_mat[rodz] = m
 
 
@@ -2970,6 +2971,7 @@ func _mgla_do(m: ShaderMaterial) -> void:
 func _otoczenie() -> void:
 	var zew: ShaderMaterial = (_mat["korona"] if las and not osada else _mat["wierzch"]).duplicate()
 	zew.set_shader_parameter("poza_mapa", 1.0)
+	zew.set_shader_parameter("mgla_gladka", false)
 	var plaszcz := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	var marg := 70.0
@@ -3013,22 +3015,24 @@ func _przekroj_wysokich(g: Vector2) -> void:
 			if rodzaj.begins_with("wierzch"):
 				tnij = dx + dy > 0.6 and absf(dx) < 9.5 and absf(dy) < 9.5 and absf(dx - dy) < 11.0
 			elif las:
-				tnij = dx + dy > 0.6 and dx + dy < 15.0 and absf(dx - dy) < 7.5
+				tnij = dx + dy > 0.6 and dx + dy < 18.0 and absf(dx - dy) < 9.0   # autor 26.11: drzewa dalej zasłaniały (było 15 / 7,5)
 			if tnij:
 				w_przekroju[t] = true
-			elif widok[int(lista[n][5])] > 0:
-				maska |= 1 << n
-		if maska == int(_maska_widocznych.get(t, 0)):
+			elif widok[int(lista[n][5])] > 0 or rodzaj.begins_with("wierzch") or rodzaj.begins_with("korona"):
+				maska |= 1 << n   # wierzch i korony stoją zawsze (mrok z gładkiej mapy jasności); drzewa wg kotwicy
+		var domyslna := 0   # wierzch i korony stoją od początku (_mapa), drzewa nie
+		for n2 in lista.size():
+			var r2: String = lista[n2][0]
+			if r2.begins_with("wierzch") or r2.begins_with("korona"):
+				domyslna |= 1 << n2
+		if maska == int(_maska_widocznych.get(t, domyslna)):
 			continue
 		for n in lista.size():
 			var wpis: Array = lista[n]
 			var p: Vector3 = wpis[2]
 			var b: Basis = (wpis[3] as Basis) if (maska & (1 << n)) else Basis().scaled(Vector3.ZERO)
 			(_mm[wpis[0]].multimesh as MultiMesh).set_instance_transform(wpis[1], Transform3D(b, Vector3(p.x, wpis[4], p.z)))
-		if maska == 0:
-			_maska_widocznych.erase(t)
-		else:
-			_maska_widocznych[t] = maska
+		_maska_widocznych[t] = maska
 	_przekroj_ost = w_przekroju
 
 

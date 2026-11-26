@@ -2,7 +2,10 @@ extends RefCounted
 ## Rzut izometryczny: świat (pola) <-> ekran (piksele). Ten sam wzór co w wersji JS.
 
 const KAFEL_W := 64.0
-const KAFEL_H := 32.0
+## Kąt kamery nad ziemią (stopnie). Autor 26.11: wyżej i dalej (było 30°: klasyczne 2:1). Rzut 2D i kamera 3D
+## muszą mieć ten sam kąt: KAFEL_H = KAFEL_W · sin(kąt) (dla 30° = 32). Przystań ma własną kamerę 30°.
+const KAT_KAMERY := 40.0
+const KAFEL_H := 41.1384   # 64 · sin(40°)
 
 static func ekran(w: Vector2) -> Vector2:
 	return Vector2((w.x - w.y) * KAFEL_W * 0.5, (w.x + w.y) * KAFEL_H * 0.5)

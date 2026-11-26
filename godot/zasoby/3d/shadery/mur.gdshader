@@ -36,6 +36,8 @@ float brzeg_mgly(vec2 p) {
 	return smoothstep(0.3, 0.92, s);
 }
 
+#include "res://zasoby/3d/shadery/mgla_gladka.gdshaderinc"
+
 void vertex() {
 	swiat = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	nsw = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
@@ -69,10 +71,11 @@ void fragment() {
 	}
 	float makro = mix(0.8, 1.1, n.b);
 	vec3 kolm = alb * ton * makro * kontakt * jasnosc;
-	float pamiec = 1.0 - smoothstep(0.6, 0.95, COLOR.r);
+	float jm = mgla_gladka ? min(COLOR.r, jas_gladka(swiat.xz) + 0.15) : COLOR.r;
+	float pamiec = 1.0 - smoothstep(0.6, 0.95, jm);
 	kolm = mix(kolm, vec3(dot(kolm, vec3(0.3, 0.59, 0.11))) * vec3(0.8, 0.88, 1.05), pamiec * 0.75);
-	float brzeg = brzeg_mgly(swiat.xz);
-	ALBEDO = kolm * COLOR.rgb * brzeg;
+	float brzeg = mgla_gladka ? 1.0 : brzeg_mgly(swiat.xz);
+	ALBEDO = kolm * (mgla_gladka ? vec3(jm) : COLOR.rgb) * brzeg;
 	ROUGHNESS = mix(rh.r, 1.0, 0.2);
 	NORMAL_MAP = nrm;
 	NORMAL_MAP_DEPTH = normalna;
@@ -80,6 +83,6 @@ void fragment() {
 	AO_LIGHT_AFFECT = 0.35;
 	if (zar > 0.0) {
 		float g = clamp((alb.r - alb.b * 1.4 - 0.1) * 4.0, 0.0, 1.0) * (1.0 - smoothstep(0.0, 0.8, h));
-		EMISSION = kolor_zaru * g * zar * (0.7 + 0.3 * sin(TIME * 1.3 + n.r * 9.0)) * COLOR.r * brzeg;
+		EMISSION = kolor_zaru * g * zar * (0.7 + 0.3 * sin(TIME * 1.3 + n.r * 9.0)) * jm * brzeg;
 	}
 }
