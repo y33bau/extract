@@ -1502,6 +1502,8 @@ func _test_osady_w_rajdzie() -> void:
 	wz = rajd.zwloki[rajd.zwloki.size() - 1]["w"]
 	await _czekaj_az(func(): return not cialo.visible and s3._zwloki.has(str(wz)) and (s3._zwloki[str(wz)] as Node3D).scale.length() > 0.05, 12.0)
 	var znak: Node3D = s3._zwloki.get(str(wz))
+	var zw2d = rajd.zwloki[rajd.zwloki.size() - 1]["wezel"]
+	_ok("poległy: bez starego sprite'a 2D i bez czerwonego kręgu", not zw2d.visible and not (s3._wrogowie[id_of]["krag"] as Node3D).visible)
 	var zwl_ok: bool = rajd.zwloki.any(func(z): return z["w"] == wz and not z["przedmioty"].is_empty())
 	_ok("poległy: animacja, potem rozpad w pył; zostaje skrzyneczka lub krzyżyk do przeszukania", w_trakcie and not cialo.visible and znak != null and znak.scale.length() > 0.05 and zwl_ok,
 		"ciało %s (%.2f s), znak %s" % [str(cialo.visible), float(s3._wrogowie[id_of]["smierc"]), "brak" if znak == null else String(znak.scene_file_path).get_file()])

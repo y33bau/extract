@@ -2347,6 +2347,7 @@ func _aktualizuj_wrogow(dt: float, czas: float) -> void:
 			(d2["znak"] as MeshInstance3D).visible = false
 			(d2["glint"] as Sprite3D).visible = false
 			(d2["pierscien"] as MeshInstance3D).visible = false
+			(d2["krag"] as MeshInstance3D).visible = false   # czerwony krąg walki nie zostaje pod poległym
 		d2["smierc"] += dt
 		var ap2: AnimationPlayer = d2["ap"]
 		_graj(ap2, "smierc", minf(1.0, d2["smierc"] / 1.4))

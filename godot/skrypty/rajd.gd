@@ -1500,7 +1500,7 @@ func _aktualizuj(dt: float) -> void:
 		en.widoczny_dla_gracza = widac
 		en.animuj(czas)
 	for z in zwloki:
-		z["wezel"].visible = widoczne(z["w"]) > 0
+		z["wezel"].visible = widoczne(z["w"]) > 0 and not GRAFIKA_3D  # w 3D ciało rozsypuje się w pył (swiat3d), stary sprite 2D nigdy
 	if pochodnia_na_ziemi != null:
 		wezel_pochodni.queue_redraw()
 	strzaly_wezel.queue_redraw()
