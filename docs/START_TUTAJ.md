@@ -28,6 +28,7 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 | `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -8 --all` i dziennikiem)
+- **26.11 (23:30): przekazanie dla ChatGPT / Codex (do niedzieli prowadzi projekt):** `docs/PRZEKAZANIE_CHATGPT_2026-11-26.md` + role w `docs/chatgpt/`. Najnowsza praca: gałąź `poprawki-autora-1` (nieopublikowana).
 - **Silnik: Godot 4.7.2, renderer Forward+, prawdziwe 3D z kamerą izometryczną** (decyzje autora 25.11.2026). Gra w `godot/`; wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`.
 - Gra: Warownia-Przystań w 3D (swobodny ruch, NPC: Marga = kupiec, Chojrak = wyprawy i kontrakty, chłop = gawędziarz, przewoźnik z łodzią; obóz rosnący z poziomem), rajd 20 min na mapach 128×128 z ziarna (lochy, las Czarnobór i wieś Spalona Osada od 26.11) (7 rodzajów komnat, 3–4 ekstrakcje, patrole, pościg), walka (combo, parowanie z pierścieniem rytmu, riposta, blok, przewrót, postura, pochodnia vs tarcza, zrzut sakwy), mgła wojny, minimapa, łup, śmierć (Relikwiarz, połowa doświadczenia), dźwięk, pad wszędzie, ustawienie jakości grafiki.
 - Postacie: Hadræn (płynny ruch i walka przyjęte przez autora), 6 typów wrogów i NPC z Meshy w pozie T — **autor 26.11.2026: „Postacie są super”**.
