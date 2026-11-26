@@ -1,0 +1,3352 @@
+{
+ "modele_3d": [
+  {
+   "nazwa": "p8_ognisko_gruz",
+   "glb": "039965df1a95e180395ec784d3d70f52f497d3006e62c4b30e67b3e84075c712.glb",
+   "tekstura": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp"
+  },
+  {
+   "nazwa": "p5_vault",
+   "glb": "039e41c66fe0d5630a20ef71f2b3b4ad181324cb97e646720b8ef7b839547130.glb",
+   "tekstura": "447e9dd02ca688100238ed7532183c7d1c88a7df20a41908f7f6f93f244d59e7.webp"
+  },
+  {
+   "nazwa": "p1_crow_post",
+   "glb": "0400fd5f052a79bf652309ba85c1138642cbd356dddce68da47e023f38fd2045.glb",
+   "tekstura": "3175a3da1160da1c78ee187bf267311d0ae010d370bf369ca7b68f6f3bacdeb6.webp"
+  },
+  {
+   "nazwa": "p8_relikwiarz",
+   "glb": "0696d8b21e2117fe3f9188db7165198af29c62445bc821a237fc753ba7852f2e.glb",
+   "tekstura": "b22ddff28fff1bba72969e080141c210b7e50f6b74d307013c4cca594f55c3fe.webp"
+  },
+  {
+   "nazwa": "p8_muchomory",
+   "glb": "06a94b7652b69e76be9169875ab165deca0fa3655267b392338a7b794e555556.glb",
+   "tekstura": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp"
+  },
+  {
+   "nazwa": "p4_drowned_cart",
+   "glb": "07b18c2f24a7cd464c38f38b895a80c3ffee8ee203edf13068caea5a27be4fba.glb",
+   "tekstura": "cbeaabc364f69111896a6fb0b44271eaa387fedf02fa7dbf20fb0798becb984f.webp"
+  },
+  {
+   "nazwa": "p1_marga_cart",
+   "glb": "07d9052aa39653d85966a970efa287f90a1f1c16254b0ae5c0a26dc7d0cb4707.glb",
+   "tekstura": "b377b0298ba7773242b30527b9f0b75762feb057c7cfbc248a9fffb3eb6ab8d7.webp"
+  },
+  {
+   "nazwa": "p8_strach_na_wroble",
+   "glb": "0b23cf1dc6990871daaa28961ec5bd5bd1edd264040a2afe64c54dfb0ba8786d.glb",
+   "tekstura": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp"
+  },
+  {
+   "nazwa": "p8_kapliczka_przydrozna",
+   "glb": "0eded2d19ba8acdfbef5bff8b57e9a20acb6c2db14c141a22392081e3673b4af.glb",
+   "tekstura": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_0f0b758d",
+   "glb": "0f0b758d90647ec472e4ff4e285db5032da13a41f8f0efc1037631547af54388.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_huby_na_klodzie",
+   "glb": "18715ef51838a1b40416b9c071b73ec64af39f0a7e07aaa8cd13b7344fb2431d.glb",
+   "tekstura": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp"
+  },
+  {
+   "nazwa": "p4_cz_firewood",
+   "glb": "1878b1f2375c7a0208db8ec9895592374ddd9dd05b1825bb8228b6d503533bf3.glb",
+   "tekstura": "3c6674caca245e9dc18f9542e8d151492bbf42679baf264559993d55f7c7fa95.webp"
+  },
+  {
+   "nazwa": "p1_dead_tree",
+   "glb": "19a94455a1485d4e758afb95f42b68c553309dbe2f519f47e4c426a9f4852255.glb",
+   "tekstura": "3985e321888e747ecfb6975d21376f26445f6d78156c70ca28d06989e8443956.webp"
+  },
+  {
+   "nazwa": "p3_dead_horse",
+   "glb": "1a9c576fb06eb07c9d1a9de624b8d389e6fd9914b643ba04b2f88bcdd3c2caf0.glb",
+   "tekstura": "b1c92ea3ee82e99c4f22b18c009a8a1bbf7280a5a304360bc782573ae92b348c.webp"
+  },
+  {
+   "nazwa": "p4_cz_idol",
+   "glb": "1ad1fa9c38ad009fa83171361c3c36d9308bd62ccf235a95160a5ca7966c2610.glb",
+   "tekstura": "a0d741a976537b1092429cc33cefc43fde08b5e10a8504694cf0c16d4e175e19.webp"
+  },
+  {
+   "nazwa": "p8_pomost",
+   "glb": "1e7ab23812f74603380d3d49372b95df5f4f411929ef85e52b96ab1b8aad4934.glb",
+   "tekstura": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_1f329cbd",
+   "glb": "1f329cbd7750e3ed1a92817a3195083656c9ccb33e6dd00b3e1dfa80ee3b2298.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_kufer_zloto",
+   "glb": "1f54c43ad1e24683ec401614695276d857e380477b8b5f6e1a60d202cfa8bf45.glb",
+   "tekstura": "0a2dea0358f680978839f722f939ce2dffe792b3a6869e5b9533b6e76ca4fe61.webp"
+  },
+  {
+   "nazwa": "p8_kloda",
+   "glb": "1fb40cabe5caeddfe275fa3e9b77052eb84d870a9b71cb9f004df59dcbf975d0.glb",
+   "tekstura": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp"
+  },
+  {
+   "nazwa": "p8_kalamarz",
+   "glb": "220e36e5020b6ff83930775c4e4659e0136dddc8439571d5db34a4148274a919.glb",
+   "tekstura": "0a2dea0358f680978839f722f939ce2dffe792b3a6869e5b9533b6e76ca4fe61.webp"
+  },
+  {
+   "nazwa": "p4_cz_gallows",
+   "glb": "2296dea74475208fc3fd5a3989396bcf47115f2a05354ebeaebbcc68b2d1cbad.glb",
+   "tekstura": "8115c90c547781bcdd72fc6acb7b78c84797a56730eb8bfee33139c0dac432f5.webp"
+  },
+  {
+   "nazwa": "p2_bellows",
+   "glb": "231af84295b5d49e884c88695a2d9b73a8e55af5f9a53975a33348356b558dc1.glb",
+   "tekstura": "ac4ba48735b593d28e02ebd61cd6602c6c4b3a1dfabcfa16927bcda8314f2c31.webp"
+  },
+  {
+   "nazwa": "p8_posag_swietej",
+   "glb": "23280493bef5f3a0230f6c7c1d45272368d15a58335dc82bf63ea87a8d2dd861.glb",
+   "tekstura": "274d6de296b0cc8ad4e3ea284322fdb437017073d3df86d656f6ff5d28705b8e.webp"
+  },
+  {
+   "nazwa": "p8_drzwi_krypty",
+   "glb": "2362d4d88b73e3a4bbbd272b4092e49898c747579ade99e243afa101fd551c98.glb",
+   "tekstura": "836ba191f898a47f74f59be6c8f07f1ebef78830e583f917de6fda73fcd1ef3f.webp"
+  },
+  {
+   "nazwa": "kurhan",
+   "glb": "254e774d7a66d8de38394ba9683eed3ca9380c7266d0cceba3bad13450f5f414.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "r7_kolumna_01_prosta",
+   "glb": "259120a0186f92f80ee3076fdf91c9bcc2988e910b1f1fa88ae7083bc9126ba6.glb",
+   "tekstura": "5f08410c6291654e13782a5a4d8dd00ca281492a92ff728e732c75d3c025b114.webp"
+  },
+  {
+   "nazwa": "p4_axe_stump",
+   "glb": "281f78c993dcd426b36bd18737ebd8d75085c213f779dcd25ae975bbd29feb09.glb",
+   "tekstura": "9ac59839588347b890697637ffbcf6ef2605746f660092540b364a8f8a6ca7b6.webp"
+  },
+  {
+   "nazwa": "r9_naczynia_02_misa",
+   "glb": "28b9fdb8134acc9d78881e5f50e77858ab640db9ec6b877d725f7820f888c0bc.glb",
+   "tekstura": "0badbdaf7c75c0286620eee6b7bddea72fd66826d4fad9c66f938adcf3219b6e.webp"
+  },
+  {
+   "nazwa": "p4_cz_sacpole",
+   "glb": "2c149c7b5740acbdd9eff7fb1f9ea190b83ca17a7cc7ff4260c8fad2dfbe1b74.glb",
+   "tekstura": "a751c520f302d695878ac9eef6a6351578f0b26e71ebf5d73132cd654bbda31a.webp"
+  },
+  {
+   "nazwa": "p8_menhir_runy",
+   "glb": "2ca867427111bc86033a027921fbadefe75e2e04b4884aefdf230eb428c9f489.glb",
+   "tekstura": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp"
+  },
+  {
+   "nazwa": "p8_ognisko_krag",
+   "glb": "2e3b0e3e4842258fbf6b51dff73383d68eaad939047d4d9679e2b59553b2a894.glb",
+   "tekstura": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp"
+  },
+  {
+   "nazwa": "r8_skarby_03_klucze",
+   "glb": "2f2214696b023dd72ee9e10b9558d34b18cad6bc3bc07d3132c1ff6834d1be09.glb",
+   "tekstura": "a6f939fc44b25a915c725f879e2f068bcf726fa2113af1ecff72efe2fe439304.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_3027b785",
+   "glb": "3027b785898b03081240b1a318b1d742ad501a36fac32abccdcf2bfaa05232a1.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_worki_zboze",
+   "glb": "33a251be16f170ad316501b3e7098a3e6bc449ce4356ec5a77d262f443f5ed95.glb",
+   "tekstura": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp"
+  },
+  {
+   "nazwa": "p4_cz_tent",
+   "glb": "349cb9697f213870dd3af540ffb9b4ebd0946747a9458d2175c2b0cc8f357b36.glb",
+   "tekstura": "a1a0e0aef659424cd9871f16bb3467831dcccb4aef5304dcf9b68437229b3227.webp"
+  },
+  {
+   "nazwa": "r8_ksiegi_02_stos",
+   "glb": "35546ef4a255e725905d546d13b463d7f0cce0e8076ebbca4fac4ac200715592.glb",
+   "tekstura": "c09e9b7eaae144ba68ea9eab2363f0c22c35b5c7684983ebaadbb97a4d9fabfa.webp"
+  },
+  {
+   "nazwa": "wozek",
+   "glb": "3705ea434ab8f04db7b99a570e8d68417a11c5883cc7d14b631f5b510a374e60.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_wiadro_lina",
+   "glb": "374cb817c640aee9ab3f3edf8a0c8b5fbd48130d1281cc2cf1c150a351f9fd6f.glb",
+   "tekstura": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp"
+  },
+  {
+   "nazwa": "p2_black_powder",
+   "glb": "376d4b728e72453c01f6046e03c1424d597d456bcae792b5a2c190cad8d71ea7.glb",
+   "tekstura": "e6633d8ccf06e7b28d6c2b8fdc83cb8d2ecef33a5b20c7448afc1fdefb1ab725.webp"
+  },
+  {
+   "nazwa": "nagrobek",
+   "glb": "386e376c2ca397ad53a1447326acbe51459b52da2063c072c643b416e78b146d.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p5_candelabra",
+   "glb": "3a3c0e859ce967b915b1409a30a9e73e762c266d2479d9e8dd1f0d0a06edff5b.glb",
+   "tekstura": "88af429b2cb328a8a7cfe63813d729b132b2bbddb8a2f55963818fb5b8c2256d.webp"
+  },
+  {
+   "nazwa": "glaz",
+   "glb": "3cb68cacf5ffaedd72fce29dbbca8db4e7ac096239e46b549c9668db387046bf.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p1_shop_sign",
+   "glb": "3d77cffdf0cbb68dbbb7b9c9760afe2c853e4a3c9f7296acac7e9685197bfbe0.glb",
+   "tekstura": "9ba1410e517970075bb7e6f76e34a4b2a4abf6811ba067db1f8bc428e02fef2d.webp"
+  },
+  {
+   "nazwa": "lawa",
+   "glb": "3d8789aacb7c2b12f598045767b50cec55348362af0b566cb23395e2b790d164.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_kosz",
+   "glb": "3dc719945e6fbf5bbf106b926b76679f25780e0ab167b56063a694cf7dbadf94.glb",
+   "tekstura": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp"
+  },
+  {
+   "nazwa": "p8_latarnia_slup",
+   "glb": "3e5a67ce89b9364e88015c52c6fb6b791663c226b0141c82521ae5a3453e524b.glb",
+   "tekstura": "8710017a88fd39aaed90f85c28b09f22e40acec68692b812da58510f89ce5539.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_3e7f4e7c",
+   "glb": "3e7f4e7cdac751ef411a38e78ff35c97b41c73b7984f1b7ab648f188a9d9e2fb.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "r9_meble_03_wozek",
+   "glb": "3f693bf26c69be10ab315fffddae1d2e2d7b9b2ec69cb90c0637ad40c6d93592.glb",
+   "tekstura": "131edfc2fb1e430104ffe03f9be2c73e5a2d78b3a7c0b833e019223004a5e979.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_403e287f",
+   "glb": "403e287f3b11b844ac08621d2f846d99af6e3e207074dce0c2d9fc373090bc3c.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_worek_beczka",
+   "glb": "410acbe92cc5569ab9f68811e832336c63afb4d3bc1277c5ca3c77b35bfe3016.glb",
+   "tekstura": "cdd3c577b7c252a8937edb66420af588dd352df8155958184d4be41804072725.webp"
+  },
+  {
+   "nazwa": "p4_cz_bones",
+   "glb": "417d919bac3e76f45b2a0e1f5db19b947cc7ed9d80f369ee6a28fa47ea606f92.glb",
+   "tekstura": "ee028c70b74c87b87f3d5bcc3baa58be33525f9c9ec958052da355fdfc609f8e.webp"
+  },
+  {
+   "nazwa": "p4_birch",
+   "glb": "41f0eb46bbeace2f48771537201f564b5fb8299a5b236f401204d3c91b1a9b24.glb",
+   "tekstura": "b3a2743a60c882b296d476cfa1aba9c43f1dd3b9c4da808088641e60e94485e4.webp"
+  },
+  {
+   "nazwa": "p2_mine_cart",
+   "glb": "4292886626a9e221f9c6c3e467653a20d2a330901363bd1125bffbd59e26249a.glb",
+   "tekstura": "13581fcbf55844d0643b81a39c765456ddc518918f81eb3ebc5df13c9442e792.webp"
+  },
+  {
+   "nazwa": "p3_sarcophagus",
+   "glb": "429ce1ba53bf187581ad685432c9f3f66f0e2aa4948637cb3b27a0aa8199c003.glb",
+   "tekstura": "5397c7e2dedc22296fa4230d61de7a4aaf81d6ab904146d745026e1966ab3e0c.webp"
+  },
+  {
+   "nazwa": "p8_buda",
+   "glb": "4325e1df4a2c259adc94a709eea8fddb2fddd78b2aba06af7005b01d22bab63e.glb",
+   "tekstura": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp"
+  },
+  {
+   "nazwa": "p8_lawa",
+   "glb": "45ef91323c02e13a3f61830811f1d342615fd4988b9acb9c61760c24616ae272.glb",
+   "tekstura": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp"
+  },
+  {
+   "nazwa": "p5_armour",
+   "glb": "4abcac61c3539653ea54ea82f260490c9f73360fb4aef58a1bd0a3bc9ea792bf.glb",
+   "tekstura": "d01cbd32958c578aecea1c3f12e96377e74a3241fbc9b3b1f61fbfe4f5e61500.webp"
+  },
+  {
+   "nazwa": "p8_krzeslo",
+   "glb": "4bd18b25342429e9a750ed402bf6f508bff0d2dc298b436a13c7d7bab0ae55ce.glb",
+   "tekstura": "cdd3c577b7c252a8937edb66420af588dd352df8155958184d4be41804072725.webp"
+  },
+  {
+   "nazwa": "p3_dead_tree",
+   "glb": "4d0a79bdc4ca05b11b130fa036c44f0981ee49ca5c049c3f219ba05226c8e6b4.glb",
+   "tekstura": "1436713560ee8d19bfb55c85752c4e60862d955149f12c0ae171275e4aa66a69.webp"
+  },
+  {
+   "nazwa": "r7_kolumna_03_filar",
+   "glb": "4e10f5bbe4e5dfd50a45c4af52567b86297dc4f9089c2859e0eeed6301b9f2fe.glb",
+   "tekstura": "f58c8a3ef618c36769bb2d2181b89cf34e570954450b0fa9c96c7b6f0b73d11c.webp"
+  },
+  {
+   "nazwa": "p8_ambona",
+   "glb": "4ff92ad3d35c10cd1484d8f0695a96d5db93d9bdf1a533e71050b0862d93feee.glb",
+   "tekstura": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp"
+  },
+  {
+   "nazwa": "p5_statue_b",
+   "glb": "50c314624a3de8dd9c271c7d0b7a468a508f6c19c5bf96610ea4a92e67e0b193.glb",
+   "tekstura": "916d9a78b9f8c984cb9f4f11363cf936c7a8c66030ffb6abf8ab718432d4ef77.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_526424d8",
+   "glb": "526424d8d345ce305d042303ecf8a24571997b2a6d68fb1186b6aeff47b5c41c.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "r9_naczynia_03_beczulka",
+   "glb": "534600b0e8c279540f8f745ae99ed78822a7dbdd5b2ad654737871672c2119ac.glb",
+   "tekstura": "07b313f7ae3cadbac9d32fa0783eab245111e76b0400538cc8ee8d5146fb51ad.webp"
+  },
+  {
+   "nazwa": "r7_ognisko_03_stos",
+   "glb": "56b5e27a011c327988c1854a8677ab3c58239f0cdae39171b134a955196b5cc0.glb",
+   "tekstura": "d201657e5d8eaab76e1fe9df748554718e32b5d941e3bf39ee20c6796e31df0d.webp"
+  },
+  {
+   "nazwa": "p1_wheel",
+   "glb": "581b37a3442b2abc63b80ace2e1d897886ddc1656a94b7fe04c6b4b78863e0f7.glb",
+   "tekstura": "b089b905136d86db82cec88bcfa1b267498d28ec9b9ee34c58655c5679a92e9c.webp"
+  },
+  {
+   "nazwa": "p8_schody_kosci",
+   "glb": "583e864314e2761aeba472fa2a02daefe9dfd25cc13c7a48460804e28956a6c1.glb",
+   "tekstura": "836ba191f898a47f74f59be6c8f07f1ebef78830e583f917de6fda73fcd1ef3f.webp"
+  },
+  {
+   "nazwa": "r8_meble_01_krzeslo",
+   "glb": "58d1fae741bcd6f852907e91d862ff5de18d4245d693e500806706d29fdb756b.glb",
+   "tekstura": "4f3ee001596f7962ae6ecdeb7a6f9d0e54ca4b82482e5bbe65413bd5ef7f8e4e.webp"
+  },
+  {
+   "nazwa": "p3_barrel",
+   "glb": "59b62fca635dc3a7f77c2c24245e1dc478baa9f7155848c32ebb4c36274e2a0e.glb",
+   "tekstura": "09c7b6ea233413df795360fc9771ce8d9a9ba10b6e102a68c9a64d4925db4c38.webp"
+  },
+  {
+   "nazwa": "p8_zejscie_krypty",
+   "glb": "5b718b76d77de1bb3885f1a656b5669681f82797eaaec4773679754ddb291d45.glb",
+   "tekstura": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp"
+  },
+  {
+   "nazwa": "skrzynia",
+   "glb": "5c777017ca36b728084d7d67f26c0886910b9a0cb1dd4458eb004f51dde0354e.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p4_cz_beehive",
+   "glb": "5e61f72ae6db1327e84a07d6905f205ecbbdb806f60e0444931edbd3c3eed766.glb",
+   "tekstura": "a44fdc5bcd7f9a9bc670031a9fed3b96f2eefd59a09d212ca8d6b01ba303a774.webp"
+  },
+  {
+   "nazwa": "p1_well",
+   "glb": "5ea1e383f87c902d002f2e91ce6ea4472f5b7707b9305a9e7ece5387fcf87709.glb",
+   "tekstura": "dc3d6cd857b2f2b3c564e55979bef12803cbd4064bdef6317ec8ec7bdea2cbc3.webp"
+  },
+  {
+   "nazwa": "p1_burnt_hay",
+   "glb": "5ec363da5df40a8ced1bd949a78c20846762160a4eb3beaf7a867954c5158206.glb",
+   "tekstura": "efdc9f58a65d1a0436500a0394290f937c502d09af812d571b6d553b49a95638.webp"
+  },
+  {
+   "nazwa": "p2_king_statue",
+   "glb": "60df8f8d9756dc1675357dc5119a69b0197e8ae7f8a0aa6dd8bbd80e111871ee.glb",
+   "tekstura": "afdb39d4c9c6e04b7131384dc18d77094ea1a012725b85e3f4611315b0a14e82.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_60e99035",
+   "glb": "60e9903526e6a09d39b978bab1da65a14cfeea56f64f6d12a72cafa386b6bba9.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "krzyz",
+   "glb": "6282357a705b2de0cec4bd2d827e607060276786d01dfdc7518df8121f0979ed.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p1_gallows",
+   "glb": "62f69a6d51520d8f354fbfedd59128e9534a493440ca2b1aa0018387f2a79aa7.glb",
+   "tekstura": "a3daea85d08f6638ed0e4ec06affae6d42f26b7544e6b832d1cacfb460710aa2.webp"
+  },
+  {
+   "nazwa": "p8_beczka_smoly",
+   "glb": "6453a0b6934681574e64ebb5f4520cfe7f144c8dacae69dbd7edb18c6d4f9759.glb",
+   "tekstura": "b22ddff28fff1bba72969e080141c210b7e50f6b74d307013c4cca594f55c3fe.webp"
+  },
+  {
+   "nazwa": "drewno",
+   "glb": "64d715a6a73520da33b3ffeb683e620406f444122867ea745a0a34188d552ba1.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p4_tall_pine",
+   "glb": "657e82f46188828cfd82f6061f07c3c4ea076c126223daf75b4d5c0377b8d7ee.glb",
+   "tekstura": "2311e68e3567935c0461d9e3eeeecdbb485d135b55f7d64f0b22018d30ab7232.webp"
+  },
+  {
+   "nazwa": "r8_ksiegi_03_zwoj",
+   "glb": "65e97dff691ad0076bd30185aca2d983f0c56e2b997ee7e3d7ab668688d48899.glb",
+   "tekstura": "f0ec8b5059fbd60caaf057d6d75b5ac420bdcdf722512a69cba095ee231f0045.webp"
+  },
+  {
+   "nazwa": "p8_beczki_lina",
+   "glb": "66cc02fb20ea8221ee82cb7ab61062368933dc2d79c59cca90e343cbba286236.glb",
+   "tekstura": "8710017a88fd39aaed90f85c28b09f22e40acec68692b812da58510f89ce5539.webp"
+  },
+  {
+   "nazwa": "p8_ruina_chaty",
+   "glb": "6754d7abaaa4634eea5f907262acafdf41ca08d8f91ef432f5cb56b5608d26ff.glb",
+   "tekstura": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp"
+  },
+  {
+   "nazwa": "p3_offering_bowl",
+   "glb": "69baf00e615a0342a7b7051e73bc649f707a89662aa15a8f11bab700c23055f0.glb",
+   "tekstura": "9fd5924db46903ad4d831320408396d0a01104138f57acc5de62e8921acc726b.webp"
+  },
+  {
+   "nazwa": "r7_kolumna_02_zlamana",
+   "glb": "6ec6c5119cfc0d4bcb2f0846899061d47706acc0b323579cc7816af235588dec.glb",
+   "tekstura": "ff7141ae229e7d886fa8436a721cac8056a3a112e3dc79180eb8b912786c3960.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_71873960",
+   "glb": "71873960e44e0e7c1123893f68de63c0c4662deb08ca630c48ae85b5b1fa094b.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p4_cz_wagon",
+   "glb": "71a2d2b4b78910600507d729697c8427ba9c2f1ebce94a0aa3ec2835e7271be8.glb",
+   "tekstura": "6edd5d7e57e0ab9b642b12d8c0b01218bc66ad001aaa5521af96094ee4d29741.webp"
+  },
+  {
+   "nazwa": "p8_plot_zlamany",
+   "glb": "7329e9fcae4c14821d3c07ab32da04f852b747bce0444c49345668e14cfa5649.glb",
+   "tekstura": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp"
+  },
+  {
+   "nazwa": "p8_kufer",
+   "glb": "75cf798d6960d76cae5562125d5be110426f6aa43f755533cfddfdff3edb8e9b.glb",
+   "tekstura": "b22ddff28fff1bba72969e080141c210b7e50f6b74d307013c4cca594f55c3fe.webp"
+  },
+  {
+   "nazwa": "p8_oltarz_roze",
+   "glb": "76811c2e419fb0bfdf7c6206395f57638150209e6869ba48d6fdcbc3fe082630.glb",
+   "tekstura": "274d6de296b0cc8ad4e3ea284322fdb437017073d3df86d656f6ff5d28705b8e.webp"
+  },
+  {
+   "nazwa": "misa",
+   "glb": "76eb154ce9f03249f23ec0123eb905b04e628f5e2d778d6d857352b4e189925a.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "namiot",
+   "glb": "789d91fd0158f5f5522a95d4319909615208d2e2ff51cb4b09de378fc3d8d9ad.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "sarkofag2",
+   "glb": "7a1fd59e30f1d188ba58473f0cdb3d4dd5dc2a459a587d4d9c54eb28b965945d.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_kruk_czaszka",
+   "glb": "7b24e5b87e9f06a030cce5a5de7a7a2cb10cab5cb13b9f5254a6902d0179fec5.glb",
+   "tekstura": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp"
+  },
+  {
+   "nazwa": "r9_natura_02_pien",
+   "glb": "7c79014921fb0f65c9f1371b1e7ca2e7496bc2d6e7c5bb7dd3e9c0a8d2768aa2.glb",
+   "tekstura": "7d87cb0226c9a385ef175378229d051098eac423fc288887acb83c684e0d3000.webp"
+  },
+  {
+   "nazwa": "p5_statue_a",
+   "glb": "7ebf0ff89a83267abe3f885f2ddf54830f86d3f633401482c659203890d1d79b.glb",
+   "tekstura": "c8033e45b27ca1451c89add844a60a06e300b609d6d9d84b3fd94345de30b6c8.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_7eef8fc6",
+   "glb": "7eef8fc6260468a3e3bc6bf7614f580ca2813795c1e8529f00df7df7a2f123c4.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "r9_meble_04_lawa",
+   "glb": "81cc91208de3dc583d0894137b34ee14cd51ca756bede17523751e9c324f4f16.glb",
+   "tekstura": "44f8c84713249cc29ccd655a6e359d20e07871f104b5c6c1ef948d252ae9f48f.webp"
+  },
+  {
+   "nazwa": "p5_cage",
+   "glb": "823476322e64675ae72bc4994e7c95cb6e334b0d03bb73c27e525268c1f6eacc.glb",
+   "tekstura": "93b768cbfc08840e245db0799c921b3aa6efc766e01a7a16176b47ea611ffef2.webp"
+  },
+  {
+   "nazwa": "p8_slup_klodka",
+   "glb": "82c4c2e3675902092d32bfe9243fb5088153fdf68071ea95b80b189d0f71b52b.glb",
+   "tekstura": "f81f341ce1b6afca9d0a22cc1794ca9977ae2e153c16abedf843ac970a43b9c9.webp"
+  },
+  {
+   "nazwa": "r8_ksiegi_04_kalamarz",
+   "glb": "84ff64a382327ac1257c69b225e7534e6448b80690bec2b177e3e48fdb22626b.glb",
+   "tekstura": "1bb78786a5210ac2d7e296a7bd5f6dccfe44a7be974c31dce480dacd861839b6.webp"
+  },
+  {
+   "nazwa": "p8_kamien_runiczny",
+   "glb": "85d16fb85ec8cffb37863bd7aefa539776e7636945a4b6d4a73a39cbf299f6b5.glb",
+   "tekstura": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp"
+  },
+  {
+   "nazwa": "p2_rune_lantern",
+   "glb": "87e40dbdc16c6df6cd521ee0653c879223c70bc8d8d91bfd4a98f281fd5abb16.glb",
+   "tekstura": "8953cce1d3ea21378f294b3ac1410cae24b590af4ed708847e5da06a0d5a2f00.webp"
+  },
+  {
+   "nazwa": "p4_burial_mound",
+   "glb": "8bbecd0efbac27249639092d9c8462d610058a8a12f44d2c56054a8225ac678d.glb",
+   "tekstura": "f88e5f94dad662dc965d7f52248883ab83a5cdece5b783c843c50c4b8b0d789c.webp"
+  },
+  {
+   "nazwa": "p3_royal_banner",
+   "glb": "8caa7617e81985d2863148019469801ce30bfb32d5f89e5da02c00e203bd59c0.glb",
+   "tekstura": "a412609bff43ff84fbe708d495f173a3dfcf583cb97dc969b9ad0a01057e0c50.webp"
+  },
+  {
+   "nazwa": "pien",
+   "glb": "8e5f9297f89c8dd2cb0b59b6d3caa9e209a8ce36c582fbef0c0471545102c94f.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "sarkofag3",
+   "glb": "8f13a8553f74fa9fbf2467410a92b83b44de9fb45273ffb060c5e02b69f5178f.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p4_dead_oak",
+   "glb": "93ced40c847376dd68095b8a3c68de7815e7e09332175ebf53ff765d3158fb73.glb",
+   "tekstura": "a2764645880ea286d94b5aa4989be2a9a08ea71d66f1b1c7dea077452a8606a4.webp"
+  },
+  {
+   "nazwa": "p3_plague_cart",
+   "glb": "94253e9573a551394426e9e6ecddde032e17db1f7c3618cc43709c8bf721a078.glb",
+   "tekstura": "526c8f6920c7f025f83afdb3d2ab371b0a20a70cddb55f5f542737213701356c.webp"
+  },
+  {
+   "nazwa": "p5_desk",
+   "glb": "944fbeafc25097393ac18bf4dff81ea627e3a0b4837356fcfa1d9ed852271540.glb",
+   "tekstura": "5917f1cc534658726caa5fed5d4ade71a93d0eeeb68c2b29c45758a9c58e332c.webp"
+  },
+  {
+   "nazwa": "p8_brama_krasnoludzka",
+   "glb": "95ab56927430efd5009e1a2e7903c278d6df003ed372b4e809bf89d05c9b2446.glb",
+   "tekstura": "8710017a88fd39aaed90f85c28b09f22e40acec68692b812da58510f89ce5539.webp"
+  },
+  {
+   "nazwa": "p3_gallows",
+   "glb": "964c22c97b044020c97a5c6c7c32d61d8355a162e68aefc3efd30891d61c6968.glb",
+   "tekstura": "884003527fa90c69c4420b1cd6017f2ca7b3d9b52e8574ac3e562077ef177b66.webp"
+  },
+  {
+   "nazwa": "r8_naczynia_01_kielich",
+   "glb": "97b4bf9ef71092a28e96683b4e3fbadd32b46eae66843e686e85428888e86b72.glb",
+   "tekstura": "2cfa3ac91508d169d2d22196739969e0e2e118288ff1c266bc5d4e1b307917a2.webp"
+  },
+  {
+   "nazwa": "p1_barrel",
+   "glb": "97fb75a8881a339304583244c0bd49e14926df213171e8cc202bc4fb7e082c3f.glb",
+   "tekstura": "7dee01e6df434f9608899521e15d4c1fefd8a02dcd65b51eccce499e77e99ba9.webp"
+  },
+  {
+   "nazwa": "p2_pickaxe_rack",
+   "glb": "98fc30b5158173955e7057df8e5a82a083e6948d60ec922fdd823d317f2563ca.glb",
+   "tekstura": "d4c16210f9e3a7d611338928df0c0cc6e71d2f7a44ded8e8720ba73dfba8a4f4.webp"
+  },
+  {
+   "nazwa": "p5_bookcase_b",
+   "glb": "99b27e591f7912b6968017f3305c934956069fbe8de065aa72da27f76b23d831.glb",
+   "tekstura": "97ef832c2559e3ad3583fc1c84c7f8c7e6fec4aeb21ab515ce59062fae3c6f59.webp"
+  },
+  {
+   "nazwa": "p8_pal_czaszki",
+   "glb": "9a352a535f00e6e63e3517015a17c2dc2ea7f45e73951bb0cc94658aaa9070de.glb",
+   "tekstura": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp"
+  },
+  {
+   "nazwa": "p8_grzyby_zolte",
+   "glb": "9bcd8851afb29fe0a87e14dc26c50cd20f65b8826ee27fd886cda9f01e132188.glb",
+   "tekstura": "6c957f7238ab7f66a595a91f8ed2fb114c9ee960b5bfb065a652237c78ac804e.webp"
+  },
+  {
+   "nazwa": "beczka",
+   "glb": "9c2b288a2f3e2836e6dfe2464e2e129fd8930da48f3515b3fffce329f628bf27.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p3_queen_fountain",
+   "glb": "9c3cbeb8a3640f96bd6843e73228fd17063dc580400aa67c19868c6f13fa1db2.glb",
+   "tekstura": "472aa18b91cc9fc02e0d49ffb81868c27714606bdf25174046bb3fd358fae71d.webp"
+  },
+  {
+   "nazwa": "p8_stol_ksiegi",
+   "glb": "9ce034659e90da8db895ea651b5606515d99cfc74d067985bf39aff3c34c21ca.glb",
+   "tekstura": "f81f341ce1b6afca9d0a22cc1794ca9977ae2e153c16abedf843ac970a43b9c9.webp"
+  },
+  {
+   "nazwa": "p1_tombstone",
+   "glb": "9d604e8d236504674f8b9319aa795913740467c8c07bf446a16e3919fb751a98.glb",
+   "tekstura": "e302232b71c518e68e165664103a5fa18aa122ef2cb886d0abd9f9bbe1355679.webp"
+  },
+  {
+   "nazwa": "p5_bookcase_a",
+   "glb": "9febd7d21703e4a9dadb98b9f36b9aad704fcf8b330b661de53bc76331eee35f.glb",
+   "tekstura": "bca744456a41bfbcfe74548adc6335a4d09cb8ee0c99c99cf1715f2b6644df2f.webp"
+  },
+  {
+   "nazwa": "p2_chains",
+   "glb": "a01cd413c16986866064ec258d8ca985c4385e3f740ec484bca718cab58a8081.glb",
+   "tekstura": "24b3c6ea8822753970863e01461c8ff1854f4ec378bc8c6ebd0e7b318f30d553.webp"
+  },
+  {
+   "nazwa": "p3_wheel",
+   "glb": "a15b4c1fba9fd208df53a6c609199f2cd53fb8e2d042a2350e6d6f1bc3155233.glb",
+   "tekstura": "b06dcaa7ebdeee117dca6825fdcba3a23349c666d022d10560d5811f2d808a99.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_a20322a2",
+   "glb": "a20322a2bcb6092fcff29946dee2ff245a56713b6300f753ac7ed30d44ae729d.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p4_dead_spruce",
+   "glb": "a4ad15da7754bf5bf0db052d621c5e8a9af3510249b0c4d77418b67f437e1bcd.glb",
+   "tekstura": "1c9f477f245e4af1a1f5b8653729fd962110603b1effc1439a12339fcd6b6c4b.webp"
+  },
+  {
+   "nazwa": "p4_mossy_boulder",
+   "glb": "a59c5899a20cc4d4e6b5a71230c6cfaa18590359774b77de08a7c62935c96747.glb",
+   "tekstura": "c12743ad51f7ee30af5f6c6aa0fd12dab4d063d87b52fdc16a61170ecf626b40.webp"
+  },
+  {
+   "nazwa": "p2_anvil",
+   "glb": "a62b161c3f712f3d1a3a7c2f51cdcc2dd41a145337dfafa6d7035ff327dea7e5.glb",
+   "tekstura": "73d15578aa3097b93622f9e1012ded2f99f867b70940c2719589a19eaffc2e4d.webp"
+  },
+  {
+   "nazwa": "p8_grzyby_czarne",
+   "glb": "a77e861733275dddbe190ad8f6ad063a647a20338d703683843e06db338f6003.glb",
+   "tekstura": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp"
+  },
+  {
+   "nazwa": "p8_ksiegi",
+   "glb": "a81ee6d2871d4603d208286580b408141225fdf1a8bfdf8f859d612617677677.glb",
+   "tekstura": "0a2dea0358f680978839f722f939ce2dffe792b3a6869e5b9533b6e76ca4fe61.webp"
+  },
+  {
+   "nazwa": "p1_covered_corpses",
+   "glb": "abee30f52826a1d652ad9a0da0c86679a3fd1c9df82a8821703279144e800d03.glb",
+   "tekstura": "fad8b5823e2bba321f1c6ba2ad271d52d5205e8fc41fcf15c141e01400011041.webp"
+  },
+  {
+   "nazwa": "p8_kapliczka_swiece",
+   "glb": "acac6ca8e3a47b16e525688c3f53b73543444990402eb8671130834cc081330f.glb",
+   "tekstura": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp"
+  },
+  {
+   "nazwa": "p3_street_lantern",
+   "glb": "ad711376a10734b1054c5254dc756c36a2c3980c7a8ef13eb3bebec28c18b5d5.glb",
+   "tekstura": "bc51a45ca2052d3382fd29467247bd87d9a8391b61aa5eb5b081c5a44d91c05f.webp"
+  },
+  {
+   "nazwa": "p5_rack",
+   "glb": "afaa91ebf95b0790e9ad78e95df78ade66550d17738cae5d8a68f3cbd40d26b7.glb",
+   "tekstura": "e46dfbd65208f379174d3c41f0e8aff837f1cbcde864e96b183908f142ec4645.webp"
+  },
+  {
+   "nazwa": "r9_meble_02_taboret",
+   "glb": "aff98a3a77751e7ccf905a941e9a58c3641233061faee2791258d9054e35af09.glb",
+   "tekstura": "a93bb1e9d38303e8a35d4a021d4bde5e992c4f963a3dad8e50d8b5ba2062d5b4.webp"
+  },
+  {
+   "nazwa": "p8_kaplica_fasada",
+   "glb": "b18de0784fb3732fd0f4fa5e5f96ef8764764ad283a699f1864a9bccffb30749.glb",
+   "tekstura": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp"
+  },
+  {
+   "nazwa": "r9_natura_01_menhir",
+   "glb": "b3ec72a82b56a9bdfa613355075558ab87bf62d1d0b86403ff02f625e731ed03.glb",
+   "tekstura": "0f031820532a45eb2a2b3244d859e6a2966b7a11c8462e8831d3606cbeebacf2.webp"
+  },
+  {
+   "nazwa": "p2_clan_banner",
+   "glb": "b4c244c4557d58c53fd43d5a866699af07155c7d3f8707ef5c0e3af58ed58b29.glb",
+   "tekstura": "41bb6ecbb62f5f9e93eb8b6e52de3be21e0339fc8067ea893f5ad520b0d71ab8.webp"
+  },
+  {
+   "nazwa": "p1_grave_cross",
+   "glb": "b4dbfcf1a61b1125bfff237553a97481014fa7d52d8499697cf20c604e718a8a.glb",
+   "tekstura": "7fb304ce2d1f2e5446e370fe085ddc9b67a4c4ed5aaa0cb99e7f3b85eccd3599.webp"
+  },
+  {
+   "nazwa": "r9_ksiegi_01_zamknieta",
+   "glb": "b511dd8095f4477d745a530c36af5fc914c0d25396e11081c9ff3c7dbcf7034d.glb",
+   "tekstura": "b2857630450ae23a1df67cfba709a4992c93bc62b61682e943651e2617da474f.webp"
+  },
+  {
+   "nazwa": "p8_czaszki",
+   "glb": "b69767721ad78f3d8c19f584fe82151938bfa51e976fb87e38e61deab945cdfc.glb",
+   "tekstura": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp"
+  },
+  {
+   "nazwa": "p3_chains",
+   "glb": "b6b2cabbb96051ddd712e81a4cee40330a85ee565e42b71ebab46ae493348161.glb",
+   "tekstura": "02a7ac259d752bfd0bd5e3920c37fd62003ebd47ee4ffae6d586daebcd7d2b86.webp"
+  },
+  {
+   "nazwa": "r7_ognisko_02_kosz",
+   "glb": "b81b0efa2caa681cbc6419f8f9d46ffde734aa22cfe5de6d1153090c621b1c0e.glb",
+   "tekstura": "6ef25f9d872bfa6ca0cbb3ba4edcd0b201cf895f6fbb3d6ddc73125bc05fc179.webp"
+  },
+  {
+   "nazwa": "studnia",
+   "glb": "b8b1849daf3675db429c598019be29d6a6579a8377b7ec1a763832dee5429c37.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p1_dead_horse",
+   "glb": "ba8beaa24d691dbe37ba1a58bf6aa2102a2ecf48a01344602543efeafc835fa9.glb",
+   "tekstura": "7c8b6783ccdda6117d0eac7b430973fa031e15ca6b36a54d2994dcb4bc517570.webp"
+  },
+  {
+   "nazwa": "p8_korzenie",
+   "glb": "bbe4b47b636cfc33ff3daec8c325a134705f464003a6f3e4b4ef54ca2fc8b4fc.glb",
+   "tekstura": "6c957f7238ab7f66a595a91f8ed2fb114c9ee960b5bfb065a652237c78ac804e.webp"
+  },
+  {
+   "nazwa": "r8_makabra_02_czaszka",
+   "glb": "bd57c455f8057055320765b896b94867de940873818b94db91c26f0f7084ee8f.glb",
+   "tekstura": "89dfda1eccf252d58da9abfb5f7eaee7046328c63329e3df8a5811f52b0e9eb6.webp"
+  },
+  {
+   "nazwa": "p8_dziupla_grzyby",
+   "glb": "bd8c7bed985796b98ac718410033aa99751a8f12aaa8cfbb495326dfcc108ff0.glb",
+   "tekstura": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_be8c911e",
+   "glb": "be8c911ecb025ea8da6ef723d47680629c1ab8df689b47fe17103acb1fde414a.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_kapliczka_krysztal",
+   "glb": "bf3207a265bf2dc56e469d0eb4fb3de3a304b511ef38e27321e5cae5c81dcd5b.glb",
+   "tekstura": "f81f341ce1b6afca9d0a22cc1794ca9977ae2e153c16abedf843ac970a43b9c9.webp"
+  },
+  {
+   "nazwa": "p8_kwiat_zloty",
+   "glb": "c0f0ca07e0c11210660b54c2f095f93f014a8a1d50da123752d7fa4803d5603b.glb",
+   "tekstura": "836ba191f898a47f74f59be6c8f07f1ebef78830e583f917de6fda73fcd1ef3f.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_c15e71fa",
+   "glb": "c15e71fa7b6ead0dade76919a3dd1514faf24a198830c84d343c92382a45128d.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p5_throne",
+   "glb": "c333edc23d27e9fe2da522945b546dfa1d46fc6c59e70d59150ef25fe46c97b7.glb",
+   "tekstura": "bcc342a51df7930cb8f8a586176c07fa40176ac91fcab0b72d1ba250a300be44.webp"
+  },
+  {
+   "nazwa": "ul",
+   "glb": "c40c8201a0698d7495a80fd087edb12d31d057927dde4a668294fa2b9d78fc99.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "bez_nazwy_c7fea7ac",
+   "glb": "c7fea7ac188d382e7715175ca524334d0503de723276649c614e222fc7a10ccd.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p8_taboret",
+   "glb": "c8ea4af2f7d14888d5c904b24c5b96b924fb021d0aa022b2da33ce85022372b9.glb",
+   "tekstura": "0a2dea0358f680978839f722f939ce2dffe792b3a6869e5b9533b6e76ca4fe61.webp"
+  },
+  {
+   "nazwa": "r8_natura_03_jezyny",
+   "glb": "c9134717c30c81d42960e2e25434239421f57bd9ce6c6094d116dcb907342080.glb",
+   "tekstura": "3d7b5e4c7b17660fb67663cdd7b6b1d3251be4ecb46854cbd94e8f35dc2d29ae.webp"
+  },
+  {
+   "nazwa": "p4_cz_pelts",
+   "glb": "cc04003cf1dc39cee926f64d6f06a3b78f02784f05d6f4871b80e0fdbcca532a.glb",
+   "tekstura": "fa0150c8a828efed5a69e19da47763906d6a058d16eeb0442ab021e49be6cec6.webp"
+  },
+  {
+   "nazwa": "p8_rama_kajdany",
+   "glb": "cf94b7cc0ba1904c6d877f34371cf86602f3fc865f51d3e723b8e33d2b1930dc.glb",
+   "tekstura": "8710017a88fd39aaed90f85c28b09f22e40acec68692b812da58510f89ce5539.webp"
+  },
+  {
+   "nazwa": "p2_sarcophagus",
+   "glb": "d102bd2d832bb30a62a331c598ee079b37607dd49f2e560b2dc4ec9a03f72c31.glb",
+   "tekstura": "f13ac7b3571a0c4074a166af838b80e45d91a5bcf9e6028c084f6afb130f2f9b.webp"
+  },
+  {
+   "nazwa": "p8_kareta",
+   "glb": "d1b8f094ff2b66220d96b64814649143ae8707f44522edca0194cdae5e235342.glb",
+   "tekstura": "274d6de296b0cc8ad4e3ea284322fdb437017073d3df86d656f6ff5d28705b8e.webp"
+  },
+  {
+   "nazwa": "p8_brama_krolewska",
+   "glb": "d1e02ebd5d9d25c02340e9175e9b3d487ff4e06da31b68eac27a2e1992200fdc.glb",
+   "tekstura": "836ba191f898a47f74f59be6c8f07f1ebef78830e583f917de6fda73fcd1ef3f.webp"
+  },
+  {
+   "nazwa": "p1_order_banner",
+   "glb": "d49be01ebf435aefdf7bc5001afd2665635a2f76374538889d33f5d25e0370c1.glb",
+   "tekstura": "6bae8a48743c0b665b0d98d317ee7626a37ef760bd6e640c8a9c22b1d22dc72d.webp"
+  },
+  {
+   "nazwa": "p4_cz_wheel",
+   "glb": "d4a4126d25a28cad83dc637107997e83c448ca35f8070d088444765fff9e38f4.glb",
+   "tekstura": "d579396b07c7dee16541d72063afa575de09677614dd6b063a764b11c18e8249.webp"
+  },
+  {
+   "nazwa": "p8_kosz_dzbany",
+   "glb": "d4acd2aff3c1316f2226b8d1277c079dabee3de32dcd9709b8c656d53965f220.glb",
+   "tekstura": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp"
+  },
+  {
+   "nazwa": "p8_piec_kuzni",
+   "glb": "d4ed6bfdf05425292e34b9121f9fb8d71aafc4874643601a3810db568d082b22.glb",
+   "tekstura": "f81f341ce1b6afca9d0a22cc1794ca9977ae2e153c16abedf843ac970a43b9c9.webp"
+  },
+  {
+   "nazwa": "p4_wolf_skull_bush",
+   "glb": "d586721774ff3fd131184a6603e7af22cfb88d0993db56963afb6bd01b586b7a.glb",
+   "tekstura": "a623cf4fc471573ef774b23cb83f78e74d1c77a8b95333d91653de0753b7cdc3.webp"
+  },
+  {
+   "nazwa": "r8_makabra_03_pal",
+   "glb": "d7172291c7abd41ea22266c7cd34fd964a478860035d319527f1a35c3a219ccd.glb",
+   "tekstura": "eb66ce56e0e97281cf58f71f5f5f23a48c820b2f8e294352d3e626af978ec56a.webp"
+  },
+  {
+   "nazwa": "p8_ofiara_chleb",
+   "glb": "d73912e8cc28f51c8880d0dce6a9e961cf857102d5b5e025c2a047174cd874d8.glb",
+   "tekstura": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp"
+  },
+  {
+   "nazwa": "p8_stos",
+   "glb": "d898a48a8cad74c4c61475b69443751d40cb3e673c94e1d7ee7d998d72fffd17.glb",
+   "tekstura": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp"
+  },
+  {
+   "nazwa": "p8_grzyby_niebieskie",
+   "glb": "db18bed18b1b188b3c59c752d38e00429cb5a5f0af04098083c5c6d10a74f82a.glb",
+   "tekstura": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp"
+  },
+  {
+   "nazwa": "r7_ognisko_01_kamienne",
+   "glb": "dbc613f8765c4d0cae492cfe484544b9fc568899aea3ac4bd53b93ee7424d678.glb",
+   "tekstura": "ef044c941dd04e965c90ffc10bc04d2042a5142bcd04a981a8860cd02d60e822.webp"
+  },
+  {
+   "nazwa": "p8_kielich",
+   "glb": "dd1a85d142349fdbf6174ec08e9e06aaedb372f16e2c7dddf6a51374406dfbc5.glb",
+   "tekstura": "cdd3c577b7c252a8937edb66420af588dd352df8155958184d4be41804072725.webp"
+  },
+  {
+   "nazwa": "p4_hanging_tree",
+   "glb": "dd57a0849f3e214ca7e1f6cd1cfd7359376cdad92cd4dc4605546f82215442c0.glb",
+   "tekstura": "274b6d33d371f81d6876daa554317a74865af04ec76ae37788f55591f2ef68d3.webp"
+  },
+  {
+   "nazwa": "r8_skarby_01_sakiewka",
+   "glb": "de27754de7b17322d181393fecaea603c300005e662c4568a94f5747222bc1c5.glb",
+   "tekstura": "61d0ea4aee1efa1366e69c08cb2739cb0665b3b33cd8867007a845ea4406c783.webp"
+  },
+  {
+   "nazwa": "p8_dzwon",
+   "glb": "e17578f598b3be697bbb022b5232d75511ff79c0b4f74bcb886805ea707c5c6d.glb",
+   "tekstura": "274d6de296b0cc8ad4e3ea284322fdb437017073d3df86d656f6ff5d28705b8e.webp"
+  },
+  {
+   "nazwa": "p5_bench_b",
+   "glb": "e720eb9e82e0ef352d6aa308b696b2a6aca1d1369aa6971a07eba1029c6a4a1b.glb",
+   "tekstura": "e184c38fc875c0e3b5ebc0025e57929f5a0b6aa1e824fa6b4e60f652d79c433f.webp"
+  },
+  {
+   "nazwa": "p3_beggar_bodies",
+   "glb": "e781f9c695514de5248c2c5c4741babcd738fe771e64b4abdbedfb19bf8d3fa1.glb",
+   "tekstura": "602e81a0a3747095fe3b0123185eeacf61b45cf1b45fab3317bf012f0642c445.webp"
+  },
+  {
+   "nazwa": "p8_drewutnia",
+   "glb": "e86b330c7a5c9c0e7df3ec4702506d98e857f29f90ede94fc63a5d329b715bf2.glb",
+   "tekstura": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp"
+  },
+  {
+   "nazwa": "p2_fallen_pillar",
+   "glb": "e87d638dd3b099f8b46a06376642fcf44e13a87bb86b18b509a68cd707371a89.glb",
+   "tekstura": "0ebbcd276279f9222d74797245e02be5ee20b1665fec076879ad899cda8d2091.webp"
+  },
+  {
+   "nazwa": "p8_kapliczka_lesna",
+   "glb": "e98d085b470cd286e2c868e60be13de89bd09668a4b4c1d2dd7bd77cdf330f3b.glb",
+   "tekstura": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp"
+  },
+  {
+   "nazwa": "p4_spruce",
+   "glb": "ea855bba4595c93e60e15460601901467fae2350282a855593da6fa1e084966d.glb",
+   "tekstura": "1116e7b980554d3fc1462c02a582def25e5ca23491c5216884bf7763af3c3897.webp"
+  },
+  {
+   "nazwa": "p5_scale",
+   "glb": "eaab15a50c9bc686ca939e21847a2b80c3a3ccb2ca828acfbfa56317554920e6.glb",
+   "tekstura": "bbeb9971700bbd37617c3543bb8d78782ea86d7ff09c59978be1b1433599a6ce.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_ee1c862d",
+   "glb": "ee1c862d20786dad5b52f5853fe892b902d0bb8e2957d2a647c50a54588456fd.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "r8_skarby_02_zloto",
+   "glb": "ee9cc9b615edae4009aa6975ef21c5a42e350ba354782812df798424cacbe78a.glb",
+   "tekstura": "d9a20fed8f53eb396e01c84c349e1a41a508213693342ca6d7759c0cd29db02a.webp"
+  },
+  {
+   "nazwa": "p8_kajdany",
+   "glb": "eeab05d656db6d11c0ff206971e812f1db9d1da334c218344d6499164134ceef.glb",
+   "tekstura": "cdd3c577b7c252a8937edb66420af588dd352df8155958184d4be41804072725.webp"
+  },
+  {
+   "nazwa": "p8_skora_kosci",
+   "glb": "ef2142cc24091575df457743bea9d20ae54e831f1029bef0da9913a2a96481e7.glb",
+   "tekstura": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp"
+  },
+  {
+   "nazwa": "bez_nazwy_efe91076",
+   "glb": "efe91076a2ea17a971410a35bbaec2c95080ebfbb493d699efdcbb17d61cc059.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p3_gibbet",
+   "glb": "f0c0898fdfd02a6b86ccb9cc0163f6541fa7498925954b20da770a5fff800e9f.glb",
+   "tekstura": "137a962ce48a4de653e25ca3243c89b9e168ea38cd170957e9bbe922756a21d1.webp"
+  },
+  {
+   "nazwa": "p4_sacred_oak",
+   "glb": "f3a68122da0b8cc01e024938075bf6ce052bb5d0d596de27e4ac83ef78a54540.glb",
+   "tekstura": "a3183b7ade661b239755a73ee7828bb9df02ccb5ff81902842c9214a1bf2739f.webp"
+  },
+  {
+   "nazwa": "p5_lectern",
+   "glb": "f55337eaef053563e5ad85271ec69d7b92306a401f1a04f5b2d02d2aea4e233a.glb",
+   "tekstura": "c641122513e1e1fd1734ec1d57bb180febe36f5b95bdba3ad4970bb93ae627b8.webp"
+  },
+  {
+   "nazwa": "kowadlo",
+   "glb": "f575e38ba9da1ecf5a91117de65ed77d147854b8c36738e3004b385ebc67fe09.glb",
+   "tekstura": null
+  },
+  {
+   "nazwa": "p3_saint_king",
+   "glb": "f5c570c84a8bd30ccb7f45a77de1ee49800c06ec314379701b240400290649e1.glb",
+   "tekstura": "ce24f14111f2a1939dc7b165e79abc106b828adc6694a0ef67463f9bf886135c.webp"
+  },
+  {
+   "nazwa": "p8_lodz_zatopiona",
+   "glb": "f605487c739a9cde5f4bd5fd3799f622a9422fd9f53833dcaed8571923ffff43.glb",
+   "tekstura": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp"
+  },
+  {
+   "nazwa": "p8_plot_czaszki",
+   "glb": "f6f36466d57b345c602f4432912e71204660ef033fcb1c5552a40987814b5ab0.glb",
+   "tekstura": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp"
+  },
+  {
+   "nazwa": "p1_stocks",
+   "glb": "fa22b6737791fdb75b9c109bfbab548fc598899031fe7a6603b97ffb80994e06.glb",
+   "tekstura": "4fc16cba6e4414b468f8df997f67795d1be066fe8356d0b0ad936743056a7099.webp"
+  },
+  {
+   "nazwa": "r8_makabra_01_kajdany",
+   "glb": "fa52542904621ff0e9080d77f527adc6ff3b67daf6af683d69102751b978f173.glb",
+   "tekstura": "e3c64c9cff637acd951a76a677d981da72c10b4f98c0e8cb0a4bacf4fadedc91.webp"
+  },
+  {
+   "nazwa": "p8_loze_tortur",
+   "glb": "fbe8a18adfbfcb1790365d2748d59563d1ed47b40f2ef28dcf2ea62c8e0216a3.glb",
+   "tekstura": "b22ddff28fff1bba72969e080141c210b7e50f6b74d307013c4cca594f55c3fe.webp"
+  },
+  {
+   "nazwa": "p8_grzyby_blade",
+   "glb": "fe03dbc5db491c2aac417f26d31f9db8913c2a2425472c13e0ae6e7b0349c056.glb",
+   "tekstura": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp"
+  },
+  {
+   "nazwa": "pot3d",
+   "glb": "fe14fda9fd4ab25a29252b1fe7279c715eeb3c216e6b3820ffcffb40f37b8170.glb",
+   "tekstura": "ef2f9c37861f6a672cf0eacc48c5bd66dc44751618f2974e845d64d4d660766b.webp"
+  }
+ ],
+ "tekstury": [
+  {
+   "nazwa": "wl_kuznia",
+   "plik": "02ac6bad134a842ae0c5e2c13ebfdd2bb7b25749ce865efe6f705345e1f5e98e.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "zl_walls",
+   "plik": "0451005044bca9299cbd84c029b61e360e861363763b88f61801468ab42f45d0.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_archiwum",
+   "plik": "0a4c828a9a8a4335b61c393e9b39be99b707b0e521bb8aa35829c5c24852ca8a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "water_shallow",
+   "plik": "0a9c8d6effb4333775e526c9880b40b87ceade8faeb30c297fa318ae5c7c3bbc.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_mud",
+   "plik": "0d670d079813d2aa8dcd63582124af319fe5d54da82b2aefce6491927175ede2.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "rf_lupek",
+   "plik": "0d7aef0a7721f56171b1135cd8208807af680c94d36ddb41009666061ace61c8.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cy_props",
+   "plik": "10cd0969dcd22afafd0af800d69cc5057002648ea80cca0362e3f411a1b299ad.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_skarbiec",
+   "plik": "1137e7e11a4e2b76131b04f222666de9766a8d39ddf5f48e36b2711d3872251d.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "zl_ground",
+   "plik": "123aee85494a200a6a806bcf1c64fcd85b95f10861aba7d273a060dd7cc0bb32.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_deski",
+   "plik": "128c08a55828210e58b651ea27d5f6ad2da2701d75ec7846f699d52cae16b319.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "rf_goldm",
+   "plik": "155905e8a429d3533a21bddf8e3078804698551de8436481989e7b2e996a739b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_lava",
+   "plik": "162ce6708e9fe44fb06b4c00b42080cf428f49fcb3ccd121f3bb62777437ddb9.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_pieczec",
+   "plik": "170cd05584d5545261a4b25f99caed3947eab61b200bb13f2d9a7a83dc6e4bea.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_mud",
+   "plik": "1d6401e33794ecc7ad47603637bd66400e67b3589939e636bb6aba7fa36ad9ca.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_ash",
+   "plik": "1fa4f8b222b3bf3fcf962df503cf0af5a311141ace162dac29e502dfa3421187.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_cap",
+   "plik": "217624f528f9ef2ad3d35480d650023b6c284f28bc0895fa1030ad685ce35590.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_ground",
+   "plik": "2bfa39ad8223ed685d24391e6bc88b91fc40bb1c0518881ddd3bdb3f651a7a7b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "zl_props",
+   "plik": "2cc862d4c2d812afd70fb5c954f20e973edcec5e7ef535817ae790bbe0cde62f.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "wl_wieza",
+   "plik": "2e2d01f105bbe7f0a48a1fc5d3fb9cb3aa665f224b73116532112797184cfd72.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_c5_wew",
+   "plik": "2e878fe802ddc919b06239febbf25696f2d6b225d8d345b8fb4b1c70ae8a1e64.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt2",
+   "plik": "306e8fcf61c811a1e339bc1d5f75b6425229836d186edbd3bef77388d89664c6.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_leaves",
+   "plik": "326121aa341243cebe25304f4f4197b01cb2b5d3811545e179e7fb4f89770ed4.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_street",
+   "plik": "35711ed803bca66fdd017c5c7e41601910c83f8df8141aebeffc3dec3ab13b6b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_dziedziniec",
+   "plik": "36dcaafdaeb0aee2d6c32586cb2aa975c3edeb01b0dd0e43437782005abb7982.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_walls",
+   "plik": "39ff02666ba5dfd7e21f98bde000286b80776979ed5b98a00fb6b65e6266eba6.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_abyss",
+   "plik": "3b592ba04ab4cc2c3488f3f254bc8231652cc30d6fd02ac8c36a411de55e360d.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_loch",
+   "plik": "413708ebc75f99bc1c8f9d983a2ff305b85d8daa7c3823383e0179e6c36e1cc7.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt3",
+   "plik": "41f1551f14d8a65cae6c00a5b47014742773444844b0c1131aac6682fbab0aa8.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_dywan",
+   "plik": "47faeec3cdf56d3396f2d2a65d12cd5dcda713e5579c9f000cb5626f8cfedcef.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cy_npc",
+   "plik": "4c4f0f4cf4e7a2c9322bab2b0c9ea22fc77ae565199504811fb23d459d5c63a1.webp",
+   "px": [
+    768,
+    576
+   ]
+  },
+  {
+   "nazwa": "cc0_ash",
+   "plik": "5118a73dc051461831a7ec6849e8252ffe8dbb59550ab487cd54743ea9bab01e.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "ROOF_PNG",
+   "plik": "517905a0e4feadfa5ba42b536be2720a1d736e68e81eba922eedcc53d16acee0.png",
+   "px": [
+    512,
+    512
+   ]
+  },
+  {
+   "nazwa": "wl_plank",
+   "plik": "54eaf490d84b6429c57690e5d36f776cc11dab2d3a4bd047f3ed3be640c2a350.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_place",
+   "plik": "5a2a739d1c3f3faa3bc93a16e9392538abe93466a18b3c7e8e508613c112c0ec.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_water",
+   "plik": "5bfa98d364da5ca96edef0470a3876ef9fb8fa5f2e868d4d4a32389351216453.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cy_ground",
+   "plik": "5fcd4070bb982c3068bc8cd6a1e475cac2eb37d80e6d89d4175baebba841bffa.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_fort",
+   "plik": "649a58494c11d4a3fdd99bedc951626dedffd47c1a78f16ad90220d80f720bf1.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_cracks",
+   "plik": "65539f806640d93b275f593e69ad4b88d3943e12b35afa36f068b4cbcdad37f3.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "wl_chata",
+   "plik": "65e1e8f4c87bf2d7bc5e0ad2eed519f9c0bc2a6472c550ea817147029a71fb0b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_palecap",
+   "plik": "65e37e13cc2714ceb1af3ef586a609ec69437e2fd483d7e1d0683ddce14d7091.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_atrament",
+   "plik": "6a8473e2df4b378604a87f965c084be32db0cb6990788ad4309e78f9ed30672e.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_moss1",
+   "plik": "6cb24a922d14441022cdaa4a74db9ef7432802a40a6338cc663c0c86be1decfa.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "br_ground",
+   "plik": "70446b605d1ca67d1c882c0188925dfdbefc712ee208d6795bcac12e98c3daab.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_win",
+   "plik": "725e05b39e385d38623eb9a9e4ac82cb5d8ee8758aa7dc58dcb02e36b731ca8a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt3",
+   "plik": "727e1104e3cc10a78070062925f6da05117271d6590660fada9213a8d0c019cf.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_place",
+   "plik": "78dde58f8b08993a9086a12ad6f853a19a1dd6fae2d199980eb8a1f0525ff3ee.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_cracks",
+   "plik": "799b642a39103d6960f6d84461c82f8cee04f1622cc1cecb5545bac67199379f.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_moss",
+   "plik": "79d5287bee825a92d039136439c9977c9227b120b4f1da223dabc7b09ba52748.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_darkrock",
+   "plik": "7e8245c95fd1b58b1ccc5658c9d460437e207c9815ff9aded681340c2911ce2a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "dm_floor",
+   "plik": "7f241260668a99868eb81883882d0f2b53d56654811aadc163c9d43fe276638b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_ground1",
+   "plik": "8124b27356cef654875e6caefa8f4adabd8bb9145f54bf2ee5ece9fdc0efb387.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_urwisko",
+   "plik": "8429dec2d2fb00c2a783dfb9a8c7c312eb37ae115540197155f0d12b6b445889.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_obozpal",
+   "plik": "87d392f7ef864a0e545b466fb800c70da65b7aa4a7770be48080b1185f600e38.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_dolina",
+   "plik": "88f97ce4a055d3204f5a3b2b3e5cd9a68153b1d8bc02607415fa82b3cede0725.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_halacap",
+   "plik": "8941116ffb43a8c04a6916e93df0f96297f54ef93a57464ff211c257220c7c56.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "ford_stones",
+   "plik": "8c3e29f48e524cbc57d051543e7a38fde634e6aff349dd7eb7ab9a0cabef220a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "zl_en_b",
+   "plik": "8e1ea62799714ca93fbf0611a3646ec14aa822519a0c5308bde431b379211f4e.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "wl_c5_mur",
+   "plik": "99ba7118244ae7415672ab2a6c04387a985502be55bf1c6212949b0e7c79d5e3.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_charcoal",
+   "plik": "9a3a981e012c1389ca8cc99da2e7ce7207d4a358eeda4941ab20951e1e18277f.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cz_npc",
+   "plik": "9bb369ec97f1c8ff5bc0b2aa3f5d68ecc3a542cc69be165c98af735562d448a5.webp",
+   "px": [
+    768,
+    768
+   ]
+  },
+  {
+   "nazwa": "cc0_c5_marmur",
+   "plik": "9e564b479c14414889bdba1c16f2761b3ff40c958c057b779a0e69362142db1f.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "dm_walls",
+   "plik": "a3c670d9733971208f12caa7f0102aa69bc2dc3f77a60b1ce245c5984b45065a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_ground1",
+   "plik": "a4270839a1096193c3ce3dc8fb2d986220cdf7abf973d87bd313716c0048589c.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cy_big",
+   "plik": "a511e28f0c0c4f7a967aa84c42cfa6fdce5d3f4609d752efc33680a3a3e6254f.webp",
+   "px": [
+    768,
+    1344
+   ]
+  },
+  {
+   "nazwa": "wl_town",
+   "plik": "a7bb09456182190964163ec3b9baeb4cab122061c591ac529b02b012fe44c3c3.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_forestmoss",
+   "plik": "af61fa84c04b16c222106029c6d52d3b6cc6db64239a660ce551d5ab8f723abf.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "wl_kolumna",
+   "plik": "b80057ea6ab2e8aa2f21108b7f8dd9df8b0538de74aa9373ce2b80556624be45.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_charcoal",
+   "plik": "b827b1de19d268d2df093ca826193ea74d3a877027f6f2011e54155b3461cc36.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cy_walls",
+   "plik": "c22d71b88fca2229489530e96b968019b8e23643e21ee5a9f92f185c228e03f4.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_props",
+   "plik": "c2cf7b6a352849ae6cada346e3f6bfc6749a3ed09ec2e8a89fa93373dacb24a6.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "br_walls",
+   "plik": "c813061af29217f02c4a8e0b7d32cbbcfc4261571ea9f886d169390e4f4e5366.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_ground2",
+   "plik": "c82e6e215e6388da0597c82a80b8270fa5567cb1b201e6b60a23c76d76cd1081.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "wl_palisada",
+   "plik": "cd65b105a4040b7160005b21ca2e4889a4a5cbd01e93036f2c1051cc0b4f29ce.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "rf_gold",
+   "plik": "cebf5308ba3147889cad0186a28c364776a02ed304ed96af8ec88304029cc58e.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_hala",
+   "plik": "d8aacffc4c3b5a37acbaf309ba18482fde15836e3cdffd7480bd6de6762e4f8f.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_leaves",
+   "plik": "dbe23053f7263ba5cb3b9b1b2f22476a512ff16ce2960905122fec27df878fa1.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_street",
+   "plik": "dc2682873abe84e63272b66f641d3b37ba42c168157be5432eb8439ca6b9aba3.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt2",
+   "plik": "dd2d70982b4c2d5986cbb867c409b10ca169ff5c6c1e3ccecb3c9e0c7f012261.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_darkrock",
+   "plik": "dd6c90379c1bfbd65a18dd4bc7558abf6d07d1a503cc61935054883aab9ea034.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "dm_props",
+   "plik": "ea024e61859dc727ffcb29282aca5fe3fbb29595740fcc43d2eeb78de9ff80aa.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "cc0_forestmoss",
+   "plik": "eb9d3a352c1aeb2d72ff933c118e34d16a40bff53a01cf27102d40e05587259f.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_deski",
+   "plik": "ecbf7d5c9384850e5fae44e69f7df58746b0c32e8ffb446694cea47d4171923f.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_moss1",
+   "plik": "eea3ac29fefc677a880c1c65b78304c5ab556246a94024c5bd945ccee057d12e.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cz_trees",
+   "plik": "efb64297db9f03c6138fb6e98b69e7dd1189a62a1faf6a4e9507e90f2e2d7715.webp",
+   "px": [
+    1024,
+    1536
+   ]
+  },
+  {
+   "nazwa": "cc0_ground2",
+   "plik": "f344e941d82b4221ab4749c1d5788570f6ac9a68e2095bef5c4e285734a4e28d.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_lasu",
+   "plik": "f8b4cd2fa620d2bc2af721eeeb6f06b6f26fb117a680b1feeca0c43938491f94.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_blackrock",
+   "plik": "fa68ce09d94814fc9f1210db166712cf89ba57f999352bc3a63f082d1a4b784c.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "br_props",
+   "plik": "facc54b81f796f8bd1c0ce3b5c29c15f332cdd0c7310e72e1769b988e1660acb.webp",
+   "px": [
+    768,
+    1152
+   ]
+  },
+  {
+   "nazwa": "cc0_blackrock",
+   "plik": "fb23a69adaa892cb9451032962743ff2041c6458b744ce9e989d6ed2c1a3fd75.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_kopalnia",
+   "plik": "fdc7e2fc7f671f7b536fc25d6b40f3c6ca4275d19c70e0457891a6d6f033feb3.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_zl_moss",
+   "plik": "fe7538557374cd93e15752591c2e8b7f35c94bcb7418252a8e8ca6b8baea8fc9.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  }
+ ],
+ "rekwizyty_2d": [
+  {
+   "nazwa": "POT_PNG",
+   "plik": "00a19433f6e4d7a9436e350b567cabcf808435eba909266bde9f749922afbb93.png",
+   "px": [
+    360,
+    357
+   ]
+  },
+  {
+   "nazwa": "p3_rot_bloom_1",
+   "plik": "06e2479ddf8be39af29a4902f3eb78f4bedaf387c24762fc86c2f98460db51f4.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_dead_oak",
+   "plik": "097fcd9c8ccea626162d256159dc85865f186804d1dda60a5e87b0c1bdc6c49a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_gallows",
+   "plik": "0d1d9064c0d7febf7476bec7a349c7e5bc6071a9b42850b48f8d69b574a10f1a.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_spruce",
+   "plik": "0d3a5a168d7d351aba7c0a07244722a6937806de149be592d5d6240dab343846.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_pyre_3",
+   "plik": "0dd45eab3e17c787ff3cc029b169a7a180333bebd8f92a6074fe010c10469921.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd10",
+   "plik": "102047925cf4c8dab64305479b204827dc09aa26873b001512d1b2df32bc3369.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_dead_tree",
+   "plik": "1114fafa616ece57758b0d5c5defdf1b89734c288bfb92234a766df81363c844.webp",
+   "px": [
+    384,
+    768
+   ]
+  },
+  {
+   "nazwa": "p2_dwarf_bones",
+   "plik": "1153967953793f376dd8de1bfbf5bf2e60dc0780df396e1241055ad4ff5bd737.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_dead_horse",
+   "plik": "1244d5b1b912becc0806ff222c2ffc1c47f55235bbc6d6cf15c9a7f5462113ee.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_queen_fountain",
+   "plik": "13d60b9386db0f7d910a5498d7e75516a9f411bf6782dfd701354af12115eb3d.webp",
+   "px": [
+    512,
+    256
+   ]
+  },
+  {
+   "nazwa": "p2_clan_banner",
+   "plik": "15b3ea8b6eaeaa90785db3f0f245b2c3f692a58c684c7080b5cc180546923246.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_pickaxe_rack",
+   "plik": "170fcc6ecfbf12246190c404414fc4ef012fdf33e5538ad263adb960b29b90a1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_goblet",
+   "plik": "1fd170d3c75cea605fecd24bc851f3b5836e8b041a483c0332b3cd0c41886561.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_king_statue",
+   "plik": "204047f96e76dca519ead9197764a476bf85db3216131d39a97b0ec4afa005f3.webp",
+   "px": [
+    384,
+    768
+   ]
+  },
+  {
+   "nazwa": "p4_cz_wagon",
+   "plik": "20e6044064863505c07a8e2e606cf475aa4e9f4c18b6a308762681af9065a14b.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_marga_cart",
+   "plik": "21ef036d687216a3f26eebf5f7d88ed7876cf4824e80bbe683c288a6b1ee89fe.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_walk",
+   "plik": "2226435b4ecd85058dee2c0134bfd4b444ee2b398ec14fa5570271824d3937fc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_chapel_stairs",
+   "plik": "2374b2485b535df81693c9fb9fe7d47d8cd894f1193ff4f21d872d831d59d89f.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_chest",
+   "plik": "25303cad4ed8db1e8e9d22c38daf9274e2d95b4d02dfaa3555699d2f350a8329.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_mossy_boulder",
+   "plik": "25d654437274d0bc294e28f129e9df4282ee9aa61f39b94a7f329ce5ee4744c5.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_chains",
+   "plik": "28ba5af98be0968c12c2b4ad67e1601e2d890db0063770e525c3a7bed8f68642.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_desk",
+   "plik": "2947b99d21e2205557f92dd66739ea449266a5cb12e61da6b79439fa323df58d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_swordbooks",
+   "plik": "2aaca31f40ca270f95557680906df3db496a8f69a0c8f1b875711f759beea09a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_pelts",
+   "plik": "2cd6a300d646f61affccf3a5413aa77a4288dd62dc8ac581a47376ec1cf00aa5.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_hanging_tree",
+   "plik": "2d4855a27fae7ec31f80e5cf4590af718c2a54740c712531f8879ef6108533bd.webp",
+   "px": [
+    384,
+    768
+   ]
+  },
+  {
+   "nazwa": "p3_pyre_1",
+   "plik": "2d4c2a660bf23348fa4c2846007145d468c60613320eb23f266a7caf2da6b64f.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_tall_pine",
+   "plik": "2d501ca4d7e2164c902f648ec6b79c0725c2a098ca10113358445c45c165f725.webp",
+   "px": [
+    384,
+    768
+   ]
+  },
+  {
+   "nazwa": "p5_statue_a",
+   "plik": "2e9e54df9792cb3c52991dd76a731ee0c322d3b9b38a7d8d6cf70d46813d0b30.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_order_banner",
+   "plik": "2f6b09a2e9f12381ec80a274ca26452d310994278b1b4a457d9f867f5674666a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp5",
+   "plik": "2fa384370b8e6017e818e3ae29870c36df9fbee54fd6110084a20e957c73c0b9.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_chains",
+   "plik": "303897b7fc3a44765a6a746813c922e4922f61192f439d88d5bf6d05bafb374e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_inkwell",
+   "plik": "31560cbd2644b61bc7263dca5142d5a796263c50a5f5d4d8333d54ad3495a92f.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_standing_stone_dark",
+   "plik": "3196dd2e684aac062f31e45983f13bc07b909f616ab38e803c6b4f60b4941909.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_tombstone",
+   "plik": "3224efe60188342967bc874e85f22349beb17c70b2925bab5dacc919b8aa4dec.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_roof_burnt",
+   "plik": "358cda3f6532df778c24c3944390cca73d8cd8bf6df4b5575561224d2db5e97b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p4_cz_beehive",
+   "plik": "35a592a09d3e40f0eddd849a958ef3ae72eaeef87b4eea1610732f1d5ddf022e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_shrine",
+   "plik": "370dd35364cf30e5a3022c724529f7140fb70de9f29b6518db2d2bf160201d67.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_doorway_bones",
+   "plik": "3c97c74df3b93843fdd72ba3b70159699988e411e8ee0e49ab51a6ed416e67d1.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_cz_shrine_burnt",
+   "plik": "3fcc5e656f964f46967d239e88e2b74ed370a0e06e0fa3203814a5bccc2ed0dd.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp8",
+   "plik": "400d216538de277d79b6e6500bf77568d240a0bb994bdfd1e0ed5e2891232958.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_mushrooms",
+   "plik": "412c2ae5acb39125a630c3203b340501f900c3b385f8ce4c3951becdf6bd997c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd5",
+   "plik": "41378c6a189f34d03325a681391c1b5440220daa965d9afc8649eb4029045465.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_burial_mound",
+   "plik": "413d31bc2289bd22aaa3c7f3a90c83bab184a2b54cd7733e276c0c0e1202c21f.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_brazier_1",
+   "plik": "414958e5387c95e1b0b5d56c9413fd1b8d62e59901a1f0e514567ef53dabc141.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_wall_top",
+   "plik": "41fd2100a0a33bb191855bd2edfdacc73e93d4cc26f010601cf044452f2676eb.webp",
+   "px": [
+    512,
+    512
+   ]
+  },
+  {
+   "nazwa": "p2_fallen_pillar",
+   "plik": "44f3a6f02f548e4db53d64509e626e428a32ebd8b3764ac9d8ef1b8debb330b1.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_broken_bell",
+   "plik": "44f71a568b1ce1bee3dbbbb48921d87f7b9775827d071a53a956982b44fdf5b0.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "TOTEM_PNG",
+   "plik": "450093d43cdcfb4c4a8de3632fbc10d27f8e33d2580e5ff871e7b1b3d69c5430.png",
+   "px": [
+    305,
+    720
+   ]
+  },
+  {
+   "nazwa": "p4_drowned_cart",
+   "plik": "453978bf95d84230ab82018a199d4cba23e13cd3fd755b12b5f73755bf7481e4.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_chains_0",
+   "plik": "47af2b50dea7c415c67a09db8678cf9a39a6b8acd0b95141e83eac5e20daad8d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_armour",
+   "plik": "4ab0a65c917f83ff91e1929109beba0d6ccdf91bfdab9422c2d16d9df77e608d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_chair",
+   "plik": "4c1c568c2840913a3df0dd2b03a4ba195dfc27acd8103f7a9112fd3e92ccf069.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_roof_lead",
+   "plik": "4cb6ccae79c90986d1ecd641a38db8931ee63abfa6ec81b95063643f12841d3e.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p4_cz_bones",
+   "plik": "4dfdd0ee43ebf8930825d175046ca7a21ffa6f7001707b7374d722f46cb929ef.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_impaled_head",
+   "plik": "50a6fc943befaa5a6e147da32d353677f5ac758eb9f7a11e54e9909bb9284b25.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_vault",
+   "plik": "50c5cb9016ebf1005ab89bd8f0923393fbb20560c61e7f43d81deb7b8611d6d5.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_noble_carriage",
+   "plik": "51d0d62e0059c69fc2f0701df27969dd88b4717420e6a57980e676c6f07b9974.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_2",
+   "plik": "529df6aeaa57ba15190bb67aa37834c555efac96b9fa16c83731ea1b236f2412.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_skullpole",
+   "plik": "532fba59ada34ae6d9cdace1d1ac154d0efbe41b7389813edbcc916eaa6ef6cc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_depleted_shrine",
+   "plik": "579f507402024f0adecef0af442be5c46996f743447b18d5106b4142715a6300.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_pillar_b",
+   "plik": "59f3de07a7d3cf311d59c07f21b900752880b216f20b5541b56e6ca89e9dcf5c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_order_bonfire",
+   "plik": "5ae427ea0583879e3eaccc7ca67d9d2edc9b94eb8c45af12fff130228069f6c0.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_purse",
+   "plik": "5b700f900661518044c8a3c6cab98496de09f8ed2f41d7a3b59e754821954009.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_dead_spruce",
+   "plik": "5c3811ef91e05e56c65e6452539b4747d1fcf0f530d9c3e6762c3e5786bfbc19.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_3",
+   "plik": "5d35e03b5c5b49a5204ab240c2c351a31232156610b9dcf785d036f02ce3a281.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd0",
+   "plik": "5e8f514e2138bb74d25560a678c8b8cf3e7a6ce6f7e63f32c5395a0972cff52a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_sacpole",
+   "plik": "5faf931c3d53fa00bc08f0e591aa790f17c7b4827ed1a38db29b758ce41c7c76.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_inkbarrel",
+   "plik": "6018541b1323a4c3b291440463bbccdf39f0527d2bf614a6fbed2c703d435879.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sacred_oak",
+   "plik": "604b353efdf00878813a6316a1c29d083201f8fce27aab0c2ca7a8e7c8ece298.webp",
+   "px": [
+    768,
+    768
+   ]
+  },
+  {
+   "nazwa": "p3_sarcophagus",
+   "plik": "62e6fea21129553d79c528c4b7af8a83d4f6a1cd28eb497ea866b5e088b6cef5.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p0_np_thistle",
+   "plik": "62faa65333cb2542d8e9b78f0284f1eec873a6dc408c421ccadb862b444dcd84.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_shop_sign",
+   "plik": "634cac3f906064bc52e3208802e612f1259a44b7d3ca4bf3420b7e3c7072a683.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd1",
+   "plik": "638aba937b24fec60b049ef5978fa8188db401d118f058a9e65863d53550304a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_brambles",
+   "plik": "694d2de91732469d8911f8929bcd388a45c67c1d1a888518e5dae365ce5cabec.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_plague_cart",
+   "plik": "69c5773fb68501299509978715875465feb39c06b354d913965db25ae41e291a.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_goldheap",
+   "plik": "6a63fbce28942e18da3ae2509ba5487f7725d86a4da12f5611490526cd283961.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_gallows",
+   "plik": "6af820ae25b26fc19533458b275a63cee95b3686d82bf5fed24d7a027196b31d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_0",
+   "plik": "6bde59476b9f5e41dec1d7fe3dacc09ebd4408dbc73749903a7333f38d3a6e06.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_healing_shrine",
+   "plik": "6d8fde4b7784e86367ca0911a34f681f6947905139a328d64c8aa411f3104def.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_healing_shrine",
+   "plik": "6f1fa30ebc957db3a59cf1321ab2a15a17a58af80613fd5d9b40243e93be6641.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p3_gallows",
+   "plik": "6fc33cef4b06ce886e360bfb24058042e9e7c591c2a55046dbff83dd5536e5a9.webp",
+   "px": [
+    512,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_scroll",
+   "plik": "70e6d85bc4d9e8969970e5c1159efd0dfedc6219af8f2544578f97923a9d0b99.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_brazier_2",
+   "plik": "718af64dcbff0a3bd12c8ca8c91d4cc15a9cf338241ee1ee1667daec2965260e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_bellows",
+   "plik": "74ae1d0d38870ca4d44524c3c4a27eca3ba48b920ef309ecc4359e15437cf21d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_brazier_0",
+   "plik": "74d80eec2f9b5ea2474e9569f459c9a232ca8af22fde762099579963f338c008.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_shackles",
+   "plik": "750cf185d4f57be6daffbf51304a56e1ca49bbec5a2169409c41675885453fe2.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_raven_0",
+   "plik": "783ca37883a480f262881ed03ebc2c44045685d4060e8793582ae28a3507cc85.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_offering_bowl",
+   "plik": "78b5ec135505ff668892e20fbf886b339a8f71914268897fead942dc2e6c068b.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p0_np_grass",
+   "plik": "78c18507a4593fe529e11c53f1326b40a7a224ca92e3eaf65f83d2e1736952e4.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_depleted_shrine",
+   "plik": "7a916b9a035e14019657b7b6d930510898078c237d976da6f937c1bae06ab191.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_1",
+   "plik": "7a9e23e715f1fc52953cec345f93adfc6f2e02d7375c7a85d6945c31652dcdca.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd4",
+   "plik": "7bf2bc91985ba9ff6d70fbc7bae4c38a428524dcc2a66d6671d46678d0fd4368.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd11",
+   "plik": "7c70dd026daea4c245318d6e9165022169177f52c58474ddfa46220466098e43.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_gallows",
+   "plik": "7cd9808bcbf329dd248bd845e6ff8c50742c580c554b3d59fef90c229d1065db.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_fallen_log",
+   "plik": "7eb453c7e8b745eebdbcbbbe1071d95f21d6d0b3d01c65c6c247e61e4ff5c69e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp7",
+   "plik": "7f250e557732e6d4360cae47312a060fe89e7e5d0049cdaa44bae4ef9af94c80.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_pyre_2",
+   "plik": "808e1ff8ae12701fb407ea29593e9e93cfd725e53561354dd77b0e7321ee1e44.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_wheel",
+   "plik": "81bac9bde6b399c6ceef276445d733edd9f0897a24b49af40da5597bbd11765b.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p2_furnace_1",
+   "plik": "87071127cd2f218fd3e6b6ea4e0d446e609ae87b0eed1ac120bb9b0e5ebd0711.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_royal_banner",
+   "plik": "87eb30009954a1a956d6b05aaf1fdcfc325f00f98b1d43917d103de41aa9cb63.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_wd9",
+   "plik": "888e5e436088afcf9fbb462a83f9155204aae2ac45278072f90197b8854558cd.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_street_lantern",
+   "plik": "892d86ab9521f54c48a50ce460c199496341e6abefd9cbbb18a76a7ae4891d37.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_cz_firewood",
+   "plik": "8abb70213715f8c3b31a41e5b49b579645aef8bc8132731718f3903b716d46b4.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_scale",
+   "plik": "8defe8ff75e52e6e5e2e06d03abc18902b1da15788088d93c0a0b38126c95cc5.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wolf_skull_bush",
+   "plik": "8e40b0b1140a0eba90c9a1b9af0796ce6ad936cb2ed2407a80055621a7368328.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_bookcase_a",
+   "plik": "8e7208da53df2e9ece11a4486746574422e67eaf15bed287366050f64720e490.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_ferns",
+   "plik": "911d114f57632bcf075271a2d4c08274a2c6cd65c147c18a3f4954edb4ffc1ce.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp6",
+   "plik": "91990ea217dae8a7ca7295b9eb21e84d0a8bb6f02ca7b336f40e9fa10e820448.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_seal",
+   "plik": "9445bd3b38604910228d1d4be1e593043093d190ef0c02b79c0665087b319c23.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_grave_cross",
+   "plik": "94c355d6f4cf55101354ca73e1af41154cef11d73098fe53265c536bbbf1b7b1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_covered_corpses",
+   "plik": "961454c0aa56e0c51f14dfd2c084522dbd589223686e81f9fffced5486898ea2.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_saint_king",
+   "plik": "9749d0a0a2c9158181d63447b82ca0cbbc6ce8995d796d0bbb97dc7fa68b44b0.webp",
+   "px": [
+    256,
+    512
+   ]
+  },
+  {
+   "nazwa": "p4_cz_tent",
+   "plik": "977209edf7d292cc2898184ee5bb971aad1b79f3b97f9d4e710e3174c7c1d8fc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_wheel",
+   "plik": "9d2c6f4fc04e246407a8dd8dba56bf8394b410328173dc97db81cda77aff32f4.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_mine_cart",
+   "plik": "9f14a06a6fe1ade9209c42ee4d2d9ce1c8d07b3712a1b34542d70a4cff1ac82a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_well",
+   "plik": "a576e0790e81e1e22f55e3dcce5132c15bdf247bc6a3820ed0872618a4a8f440.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_noble_door",
+   "plik": "a9eddaf12d4e7a5a58c20bfad87561d1b98307fef49bd6c33931c7a913c329ab.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p3_cathedral_gate",
+   "plik": "ac934fba37b2b6c5148ba4be2f81d23145fa8cea755097834ae050d27843a7cf.webp",
+   "px": [
+    512,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_lectern",
+   "plik": "b39804c7ef0a450de63108c8865d97a76ac4f40b44ab9d715efdb4096548267c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_3",
+   "plik": "b6ccf10cbbb75933684df7f9af51b8b2177b71cb9c8324282d19cbbca9eee7de.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_bookcase_b",
+   "plik": "b719bf4f96e6edd3783c1b9d8e7a4a0df9ad026a101acb79ce46e032d719738d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_furnace_0",
+   "plik": "b737c7560be7745e4db44fe530d16a84219e2b063600bec2554cd51de9dc90e8.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_0",
+   "plik": "b82634891964af2cd36365747f65a4f76fc2942c0784eedf8e94fbd5575a9054.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_beggar_bodies",
+   "plik": "b96c20a59be66361ffbf656328c0822e5bd03f4304ec3798e4847ce1b742199e.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p3_pyre_0",
+   "plik": "b9b5bc34205f66f0dac718f4b2a91dfdb21f5c5a82b98e0b4a94a50229ce81f6.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_birch",
+   "plik": "bd0683080a0760ab5b9296c39f8de8ab212047f77d70d339a408cdd0f4e74943.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p0_np_fern",
+   "plik": "be761f7573dffca10a0ef148be52b71d5331986ee77c2d378b94c643ebe67662.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_brazier_3",
+   "plik": "c2da2bd992a6ac4ed115c87306fabc8ccd63632d1dd22c1bdf5fae7b21aba050.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp2",
+   "plik": "c416486dd6090ef5c2a00d7893247efd37f46ef922a452938e98ee4f49fd5b04.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_barrel",
+   "plik": "c47b9169ecc8e4cf8b415063432e265705bd2726a18663fc3967cfef24ae0cc8.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_cage",
+   "plik": "c4b3d795c403aff51baee410e57120316f116b6d5a3868106d892bb9b5e2154e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_wheel",
+   "plik": "c6a569daac26c8a11e9b5dc0ee96ca76ae1c86601d813136455872028e8d389c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_rune_lantern",
+   "plik": "c702741f41405bc7032453c8c44bfdaf1f294b797da576609ffcbf3ebe252933.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp4",
+   "plik": "c750c70efe575f911691a4182093a76208ac1169dd09f5e567c521311e36c6d2.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_pages_0",
+   "plik": "c956dd788192e3ded3ff7f0f7a1cbf85776a15f62ef657457f1845aebe05b808.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_1",
+   "plik": "c962fd22337e9fd8c5bc5d48059e5dbc073e3f06c3f48c01f1e48c7495bd9797.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd7",
+   "plik": "cb82f91a120d4a37c74d91a4df7b7feb66126d9da5d29707fd0b68cc88052048.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd6",
+   "plik": "d0833d89d40351d40b30648c15cda70771c3bafef19cce0480d199f9889187c1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_roof_ridge",
+   "plik": "d0d2af8ef8a90519bf4dc6efbf9858432673cc71ec3d5479caf4fc3d630e6d49.webp",
+   "px": [
+    1024,
+    128
+   ]
+  },
+  {
+   "nazwa": "p5_chest_open",
+   "plik": "d1175cb9083259f6d21b87d108638cab6b09f04e334f12ffc0648c266baa64bb.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp1",
+   "plik": "d126d77f7fc2172c827fcddddf5743bf363f4c1d81829876b48eaba20932b633.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_black_powder",
+   "plik": "d418dc364c4c96368244ab93e09c73d9412948ba97ac587a24a6fb835c4113f8.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_pillar_a",
+   "plik": "d46b382161b0f1365bd015f0c3be928c81f01282f90b2aaeb8ab614dc0e38dbd.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd3",
+   "plik": "d598eb265dee4108a08e9539182f84accbfdbdb8c44c590a84ef7148807c7c84.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_roof_tile_gold",
+   "plik": "d6ac36ba15a23a8a419b31d87899b0f49dc47c5fe38ee3325f844e635d4962aa.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_3",
+   "plik": "d731902b8e9413a784ff0b85d9fb044ecfcf2912bb032158eae64620d40c7535.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_0",
+   "plik": "d7751fd77fb2a12f686c595c19dbd661bb3b718db74cd5491b02b5fc366b1c1b.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_ledgers",
+   "plik": "d810b2dd223b3a3d19625f5eb085458a41ae63bcbaeb47743152970d1716be77.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp11",
+   "plik": "d938e35accaa33510c6fc5e819a5dc04c79036b547b415b2fc674f5bd9125b80.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_1",
+   "plik": "db13bc7209ad7e5e7432ddbb59ff444035ed450e75ff08fe19c463eb3347b179.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_roof_shack",
+   "plik": "dce3205f6f0b13cc61f03fe22cf84c19970c1e57e99164ea0e030b6e1aad9eea.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p4_axe_stump",
+   "plik": "dd03cdf2fa3fadc1893b22eef851889e569127f2ffa539e7acf75a0d726e1847.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_rot_bloom_0",
+   "plik": "df0a9868ea5ff50273b3dc5f4e8f831f339958c523898f589b477da13d5eff30.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_statue_b",
+   "plik": "dfbe29d52fabd4e03a4bbdf6a1d7d3e249ec7077dbda48aba725d3a873ef17fb.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_sarcophagus",
+   "plik": "dffd24fcbfbd3e41c170be47620e36f3c4eba60fba862584aebc0f39b8f09614.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_barrel",
+   "plik": "e0baab3cabc366a8193cff2ccb3b3e83beceac4965c464afa3fd46b59f59ac2b.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_bench_a",
+   "plik": "e25ee783a059f3b5b593d08b094debc0e6d4b6ef09340f4992e980893d5d8e2a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_rack",
+   "plik": "e4ff08e99bc4afc285a65a3c7a8e670d7937e94dec7ea27eaccc6955c8f411db.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p2_anvil",
+   "plik": "e575ad0d425af43db6d4dc31765eb041610f7b517b112fbe5230c827e7a3aba8.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_dead_horse",
+   "plik": "e5785cf2703fc5ea2477f9fc632cfeecdfbc3efbb51687fdb8437493ff956eb5.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p0_np_tall",
+   "plik": "e596c6ff66efe97eba9e98a4e79239779d0e4232f209054a306ec8a966ce5176.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_book",
+   "plik": "e5ca89ef3b2aaf26adf614d0f46e1c61d0adb98367fc5a7b70c8551a45eb00cc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_2",
+   "plik": "e68e6699378be31c9c8ee30985434d623397468f5320ec570fd5a0bb13ecce94.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd8",
+   "plik": "e84e9c76dbbf0ace18d96a588f8a954639b621fc0bd375267784fd172f84698a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_shrine",
+   "plik": "e9ac76b468763eeb68dc86b037e30674427cdef156b36d7df28d9e657a50ff08.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_candelabra",
+   "plik": "eb594ec7b6d9045d5e89e8006a17e6d04ea57d83f8407b9f32c24aa439a3e31e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_standing_stone_lit",
+   "plik": "eb8b615bb2f41230f1c9f2616465cdb33133af39c0d79c06b82666c18f12df98.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp9",
+   "plik": "edc42d80f75f3e4df871f8f6e725774808676136be307fe97c1b19c5c1c7fb7c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_throne",
+   "plik": "ee2b5134707cbd3f2475d9e6b5759d19c3b7c48f9b86b1c733c6eb1696af87a0.webp",
+   "px": [
+    768,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_crow_post",
+   "plik": "ee56b414028a232ce5b52519a68fa8ac86b2086848e8dc3b67d09df312b9a97f.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_idol",
+   "plik": "ee571c1a69f8c4d4bf90ca0c18cb7301ed48b82810a129d013aee9a46e40fb37.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_keys",
+   "plik": "f029c155fa2f700ef61dec68283879fc83dd4384efd3f6b7e341c1dac3e03ec9.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp3",
+   "plik": "f1c347d3b882086b052a470b840df7443adfc14c6f4fa69518b99a2ee3c0fbba.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_crypt_stairs",
+   "plik": "f2d60a2031126425447f3d47911dabf2447687ca88acf15606ef1ecee228aac2.webp",
+   "px": [
+    768,
+    576
+   ]
+  },
+  {
+   "nazwa": "p5_skull",
+   "plik": "f3c175546d0447813983202a0575e2cc63499503e838894f7213915bbd3cec6e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_gibbet",
+   "plik": "f5dbcde27f25c366de710486f981e1f13bd77a17c2dd2dca468f8c621ed5ed51.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p5_well",
+   "plik": "f6407722e62281ff2cad8ed5a8213f5acf6e266636649ce024f58860dddf6043.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_dead_tree",
+   "plik": "f69ea9d29e7c3d172d6e5899f1d48354c694d43dd101dafccd55aa94530f0a6b.webp",
+   "px": [
+    256,
+    512
+   ]
+  },
+  {
+   "nazwa": "p4_sp0",
+   "plik": "f7298f6b4e6110c1a177f77f8df7191aa2e8ecd707e6b432ecce70a21c0924f8.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp10",
+   "plik": "f73417de70fa1bfaeb7f36c62f3fd258acb8ae087f763047119ff053216568d1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_2",
+   "plik": "f902cf7088dc6553933e14c5e9788de19407e21207b6122479fa6961ca0e891d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p5_cart",
+   "plik": "f949fd2e7c063fa008f531bc9626625d1397c8ab2be7812605a7bd2f50ae83c3.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_reeds",
+   "plik": "fad7918a697ecd9856490edd136ae68a39f8498a7f4a88a48f186e368bf10e2d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_stocks",
+   "plik": "fb983910423a4104ba9e541d699bed1e78f360b6915b899c84d2e0b823274901.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_burnt_hay",
+   "plik": "fc3e159b8f65b4061287c47010ec0a130aa9cc80a8516f1cc844a39d6f6cbee3.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_roof_tile",
+   "plik": "fd4842ab066772c34d5e36d40250aa91bab6530437a21e3f94817bc7af9ed4a9.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p4_wd2",
+   "plik": "ffe87b26810c4bbc0fa37f7a383438c64bd53778858cc70f5b8b00bdc44ddefd.webp",
+   "px": [
+    384,
+    384
+   ]
+  }
+ ],
+ "tla": [
+  {
+   "nazwa": "intro2_fallback",
+   "plik": "07bc7a81c94c65856ae47d33a09df56edb46035abaecb09494a160c9798a2f39.webp"
+  },
+  {
+   "nazwa": "rozdzial-5-mini",
+   "plik": "093f9cc0c12ee927c7ff90660548789679498d12210ee9bb914af09ff8e6f86a.webp"
+  },
+  {
+   "nazwa": "ENDING_IMG_FB",
+   "plik": "19293715d612c08bbbd10a6c2b5f5df16ea920c9a671bfea9c02de3095ea7631.webp"
+  },
+  {
+   "nazwa": "intro1_fallback",
+   "plik": "2aac081a109983be88f3ba0e086ed2bba7532152170f4bdfb48ec229440e35ec.webp"
+  },
+  {
+   "nazwa": "rozdzial-5",
+   "plik": "3555366d56740e7319410aefea27f475415cb5a66b4ad0f983c9f61b7cbdea90.webp"
+  },
+  {
+   "nazwa": "intro2",
+   "plik": "4a6ee44e8d3191b5cc561568e1c539fea1d7145356e5558f88ec0674a86ab5c5.webp"
+  },
+  {
+   "nazwa": "rozdzial-2-mini",
+   "plik": "51663086ee28e82464a8bcd5063739831060fb9259e02ff95e569b7f5843989f.webp"
+  },
+  {
+   "nazwa": "intro5_fallback",
+   "plik": "54861b52aef196929762389e7b8e4722d24a178662a04ea9d2751ff1f0e1f5e9.webp"
+  },
+  {
+   "nazwa": "rozdzial-1",
+   "plik": "6072f51fb47a85fabbb546d2075331cadb1ef26ca78964e886b19968c2efa905.webp"
+  },
+  {
+   "nazwa": "intro5",
+   "plik": "6a42833f3f376a3419046a73e64f0aad048c36d045d36e69029547e0c1393ec4.webp"
+  },
+  {
+   "nazwa": "ENDING_IMG",
+   "plik": "6c76dccff8453f9d37927a8954f524812879d4818c72bb268dbad7c3dfedf367.avif"
+  },
+  {
+   "nazwa": "?",
+   "plik": "7a06226b13595ae657baf802e50d3a3216056b366b61e3e4cf4db5b2e5142872.webp"
+  },
+  {
+   "nazwa": "rozdzial-2",
+   "plik": "86bc461e80b31085102a7fde887ee5f04701490d86b23b9466cbe9cee674ccd7.webp"
+  },
+  {
+   "nazwa": "chmury",
+   "plik": "8b4dc4093fbac8f92d1a5f85eb5c252f5e9644632ed60ca874e422223141c9cf.webp"
+  },
+  {
+   "nazwa": "intro1",
+   "plik": "97b8d8b5e7e5da70944aef02ec7e777a3f1e37659ab1be2db2b361380bbd634b.webp"
+  },
+  {
+   "nazwa": "?",
+   "plik": "aa9137b4e8b6741498c9d2e4e3780f7ca8080c2993b1af28628d3f93165037d4.webp"
+  },
+  {
+   "nazwa": "rozdzial-1-mini",
+   "plik": "adeb0f42fe9fa54dc3e6e5b5765bb573bc958978ad5beb75e5b8df667b705035.webp"
+  },
+  {
+   "nazwa": "rozdzial-4-mini",
+   "plik": "b858e346f2c7f92ce61c4b57ba2ea2393492df7386093a38ef628c6879eb9793.webp"
+  },
+  {
+   "nazwa": "intro4_fallback",
+   "plik": "cfc6e13b1b78835ca440dc8ebc1e4800f140461ba9ec9e992893739842826639.webp"
+  },
+  {
+   "nazwa": "rozdzial-3",
+   "plik": "ecaa3daac7d7a4dd42f8814a526104ba4e4da42c96222fb6ac31bfec315e4bd9.webp"
+  },
+  {
+   "nazwa": "intro3",
+   "plik": "ecf32c2027558304a42a83f5f5579adfa4793432dc7df3f2276ec6b7f2846daa.webp"
+  },
+  {
+   "nazwa": "intro4",
+   "plik": "f14beb06b044ce4437d126dc6a0b2a5b28428fd526b4d27ea07dfbf7b9018a40.webp"
+  },
+  {
+   "nazwa": "intro3_fallback",
+   "plik": "fc5eb4d61c5c98e4cfc1676016c111e1eccdca72116fe212030de0d0255be09d.webp"
+  },
+  {
+   "nazwa": "rozdzial-4",
+   "plik": "ff40e32ec4fe94078955112c6eaeac73b544cfbc8d76536884160a0594ec487f.webp"
+  },
+  {
+   "nazwa": "rozdzial-3-mini",
+   "plik": "ff82f1cca2400afaa14d2162b5bce3bcf1b62bbf2b9984d30d026e819edb2227.webp"
+  }
+ ]
+}

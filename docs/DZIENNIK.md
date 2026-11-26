@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 11:40 — konto 2, rola: grafik — magazyn zasobów NightBrand
+- Gałąź i commit: `magazyn-nightbrand` (od `namierzanie`).
+- Prośba autora: przejrzeć wszystkie zasoby NightBrand (setki plików) i wyciągnąć tekstury i obiekty potrzebne do budowania poziomów.
+- Zrobione: pełny spis NightBrand (202 modele 3D, 91 tekstur, 188 rekwizytów 2D, 25 teł) z nazwami z kodu; miniatury wszystkich 202 modeli wyrenderowane w Godocie z teksturami; wyciągnięte pod czytelnymi nazwami do `magazyn/nightbrand/`: 81 modeli (las 63, osada 18), 29 tekstur, 58 rekwizytów 2D (ok. 80 MB, poza `godot/`, gra ich nie importuje). Opis: `magazyn/nightbrand/README.md`.
+- Testy: kod gry bez zmian (testy nie potrzebne).
+- NIE sprawdzone: wygląd tych modeli w kamerze Warowni i ich skala względem Hadræna; 32 modele bez tekstury i 70 rekwizytów 2D, których pliki zniknęły z NightBrand (są w spisie, brak na dysku).
+- Decyzje autora: czeka na zgodę na plan budowy lasu (sieć ścieżek) i na źródła brakujących materiałów.
+- Następny krok: po zgodzie pilot Czarnoboru jako obrazy map z góry.
+
 ## 2026-11-26 11:00 — konto 2, rola: agent główny — decyzje o biotopach i mapach
 - **Decyzja autora:** biotopy = natura i przyroda; mapa zbudowana z **wyznaczonych, wymuszonych ścieżek jak w Dragon's Dogma** („nie za wąskie, nie za szerokie — żeby docenić budowanie świata, a walka nie była za łatwa ani za trudna”). Metroidvania odpada (gra ekstrakcyjna), ale generowanie w tym kierunku tak.
 - Przyjęte (odpowiedź na propozycję): v1 = Spalona Osada + Czarnobór; Dolne Miasto później. Zapisane w `FUNDAMENT.md`.

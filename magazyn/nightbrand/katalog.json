@@ -1,0 +1,1271 @@
+{
+ "modele": [
+  {
+   "nazwa": "p4_birch",
+   "grupa": "las",
+   "zrodlo_glb": "41f0eb46bbeace2f48771537201f564b5fb8299a5b236f401204d3c91b1a9b24.glb",
+   "zrodlo_tekstury": "b3a2743a60c882b296d476cfa1aba9c43f1dd3b9c4da808088641e60e94485e4.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_spruce",
+   "grupa": "las",
+   "zrodlo_glb": "ea855bba4595c93e60e15460601901467fae2350282a855593da6fa1e084966d.glb",
+   "zrodlo_tekstury": "1116e7b980554d3fc1462c02a582def25e5ca23491c5216884bf7763af3c3897.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_tall_pine",
+   "grupa": "las",
+   "zrodlo_glb": "657e82f46188828cfd82f6061f07c3c4ea076c126223daf75b4d5c0377b8d7ee.glb",
+   "zrodlo_tekstury": "2311e68e3567935c0461d9e3eeeecdbb485d135b55f7d64f0b22018d30ab7232.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_dead_oak",
+   "grupa": "las",
+   "zrodlo_glb": "93ced40c847376dd68095b8a3c68de7815e7e09332175ebf53ff765d3158fb73.glb",
+   "zrodlo_tekstury": "a2764645880ea286d94b5aa4989be2a9a08ea71d66f1b1c7dea077452a8606a4.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_dead_spruce",
+   "grupa": "las",
+   "zrodlo_glb": "a4ad15da7754bf5bf0db052d621c5e8a9af3510249b0c4d77418b67f437e1bcd.glb",
+   "zrodlo_tekstury": "1c9f477f245e4af1a1f5b8653729fd962110603b1effc1439a12339fcd6b6c4b.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_sacred_oak",
+   "grupa": "las",
+   "zrodlo_glb": "f3a68122da0b8cc01e024938075bf6ce052bb5d0d596de27e4ac83ef78a54540.glb",
+   "zrodlo_tekstury": "a3183b7ade661b239755a73ee7828bb9df02ccb5ff81902842c9214a1bf2739f.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_hanging_tree",
+   "grupa": "las",
+   "zrodlo_glb": "dd57a0849f3e214ca7e1f6cd1cfd7359376cdad92cd4dc4605546f82215442c0.glb",
+   "zrodlo_tekstury": "274b6d33d371f81d6876daa554317a74865af04ec76ae37788f55591f2ef68d3.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p4_mossy_boulder",
+   "grupa": "las",
+   "zrodlo_glb": "a59c5899a20cc4d4e6b5a71230c6cfaa18590359774b77de08a7c62935c96747.glb",
+   "zrodlo_tekstury": "c12743ad51f7ee30af5f6c6aa0fd12dab4d063d87b52fdc16a61170ecf626b40.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_wolf_skull_bush",
+   "grupa": "las",
+   "zrodlo_glb": "d586721774ff3fd131184a6603e7af22cfb88d0993db56963afb6bd01b586b7a.glb",
+   "zrodlo_tekstury": "a623cf4fc471573ef774b23cb83f78e74d1c77a8b95333d91653de0753b7cdc3.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_axe_stump",
+   "grupa": "las",
+   "zrodlo_glb": "281f78c993dcd426b36bd18737ebd8d75085c213f779dcd25ae975bbd29feb09.glb",
+   "zrodlo_tekstury": "9ac59839588347b890697637ffbcf6ef2605746f660092540b364a8f8a6ca7b6.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_burial_mound",
+   "grupa": "las",
+   "zrodlo_glb": "8bbecd0efbac27249639092d9c8462d610058a8a12f44d2c56054a8225ac678d.glb",
+   "zrodlo_tekstury": "f88e5f94dad662dc965d7f52248883ab83a5cdece5b783c843c50c4b8b0d789c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_drowned_cart",
+   "grupa": "las",
+   "zrodlo_glb": "07b18c2f24a7cd464c38f38b895a80c3ffee8ee203edf13068caea5a27be4fba.glb",
+   "zrodlo_tekstury": "cbeaabc364f69111896a6fb0b44271eaa387fedf02fa7dbf20fb0798becb984f.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_beehive",
+   "grupa": "las",
+   "zrodlo_glb": "5e61f72ae6db1327e84a07d6905f205ecbbdb806f60e0444931edbd3c3eed766.glb",
+   "zrodlo_tekstury": "a44fdc5bcd7f9a9bc670031a9fed3b96f2eefd59a09d212ca8d6b01ba303a774.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_bones",
+   "grupa": "las",
+   "zrodlo_glb": "417d919bac3e76f45b2a0e1f5db19b947cc7ed9d80f369ee6a28fa47ea606f92.glb",
+   "zrodlo_tekstury": "ee028c70b74c87b87f3d5bcc3baa58be33525f9c9ec958052da355fdfc609f8e.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_firewood",
+   "grupa": "las",
+   "zrodlo_glb": "1878b1f2375c7a0208db8ec9895592374ddd9dd05b1825bb8228b6d503533bf3.glb",
+   "zrodlo_tekstury": "3c6674caca245e9dc18f9542e8d151492bbf42679baf264559993d55f7c7fa95.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_gallows",
+   "grupa": "las",
+   "zrodlo_glb": "2296dea74475208fc3fd5a3989396bcf47115f2a05354ebeaebbcc68b2d1cbad.glb",
+   "zrodlo_tekstury": "8115c90c547781bcdd72fc6acb7b78c84797a56730eb8bfee33139c0dac432f5.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_idol",
+   "grupa": "las",
+   "zrodlo_glb": "1ad1fa9c38ad009fa83171361c3c36d9308bd62ccf235a95160a5ca7966c2610.glb",
+   "zrodlo_tekstury": "a0d741a976537b1092429cc33cefc43fde08b5e10a8504694cf0c16d4e175e19.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_pelts",
+   "grupa": "las",
+   "zrodlo_glb": "cc04003cf1dc39cee926f64d6f06a3b78f02784f05d6f4871b80e0fdbcca532a.glb",
+   "zrodlo_tekstury": "fa0150c8a828efed5a69e19da47763906d6a058d16eeb0442ab021e49be6cec6.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_sacpole",
+   "grupa": "las",
+   "zrodlo_glb": "2c149c7b5740acbdd9eff7fb1f9ea190b83ca17a7cc7ff4260c8fad2dfbe1b74.glb",
+   "zrodlo_tekstury": "a751c520f302d695878ac9eef6a6351578f0b26e71ebf5d73132cd654bbda31a.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_tent",
+   "grupa": "las",
+   "zrodlo_glb": "349cb9697f213870dd3af540ffb9b4ebd0946747a9458d2175c2b0cc8f357b36.glb",
+   "zrodlo_tekstury": "a1a0e0aef659424cd9871f16bb3467831dcccb4aef5304dcf9b68437229b3227.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_wagon",
+   "grupa": "las",
+   "zrodlo_glb": "71a2d2b4b78910600507d729697c8427ba9c2f1ebce94a0aa3ec2835e7271be8.glb",
+   "zrodlo_tekstury": "6edd5d7e57e0ab9b642b12d8c0b01218bc66ad001aaa5521af96094ee4d29741.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p4_cz_wheel",
+   "grupa": "las",
+   "zrodlo_glb": "d4a4126d25a28cad83dc637107997e83c448ca35f8070d088444765fff9e38f4.glb",
+   "zrodlo_tekstury": "d579396b07c7dee16541d72063afa575de09677614dd6b063a764b11c18e8249.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_grzyby_blade",
+   "grupa": "las",
+   "zrodlo_glb": "fe03dbc5db491c2aac417f26d31f9db8913c2a2425472c13e0ae6e7b0349c056.glb",
+   "zrodlo_tekstury": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_grzyby_czarne",
+   "grupa": "las",
+   "zrodlo_glb": "a77e861733275dddbe190ad8f6ad063a647a20338d703683843e06db338f6003.glb",
+   "zrodlo_tekstury": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_grzyby_niebieskie",
+   "grupa": "las",
+   "zrodlo_glb": "db18bed18b1b188b3c59c752d38e00429cb5a5f0af04098083c5c6d10a74f82a.glb",
+   "zrodlo_tekstury": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_grzyby_zolte",
+   "grupa": "las",
+   "zrodlo_glb": "9bcd8851afb29fe0a87e14dc26c50cd20f65b8826ee27fd886cda9f01e132188.glb",
+   "zrodlo_tekstury": "6c957f7238ab7f66a595a91f8ed2fb114c9ee960b5bfb065a652237c78ac804e.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_dziupla_grzyby",
+   "grupa": "las",
+   "zrodlo_glb": "bd8c7bed985796b98ac718410033aa99751a8f12aaa8cfbb495326dfcc108ff0.glb",
+   "zrodlo_tekstury": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_huby_na_klodzie",
+   "grupa": "las",
+   "zrodlo_glb": "18715ef51838a1b40416b9c071b73ec64af39f0a7e07aaa8cd13b7344fb2431d.glb",
+   "zrodlo_tekstury": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kloda",
+   "grupa": "las",
+   "zrodlo_glb": "1fb40cabe5caeddfe275fa3e9b77052eb84d870a9b71cb9f004df59dcbf975d0.glb",
+   "zrodlo_tekstury": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_korzenie",
+   "grupa": "las",
+   "zrodlo_glb": "bbe4b47b636cfc33ff3daec8c325a134705f464003a6f3e4b4ef54ca2fc8b4fc.glb",
+   "zrodlo_tekstury": "6c957f7238ab7f66a595a91f8ed2fb114c9ee960b5bfb065a652237c78ac804e.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kwiat_zloty",
+   "grupa": "las",
+   "zrodlo_glb": "c0f0ca07e0c11210660b54c2f095f93f014a8a1d50da123752d7fa4803d5603b.glb",
+   "zrodlo_tekstury": "836ba191f898a47f74f59be6c8f07f1ebef78830e583f917de6fda73fcd1ef3f.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_muchomory",
+   "grupa": "las",
+   "zrodlo_glb": "06a94b7652b69e76be9169875ab165deca0fa3655267b392338a7b794e555556.glb",
+   "zrodlo_tekstury": "680a6b66df0655b0cea6977388cf78f2a9c040b4c800745a8f0ab27f5acc6c30.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_menhir_runy",
+   "grupa": "las",
+   "zrodlo_glb": "2ca867427111bc86033a027921fbadefe75e2e04b4884aefdf230eb428c9f489.glb",
+   "zrodlo_tekstury": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kamien_runiczny",
+   "grupa": "las",
+   "zrodlo_glb": "85d16fb85ec8cffb37863bd7aefa539776e7636945a4b6d4a73a39cbf299f6b5.glb",
+   "zrodlo_tekstury": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kapliczka_lesna",
+   "grupa": "las",
+   "zrodlo_glb": "e98d085b470cd286e2c868e60be13de89bd09668a4b4c1d2dd7bd77cdf330f3b.glb",
+   "zrodlo_tekstury": "3eff91349624d9d2c279c9e26dbdb5d3f2a616d89f68b05202b9bde6bdb139a7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kapliczka_przydrozna",
+   "grupa": "las",
+   "zrodlo_glb": "0eded2d19ba8acdfbef5bff8b57e9a20acb6c2db14c141a22392081e3673b4af.glb",
+   "zrodlo_tekstury": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kapliczka_swiece",
+   "grupa": "las",
+   "zrodlo_glb": "acac6ca8e3a47b16e525688c3f53b73543444990402eb8671130834cc081330f.glb",
+   "zrodlo_tekstury": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_ambona",
+   "grupa": "las",
+   "zrodlo_glb": "4ff92ad3d35c10cd1484d8f0695a96d5db93d9bdf1a533e71050b0862d93feee.glb",
+   "zrodlo_tekstury": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_drewutnia",
+   "grupa": "las",
+   "zrodlo_glb": "e86b330c7a5c9c0e7df3ec4702506d98e857f29f90ede94fc63a5d329b715bf2.glb",
+   "zrodlo_tekstury": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_ognisko_krag",
+   "grupa": "las",
+   "zrodlo_glb": "2e3b0e3e4842258fbf6b51dff73383d68eaad939047d4d9679e2b59553b2a894.glb",
+   "zrodlo_tekstury": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_ognisko_gruz",
+   "grupa": "las",
+   "zrodlo_glb": "039965df1a95e180395ec784d3d70f52f497d3006e62c4b30e67b3e84075c712.glb",
+   "zrodlo_tekstury": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_stos",
+   "grupa": "las",
+   "zrodlo_glb": "d898a48a8cad74c4c61475b69443751d40cb3e673c94e1d7ee7d998d72fffd17.glb",
+   "zrodlo_tekstury": "d42df143e0fd512b8f6f2cb062b39df1160f50f7c80d56aea209b7b2c673055c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_strach_na_wroble",
+   "grupa": "las",
+   "zrodlo_glb": "0b23cf1dc6990871daaa28961ec5bd5bd1edd264040a2afe64c54dfb0ba8786d.glb",
+   "zrodlo_tekstury": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_plot_zlamany",
+   "grupa": "las",
+   "zrodlo_glb": "7329e9fcae4c14821d3c07ab32da04f852b747bce0444c49345668e14cfa5649.glb",
+   "zrodlo_tekstury": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_plot_czaszki",
+   "grupa": "las",
+   "zrodlo_glb": "f6f36466d57b345c602f4432912e71204660ef033fcb1c5552a40987814b5ab0.glb",
+   "zrodlo_tekstury": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_pal_czaszki",
+   "grupa": "las",
+   "zrodlo_glb": "9a352a535f00e6e63e3517015a17c2dc2ea7f45e73951bb0cc94658aaa9070de.glb",
+   "zrodlo_tekstury": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kruk_czaszka",
+   "grupa": "las",
+   "zrodlo_glb": "7b24e5b87e9f06a030cce5a5de7a7a2cb10cab5cb13b9f5254a6902d0179fec5.glb",
+   "zrodlo_tekstury": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_lodz_zatopiona",
+   "grupa": "las",
+   "zrodlo_glb": "f605487c739a9cde5f4bd5fd3799f622a9422fd9f53833dcaed8571923ffff43.glb",
+   "zrodlo_tekstury": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_pomost",
+   "grupa": "las",
+   "zrodlo_glb": "1e7ab23812f74603380d3d49372b95df5f4f411929ef85e52b96ab1b8aad4934.glb",
+   "zrodlo_tekstury": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_ruina_chaty",
+   "grupa": "las",
+   "zrodlo_glb": "6754d7abaaa4634eea5f907262acafdf41ca08d8f91ef432f5cb56b5608d26ff.glb",
+   "zrodlo_tekstury": "56fef47bb56da681eb4c18ccd6a3f41bbcea665ab0b93fd4adfef4778a821733.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_skora_kosci",
+   "grupa": "las",
+   "zrodlo_glb": "ef2142cc24091575df457743bea9d20ae54e831f1029bef0da9913a2a96481e7.glb",
+   "zrodlo_tekstury": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_ofiara_chleb",
+   "grupa": "las",
+   "zrodlo_glb": "d73912e8cc28f51c8880d0dce6a9e961cf857102d5b5e025c2a047174cd874d8.glb",
+   "zrodlo_tekstury": "c5c980f70e08e6aae18fd1e609ef6c61088fae1976680c7a182698d50262ddad.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_czaszki",
+   "grupa": "las",
+   "zrodlo_glb": "b69767721ad78f3d8c19f584fe82151938bfa51e976fb87e38e61deab945cdfc.glb",
+   "zrodlo_tekstury": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_oltarz_roze",
+   "grupa": "las",
+   "zrodlo_glb": "76811c2e419fb0bfdf7c6206395f57638150209e6869ba48d6fdcbc3fe082630.glb",
+   "zrodlo_tekstury": "274d6de296b0cc8ad4e3ea284322fdb437017073d3df86d656f6ff5d28705b8e.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_buda",
+   "grupa": "las",
+   "zrodlo_glb": "4325e1df4a2c259adc94a709eea8fddb2fddd78b2aba06af7005b01d22bab63e.glb",
+   "zrodlo_tekstury": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_wiadro_lina",
+   "grupa": "las",
+   "zrodlo_glb": "374cb817c640aee9ab3f3edf8a0c8b5fbd48130d1281cc2cf1c150a351f9fd6f.glb",
+   "zrodlo_tekstury": "cf41f69ceea4da80e8218ab560aa7f5f96c745422576ad01c6035f62b4a8b309.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_worki_zboze",
+   "grupa": "las",
+   "zrodlo_glb": "33a251be16f170ad316501b3e7098a3e6bc449ce4356ec5a77d262f443f5ed95.glb",
+   "zrodlo_tekstury": "3e668fa877fdb1dba14c264bff1a90c615ff02bcf2e7b44c7777f243fe7c061c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_worek_beczka",
+   "grupa": "las",
+   "zrodlo_glb": "410acbe92cc5569ab9f68811e832336c63afb4d3bc1277c5ca3c77b35bfe3016.glb",
+   "zrodlo_tekstury": "cdd3c577b7c252a8937edb66420af588dd352df8155958184d4be41804072725.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_beczki_lina",
+   "grupa": "las",
+   "zrodlo_glb": "66cc02fb20ea8221ee82cb7ab61062368933dc2d79c59cca90e343cbba286236.glb",
+   "zrodlo_tekstury": "8710017a88fd39aaed90f85c28b09f22e40acec68692b812da58510f89ce5539.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_beczka_smoly",
+   "grupa": "las",
+   "zrodlo_glb": "6453a0b6934681574e64ebb5f4520cfe7f144c8dacae69dbd7edb18c6d4f9759.glb",
+   "zrodlo_tekstury": "b22ddff28fff1bba72969e080141c210b7e50f6b74d307013c4cca594f55c3fe.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_lawa",
+   "grupa": "las",
+   "zrodlo_glb": "45ef91323c02e13a3f61830811f1d342615fd4988b9acb9c61760c24616ae272.glb",
+   "zrodlo_tekstury": "6a6e72666a77039b592b5d76ae7916923843b71042c3723c20705edc48271082.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_taboret",
+   "grupa": "las",
+   "zrodlo_glb": "c8ea4af2f7d14888d5c904b24c5b96b924fb021d0aa022b2da33ce85022372b9.glb",
+   "zrodlo_tekstury": "0a2dea0358f680978839f722f939ce2dffe792b3a6869e5b9533b6e76ca4fe61.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p8_kosz_dzbany",
+   "grupa": "las",
+   "zrodlo_glb": "d4acd2aff3c1316f2226b8d1277c079dabee3de32dcd9709b8c656d53965f220.glb",
+   "zrodlo_tekstury": "43ca69fd1333f173386edd990b9a9b9161e8a48e5cafac1862e5b44276417cc7.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_barrel",
+   "grupa": "osada",
+   "zrodlo_glb": "97fb75a8881a339304583244c0bd49e14926df213171e8cc202bc4fb7e082c3f.glb",
+   "zrodlo_tekstury": "7dee01e6df434f9608899521e15d4c1fefd8a02dcd65b51eccce499e77e99ba9.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_burnt_hay",
+   "grupa": "osada",
+   "zrodlo_glb": "5ec363da5df40a8ced1bd949a78c20846762160a4eb3beaf7a867954c5158206.glb",
+   "zrodlo_tekstury": "efdc9f58a65d1a0436500a0394290f937c502d09af812d571b6d553b49a95638.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_crow_post",
+   "grupa": "osada",
+   "zrodlo_glb": "0400fd5f052a79bf652309ba85c1138642cbd356dddce68da47e023f38fd2045.glb",
+   "zrodlo_tekstury": "3175a3da1160da1c78ee187bf267311d0ae010d370bf369ca7b68f6f3bacdeb6.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_dead_horse",
+   "grupa": "osada",
+   "zrodlo_glb": "ba8beaa24d691dbe37ba1a58bf6aa2102a2ecf48a01344602543efeafc835fa9.glb",
+   "zrodlo_tekstury": "7c8b6783ccdda6117d0eac7b430973fa031e15ca6b36a54d2994dcb4bc517570.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_dead_tree",
+   "grupa": "osada",
+   "zrodlo_glb": "19a94455a1485d4e758afb95f42b68c553309dbe2f519f47e4c426a9f4852255.glb",
+   "zrodlo_tekstury": "3985e321888e747ecfb6975d21376f26445f6d78156c70ca28d06989e8443956.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p1_gallows",
+   "grupa": "osada",
+   "zrodlo_glb": "62f69a6d51520d8f354fbfedd59128e9534a493440ca2b1aa0018387f2a79aa7.glb",
+   "zrodlo_tekstury": "a3daea85d08f6638ed0e4ec06affae6d42f26b7544e6b832d1cacfb460710aa2.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_grave_cross",
+   "grupa": "osada",
+   "zrodlo_glb": "b4dbfcf1a61b1125bfff237553a97481014fa7d52d8499697cf20c604e718a8a.glb",
+   "zrodlo_tekstury": "7fb304ce2d1f2e5446e370fe085ddc9b67a4c4ed5aaa0cb99e7f3b85eccd3599.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_order_banner",
+   "grupa": "osada",
+   "zrodlo_glb": "d49be01ebf435aefdf7bc5001afd2665635a2f76374538889d33f5d25e0370c1.glb",
+   "zrodlo_tekstury": "6bae8a48743c0b665b0d98d317ee7626a37ef760bd6e640c8a9c22b1d22dc72d.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_stocks",
+   "grupa": "osada",
+   "zrodlo_glb": "fa22b6737791fdb75b9c109bfbab548fc598899031fe7a6603b97ffb80994e06.glb",
+   "zrodlo_tekstury": "4fc16cba6e4414b468f8df997f67795d1be066fe8356d0b0ad936743056a7099.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_tombstone",
+   "grupa": "osada",
+   "zrodlo_glb": "9d604e8d236504674f8b9319aa795913740467c8c07bf446a16e3919fb751a98.glb",
+   "zrodlo_tekstury": "e302232b71c518e68e165664103a5fa18aa122ef2cb886d0abd9f9bbe1355679.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_well",
+   "grupa": "osada",
+   "zrodlo_glb": "5ea1e383f87c902d002f2e91ce6ea4472f5b7707b9305a9e7ece5387fcf87709.glb",
+   "zrodlo_tekstury": "dc3d6cd857b2f2b3c564e55979bef12803cbd4064bdef6317ec8ec7bdea2cbc3.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p1_wheel",
+   "grupa": "osada",
+   "zrodlo_glb": "581b37a3442b2abc63b80ace2e1d897886ddc1656a94b7fe04c6b4b78863e0f7.glb",
+   "zrodlo_tekstury": "b089b905136d86db82cec88bcfa1b267498d28ec9b9ee34c58655c5679a92e9c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p3_dead_tree",
+   "grupa": "osada",
+   "zrodlo_glb": "4d0a79bdc4ca05b11b130fa036c44f0981ee49ca5c049c3f219ba05226c8e6b4.glb",
+   "zrodlo_tekstury": "1436713560ee8d19bfb55c85752c4e60862d955149f12c0ae171275e4aa66a69.webp",
+   "tekstura_px": 2048
+  },
+  {
+   "nazwa": "p3_gibbet",
+   "grupa": "osada",
+   "zrodlo_glb": "f0c0898fdfd02a6b86ccb9cc0163f6541fa7498925954b20da770a5fff800e9f.glb",
+   "zrodlo_tekstury": "137a962ce48a4de653e25ca3243c89b9e168ea38cd170957e9bbe922756a21d1.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p3_gallows",
+   "grupa": "osada",
+   "zrodlo_glb": "964c22c97b044020c97a5c6c7c32d61d8355a162e68aefc3efd30891d61c6968.glb",
+   "zrodlo_tekstury": "884003527fa90c69c4420b1cd6017f2ca7b3d9b52e8574ac3e562077ef177b66.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p3_dead_horse",
+   "grupa": "osada",
+   "zrodlo_glb": "1a9c576fb06eb07c9d1a9de624b8d389e6fd9914b643ba04b2f88bcdd3c2caf0.glb",
+   "zrodlo_tekstury": "b1c92ea3ee82e99c4f22b18c009a8a1bbf7280a5a304360bc782573ae92b348c.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p3_wheel",
+   "grupa": "osada",
+   "zrodlo_glb": "a15b4c1fba9fd208df53a6c609199f2cd53fb8e2d042a2350e6d6f1bc3155233.glb",
+   "zrodlo_tekstury": "b06dcaa7ebdeee117dca6825fdcba3a23349c666d022d10560d5811f2d808a99.webp",
+   "tekstura_px": 1024
+  },
+  {
+   "nazwa": "p3_barrel",
+   "grupa": "osada",
+   "zrodlo_glb": "59b62fca635dc3a7f77c2c24245e1dc478baa9f7155848c32ebb4c36274e2a0e.glb",
+   "zrodlo_tekstury": "09c7b6ea233413df795360fc9771ce8d9a9ba10b6e102a68c9a64d4925db4c38.webp",
+   "tekstura_px": 1024
+  }
+ ],
+ "tekstury": [
+  {
+   "nazwa": "cc0_forestmoss",
+   "zrodlo": "af61fa84c04b16c222106029c6d52d3b6cc6db64239a660ce551d5ab8f723abf.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_moss1",
+   "zrodlo": "eea3ac29fefc677a880c1c65b78304c5ab556246a94024c5bd945ccee057d12e.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_leaves",
+   "zrodlo": "326121aa341243cebe25304f4f4197b01cb2b5d3811545e179e7fb4f89770ed4.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_mud",
+   "zrodlo": "1d6401e33794ecc7ad47603637bd66400e67b3589939e636bb6aba7fa36ad9ca.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt2",
+   "zrodlo": "306e8fcf61c811a1e339bc1d5f75b6425229836d186edbd3bef77388d89664c6.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_dirt3",
+   "zrodlo": "727e1104e3cc10a78070062925f6da05117271d6590660fada9213a8d0c019cf.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_darkrock",
+   "zrodlo": "dd6c90379c1bfbd65a18dd4bc7558abf6d07d1a503cc61935054883aab9ea034.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_blackrock",
+   "zrodlo": "fa68ce09d94814fc9f1210db166712cf89ba57f999352bc3a63f082d1a4b784c.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_ground1",
+   "zrodlo": "a4270839a1096193c3ce3dc8fb2d986220cdf7abf973d87bd313716c0048589c.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_ground2",
+   "zrodlo": "c82e6e215e6388da0597c82a80b8270fa5567cb1b201e6b60a23c76d76cd1081.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_water",
+   "zrodlo": "5bfa98d364da5ca96edef0470a3876ef9fb8fa5f2e868d4d4a32389351216453.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "water_shallow",
+   "zrodlo": "0a9c8d6effb4333775e526c9880b40b87ceade8faeb30c297fa318ae5c7c3bbc.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "ford_stones",
+   "zrodlo": "8c3e29f48e524cbc57d051543e7a38fde634e6aff349dd7eb7ab9a0cabef220a.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cc0_ash",
+   "zrodlo": "5118a73dc051461831a7ec6849e8252ffe8dbb59550ab487cd54743ea9bab01e.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_charcoal",
+   "zrodlo": "9a3a981e012c1389ca8cc99da2e7ce7207d4a358eeda4941ab20951e1e18277f.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "cc0_cracks",
+   "zrodlo": "65539f806640d93b275f593e69ad4b88d3943e12b35afa36f068b4cbcdad37f3.webp",
+   "px": [
+    2048,
+    2048
+   ]
+  },
+  {
+   "nazwa": "wl_urwisko",
+   "zrodlo": "8429dec2d2fb00c2a783dfb9a8c7c312eb37ae115540197155f0d12b6b445889.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_palisada",
+   "zrodlo": "cd65b105a4040b7160005b21ca2e4889a4a5cbd01e93036f2c1051cc0b4f29ce.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_chata",
+   "zrodlo": "65e1e8f4c87bf2d7bc5e0ad2eed519f9c0bc2a6472c550ea817147029a71fb0b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_plank",
+   "zrodlo": "54eaf490d84b6429c57690e5d36f776cc11dab2d3a4bd047f3ed3be640c2a350.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_lasu",
+   "zrodlo": "f8b4cd2fa620d2bc2af721eeeb6f06b6f26fb117a680b1feeca0c43938491f94.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_dolina",
+   "zrodlo": "88f97ce4a055d3204f5a3b2b3e5cd9a68153b1d8bc02607415fa82b3cede0725.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "wl_obozpal",
+   "zrodlo": "87d392f7ef864a0e545b466fb800c70da65b7aa4a7770be48080b1185f600e38.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_ground",
+   "zrodlo": "2bfa39ad8223ed685d24391e6bc88b91fc40bb1c0518881ddd3bdb3f651a7a7b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_walls",
+   "zrodlo": "39ff02666ba5dfd7e21f98bde000286b80776979ed5b98a00fb6b65e6266eba6.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "cz_trees",
+   "zrodlo": "efb64297db9f03c6138fb6e98b69e7dd1189a62a1faf6a4e9507e90f2e2d7715.webp",
+   "px": [
+    1024,
+    1536
+   ]
+  },
+  {
+   "nazwa": "ROOF_PNG",
+   "zrodlo": "517905a0e4feadfa5ba42b536be2720a1d736e68e81eba922eedcc53d16acee0.png",
+   "px": [
+    512,
+    512
+   ]
+  },
+  {
+   "nazwa": "br_ground",
+   "zrodlo": "70446b605d1ca67d1c882c0188925dfdbefc712ee208d6795bcac12e98c3daab.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "br_walls",
+   "zrodlo": "c813061af29217f02c4a8e0b7d32cbbcfc4261571ea9f886d169390e4f4e5366.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  }
+ ],
+ "rekwizyty_2d": [
+  {
+   "nazwa": "p3_rot_bloom_1",
+   "zrodlo": "06e2479ddf8be39af29a4902f3eb78f4bedaf387c24762fc86c2f98460db51f4.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p4_wd10",
+   "zrodlo": "102047925cf4c8dab64305479b204827dc09aa26873b001512d1b2df32bc3369.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_walk",
+   "zrodlo": "2226435b4ecd85058dee2c0134bfd4b444ee2b398ec14fa5570271824d3937fc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp5",
+   "zrodlo": "2fa384370b8e6017e818e3ae29870c36df9fbee54fd6110084a20e957c73c0b9.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_standing_stone_dark",
+   "zrodlo": "3196dd2e684aac062f31e45983f13bc07b909f616ab38e803c6b4f60b4941909.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_roof_burnt",
+   "zrodlo": "358cda3f6532df778c24c3944390cca73d8cd8bf6df4b5575561224d2db5e97b.webp",
+   "px": [
+    1024,
+    1024
+   ]
+  },
+  {
+   "nazwa": "p1_shrine",
+   "zrodlo": "370dd35364cf30e5a3022c724529f7140fb70de9f29b6518db2d2bf160201d67.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_shrine_burnt",
+   "zrodlo": "3fcc5e656f964f46967d239e88e2b74ed370a0e06e0fa3203814a5bccc2ed0dd.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp8",
+   "zrodlo": "400d216538de277d79b6e6500bf77568d240a0bb994bdfd1e0ed5e2891232958.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_mushrooms",
+   "zrodlo": "412c2ae5acb39125a630c3203b340501f900c3b385f8ce4c3951becdf6bd997c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd5",
+   "zrodlo": "41378c6a189f34d03325a681391c1b5440220daa965d9afc8649eb4029045465.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "TOTEM_PNG",
+   "zrodlo": "450093d43cdcfb4c4a8de3632fbc10d27f8e33d2580e5ff871e7b1b3d69c5430.png",
+   "px": [
+    305,
+    720
+   ]
+  },
+  {
+   "nazwa": "p1_impaled_head",
+   "zrodlo": "50a6fc943befaa5a6e147da32d353677f5ac758eb9f7a11e54e9909bb9284b25.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_2",
+   "zrodlo": "529df6aeaa57ba15190bb67aa37834c555efac96b9fa16c83731ea1b236f2412.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_skullpole",
+   "zrodlo": "532fba59ada34ae6d9cdace1d1ac154d0efbe41b7389813edbcc916eaa6ef6cc.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_order_bonfire",
+   "zrodlo": "5ae427ea0583879e3eaccc7ca67d9d2edc9b94eb8c45af12fff130228069f6c0.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_3",
+   "zrodlo": "5d35e03b5c5b49a5204ab240c2c351a31232156610b9dcf785d036f02ce3a281.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd0",
+   "zrodlo": "5e8f514e2138bb74d25560a678c8b8cf3e7a6ce6f7e63f32c5395a0972cff52a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p0_np_thistle",
+   "zrodlo": "62faa65333cb2542d8e9b78f0284f1eec873a6dc408c421ccadb862b444dcd84.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd1",
+   "zrodlo": "638aba937b24fec60b049ef5978fa8188db401d118f058a9e65863d53550304a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_brambles",
+   "zrodlo": "694d2de91732469d8911f8929bcd388a45c67c1d1a888518e5dae365ce5cabec.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_0",
+   "zrodlo": "6bde59476b9f5e41dec1d7fe3dacc09ebd4408dbc73749903a7333f38d3a6e06.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p0_np_grass",
+   "zrodlo": "78c18507a4593fe529e11c53f1326b40a7a224ca92e3eaf65f83d2e1736952e4.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_1",
+   "zrodlo": "7a9e23e715f1fc52953cec345f93adfc6f2e02d7375c7a85d6945c31652dcdca.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd4",
+   "zrodlo": "7bf2bc91985ba9ff6d70fbc7bae4c38a428524dcc2a66d6671d46678d0fd4368.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd11",
+   "zrodlo": "7c70dd026daea4c245318d6e9165022169177f52c58474ddfa46220466098e43.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_fallen_log",
+   "zrodlo": "7eb453c7e8b745eebdbcbbbe1071d95f21d6d0b3d01c65c6c247e61e4ff5c69e.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp7",
+   "zrodlo": "7f250e557732e6d4360cae47312a060fe89e7e5d0049cdaa44bae4ef9af94c80.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd9",
+   "zrodlo": "888e5e436088afcf9fbb462a83f9155204aae2ac45278072f90197b8854558cd.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_ferns",
+   "zrodlo": "911d114f57632bcf075271a2d4c08274a2c6cd65c147c18a3f4954edb4ffc1ce.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp6",
+   "zrodlo": "91990ea217dae8a7ca7295b9eb21e84d0a8bb6f02ca7b336f40e9fa10e820448.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_3",
+   "zrodlo": "b6ccf10cbbb75933684df7f9af51b8b2177b71cb9c8324282d19cbbca9eee7de.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_0",
+   "zrodlo": "b82634891964af2cd36365747f65a4f76fc2942c0784eedf8e94fbd5575a9054.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p0_np_fern",
+   "zrodlo": "be761f7573dffca10a0ef148be52b71d5331986ee77c2d378b94c643ebe67662.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp2",
+   "zrodlo": "c416486dd6090ef5c2a00d7893247efd37f46ef922a452938e98ee4f49fd5b04.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp4",
+   "zrodlo": "c750c70efe575f911691a4182093a76208ac1169dd09f5e567c521311e36c6d2.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_1",
+   "zrodlo": "c962fd22337e9fd8c5bc5d48059e5dbc073e3f06c3f48c01f1e48c7495bd9797.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd7",
+   "zrodlo": "cb82f91a120d4a37c74d91a4df7b7feb66126d9da5d29707fd0b68cc88052048.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd6",
+   "zrodlo": "d0833d89d40351d40b30648c15cda70771c3bafef19cce0480d199f9889187c1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp1",
+   "zrodlo": "d126d77f7fc2172c827fcddddf5743bf363f4c1d81829876b48eaba20932b633.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd3",
+   "zrodlo": "d598eb265dee4108a08e9539182f84accbfdbdb8c44c590a84ef7148807c7c84.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_3",
+   "zrodlo": "d731902b8e9413a784ff0b85d9fb044ecfcf2912bb032158eae64620d40c7535.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_0",
+   "zrodlo": "d7751fd77fb2a12f686c595c19dbd661bb3b718db74cd5491b02b5fc366b1c1b.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp11",
+   "zrodlo": "d938e35accaa33510c6fc5e819a5dc04c79036b547b415b2fc674f5bd9125b80.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_fire_1",
+   "zrodlo": "db13bc7209ad7e5e7432ddbb59ff444035ed450e75ff08fe19c463eb3347b179.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p3_rot_bloom_0",
+   "zrodlo": "df0a9868ea5ff50273b3dc5f4e8f831f339958c523898f589b477da13d5eff30.webp",
+   "px": [
+    256,
+    256
+   ]
+  },
+  {
+   "nazwa": "p0_np_tall",
+   "zrodlo": "e596c6ff66efe97eba9e98a4e79239779d0e4232f209054a306ec8a966ce5176.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_debris_fire_2",
+   "zrodlo": "e68e6699378be31c9c8ee30985434d623397468f5320ec570fd5a0bb13ecce94.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd8",
+   "zrodlo": "e84e9c76dbbf0ace18d96a588f8a954639b621fc0bd375267784fd172f84698a.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_cz_shrine",
+   "zrodlo": "e9ac76b468763eeb68dc86b037e30674427cdef156b36d7df28d9e657a50ff08.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_standing_stone_lit",
+   "zrodlo": "eb8b615bb2f41230f1c9f2616465cdb33133af39c0d79c06b82666c18f12df98.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp9",
+   "zrodlo": "edc42d80f75f3e4df871f8f6e725774808676136be307fe97c1b19c5c1c7fb7c.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp3",
+   "zrodlo": "f1c347d3b882086b052a470b840df7443adfc14c6f4fa69518b99a2ee3c0fbba.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp0",
+   "zrodlo": "f7298f6b4e6110c1a177f77f8df7191aa2e8ecd707e6b432ecce70a21c0924f8.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_sp10",
+   "zrodlo": "f73417de70fa1bfaeb7f36c62f3fd258acb8ae087f763047119ff053216568d1.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p1_house_fire_2",
+   "zrodlo": "f902cf7088dc6553933e14c5e9788de19407e21207b6122479fa6961ca0e891d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_reeds",
+   "zrodlo": "fad7918a697ecd9856490edd136ae68a39f8498a7f4a88a48f186e368bf10e2d.webp",
+   "px": [
+    384,
+    384
+   ]
+  },
+  {
+   "nazwa": "p4_wd2",
+   "zrodlo": "ffe87b26810c4bbc0fa37f7a383438c64bd53778858cc70f5b8b00bdc44ddefd.webp",
+   "px": [
+    384,
+    384
+   ]
+  }
+ ]
+}
