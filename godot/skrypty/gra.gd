@@ -3,6 +3,7 @@ extends Node
 
 const Mapgen = preload("res://skrypty/mapgen.gd")
 const MapgenLas = preload("res://skrypty/mapgen_las.gd")
+const MapgenOsada = preload("res://skrypty/mapgen_osada.gd")
 const Ui = preload("res://skrypty/ui.gd")
 const Hub = preload("res://skrypty/hub.gd")
 const Rajd = preload("res://skrypty/rajd.gd")
@@ -74,6 +75,8 @@ func _ready() -> void:
 			_pomiar.call_deferred(a.substr(9))
 		if a.begins_with("--podglad-lasu="):
 			_podglad_lasu.call_deferred(a.substr(15))
+		if a.begins_with("--podglad-osady="):
+			_podglad_osady.call_deferred(a.substr(16))
 
 
 ## Podgląd oprawy walki dla agenta: --podglad-walki=katalog[,kraina]. Seria zrzutów klatka po klatce
@@ -190,6 +193,23 @@ func _podglad_lasu(arg: String) -> void:
 		f.store_string(JSON.stringify(m.do_slownika()))
 		f.close()
 		print("LAS ", z, ": polan ", m.polany.size(), ", ścieżek ", m.sciezki.size(), ", skrzyń ", m.skrzynie.size(), ", wrogów ", m.spawny.size())
+	get_tree().quit(0)
+
+
+## Pilot Spalonej Osady dla agenta: --podglad-osady=katalog[,ziarno;ziarno]. Zapisuje osada_<ziarno>.json
+## (rysuje narzedzia/podglad_osady.py). Generator osady nie jest jeszcze podpięty do rajdu.
+func _podglad_osady(arg: String) -> void:
+	var cz := arg.split(",")
+	var katalog: String = cz[0]
+	DirAccess.make_dir_recursive_absolute(katalog)
+	var ziarna: PackedStringArray = cz[1].split(";") if cz.size() > 1 else PackedStringArray(["OSADA1", "OSADA2", "OSADA3", "OSADA4"])
+	for z in ziarna:
+		var m = MapgenOsada.new()
+		m.generuj({"id": "spalona_osada"}, z, 1)
+		var f := FileAccess.open(katalog.path_join("osada_%s.json" % z), FileAccess.WRITE)
+		f.store_string(JSON.stringify(m.do_slownika()))
+		f.close()
+		print("OSADA ", z, ": miejsc ", m.polany.size(), ", ulic ", m.sciezki.size(), ", chat ", m.domy.size(), ", skrzyń ", m.skrzynie.size(), ", wrogów ", m.spawny.size())
 	get_tree().quit(0)
 
 
@@ -1271,6 +1291,85 @@ func _test_lasu() -> void:
 	_ok("las (pilot): ziarno, osiągalność, przejścia ≥3 m, 3 wyjścia w głębi, ślepe odnogi", zle.is_empty(), ", ".join(zle.slice(0, 4)))
 
 
+## Pilot Spalonej Osady (generator, jeszcze bez rajdu): ziarno, osiągalność, przejścia ≥3 m, 3 wyjścia w głębi,
+## ślepe odnogi, spalone chaty z wejściem, kościół (przyszła arena bossa). Sześć ziaren.
+func _test_osady() -> void:
+	var zle: Array = []
+	for z in ["OS_A", "OS_B", "OS_C", "OS_D", "OS_E", "OS_F"]:
+		var m = MapgenOsada.new()
+		m.generuj({"id": "spalona_osada"}, z, 1)
+		var m2 = MapgenOsada.new()
+		m2.generuj({"id": "spalona_osada"}, z, 1)
+		if m2.teren != m.teren or m2.siatka != m.siatka or m2.skrzynie.size() != m.skrzynie.size() or m2.spawny.size() != m.spawny.size() or m2.start != m.start:
+			zle.append(z + ": inne ziarno-wynik")
+		var d: PackedInt32Array = m._odl_t(Vector2i(int(m.start.x), int(m.start.y)))
+		var dk: PackedInt32Array = m._odleglosci(Vector2i(int(m.start.x), int(m.start.y)))
+		var punkty: Array = []
+		for e in m.ekstrakcje:
+			punkty.append(e["w"])
+		for sk in m.skrzynie:
+			punkty.append(sk["w"])
+		for sp in m.spawny:
+			punkty.append(sp["w"])
+		for w in punkty:
+			if d[m.idx(int(w.x), int(w.y))] < 0 or dk[m.idx(int(w.x), int(w.y))] < 0:
+				zle.append(z + ": nieosiągalne %s" % str(w))
+		# przejście co najmniej 3 m od startu do środka każdego miejsca (osłony punktowe się nie liczą)
+		var rdzen := PackedInt32Array()
+		rdzen.resize(m.teren.size())
+		rdzen.fill(-1)
+		var kol: Array[Vector2i] = [Vector2i(int(m.start.x), int(m.start.y))]
+		rdzen[m.idx(kol[0].x, kol[0].y)] = 0
+		var g := 0
+		while g < kol.size():
+			var p: Vector2i = kol[g]
+			g += 1
+			for s4 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q: Vector2i = p + s4
+				if q.x < 2 or q.y < 2 or q.x >= MapgenOsada.ROZMIAR - 2 or q.y >= MapgenOsada.ROZMIAR - 2 or rdzen[m.idx(q.x, q.y)] >= 0:
+					continue
+				var wolne := true
+				for dy in range(-1, 2):
+					for dx in range(-1, 2):
+						var t: int = m.kt(q.x + dx, q.y + dy)
+						if t == MapgenOsada.T.ZABUDOWA or t == MapgenOsada.T.ZGLISZCZA or t == MapgenOsada.T.PLOT:
+							wolne = false
+				if wolne:
+					rdzen[m.idx(q.x, q.y)] = 1
+					kol.append(q)
+		var max_g := 1
+		for pl in m.polany:
+			max_g = maxi(max_g, int(pl["gleb"]))
+		var odnogi := 0
+		var koscioly := 0
+		for pl in m.polany:
+			var c: Vector2 = pl["c"]
+			if rdzen[m.idx(int(c.x), int(c.y))] < 0 and pl["typ"] != "start" and pl["typ"] != "plac":
+				zle.append(z + ": wąskie przejście do %s" % pl["typ"])
+			if pl["typ"] == "ekstrakcja" and float(pl["gleb"]) < 0.45 * max_g:
+				zle.append(z + ": wyjście przy starcie")
+			if pl["typ"] in ["cmentarz", "piwnica", "kosciol"]:
+				odnogi += 1
+			if pl["typ"] == "kosciol":
+				koscioly += 1
+				if float(pl["r"]) < 9.0:
+					zle.append(z + ": kościół za mały")
+		for sc in m.sciezki:
+			if sc["szer"] < 5.0 or sc["szer"] > 7.5:
+				zle.append(z + ": ulica %.1f m" % sc["szer"])
+		for dom in m.domy:
+			var dr: Vector2i = dom["drzwi"]
+			if d[m.idx(dr.x, dr.y)] < 0:
+				zle.append(z + ": chata bez wejścia")
+		if m.ekstrakcje.size() != 3:
+			zle.append(z + ": wyjść %d" % m.ekstrakcje.size())
+		if odnogi < 2 or koscioly != 1:
+			zle.append(z + ": odnóg %d, kościołów %d" % [odnogi, koscioly])
+		if m.polany.size() < 12 or m.skrzynie.size() < 18 or m.domy.size() < 20:
+			zle.append(z + ": miejsc %d, łupów %d, chat %d" % [m.polany.size(), m.skrzynie.size(), m.domy.size()])
+	_ok("osada (pilot): ziarno, osiągalność, przejścia ≥3 m, 3 wyjścia w głębi, odnogi, chaty z wejściem, kościół", zle.is_empty(), ", ".join(zle.slice(0, 4)))
+
+
 ## Oprawa mapy: materiały krainy z tekstur NightBrand, maska murów, pochodnie nie wiszą w powietrzu.
 ## Duże mapy (wersja 2 generatora): rozmiar, osiągalność, rodzaje komnat, ziarno, wrogowie, pościg po korytarzach.
 func _test_duzej_mapy() -> void:
@@ -1645,6 +1744,7 @@ func _test() -> void:
 	_ok("Przystań: gawędziarz mówi", przystan._dymek.visible and przystan._dymek.text.length() > 10)
 	przystan.poz = Vector2(18.0, 22.0)
 	_test_lasu()
+	_test_osady()
 	await _test_pauzy("Przystań", "9a_pauza_przystan")
 	await _pad(JOY_BUTTON_BACK)
 	await _czekaj_az(func(): return hub.is_visible_in_tree(), 5.0)

@@ -17,6 +17,19 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-26 19:45 — nowe konto, rola: gamedev — pilot Spalonej Osady (generator + mapy z góry)
+- Gałąź: `pilot-spalona-osada` (od main po publikacji).
+- Zrobione: generator `godot/skrypty/mapgen_osada.gd` na wzór lasu. Opis w `docs/pilot_osada/README.md`.
+  - Plac ze studnią w środku, zagrody z płotem, kuźnia, stodoła, spalony sad.
+  - Ślepe odnogi: cmentarz i piwnica; spalony kościół jako najgłębsza odnoga (r ≥ 9 m, przyszła arena bossa).
+  - Ulice 5–6,5 m, główne do placu 6–7,5 m.
+  - 30–34 spalonych chat z wejściem 3 m: co trzecia z łupem, co czwarta z żarem.
+  - Podgląd `--podglad-osady` + `narzedzia/podglad_osady.py`, obrazy w `docs/pilot_osada/`.
+- Testy: nowy `_test_osady` (6 ziaren). `testy.py godot` → OK 146/146.
+- NIE sprawdzone: osada w rajdzie (nie jest podpięta), grafika 3D, odczucie skali chat w grze.
+- Liczby pilota „do strojenia” (nie balans): liczba miejsc i chat, łupy, wrogowie.
+- Następny krok: akceptacja pilota przez autora → osada w rajdzie (krainy.json, swiat3d: modele r1_spalona_osada, tekstury br_*).
+
 ## 2026-11-26 19:20 — nowe konto, rola: agent główny — publikacja mapy i walki
 - **Decyzja autora (19:16): „publikuj i bierz się za Osadę”.**
 - Opublikowano na main: łańcuch `mapa-mgla-i-wczytywanie` → `walka-i-czytelnosc` (commit w `git log main`).
