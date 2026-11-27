@@ -246,6 +246,7 @@ Uwaga: część starszych akapitów `GRAFIKA.md` (§1–§3: „pixel-art 2.5D�
 | 26.11 22:25–23:00 | Poprawki autora (gałąź `poprawki-autora-1`, opisane wyżej) | czeka na ocenę |
 
 ### Otwarte sprawy (kolejność wg autora i dziennika)
+0. **Ekonomia, przedmioty i łup (27.11):** `docs/KONCEPCJE_EKONOMIA.md`. Autor przyjął ją jako kierunek, a nie gotowy plan. Kolejność rund w §7: broń i pancerz → bossowie i moby → hałas → łup → wyjścia i Zmrok. Przed każdą rundą balansu zgoda autora.
 1. **Ocena `Warownia_Poprawki2.zip`**:
    - czy mgła jest gładka;
    - czy zniknęły zacięcia przy podświetleniu wrogów (przyczyna to przypuszczenie: kompilacja osobnego shadera, już usuniętego);

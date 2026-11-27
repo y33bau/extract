@@ -17,6 +17,19 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 01:30 — nowe konto, rola: agent główny — koncepcja ekonomii
+- **Decyzja autora (01:26):** zapisać propozycję koncepciarza (ekonomia, przedmioty, łup, mechaniki rajdu) jako `docs/KONCEPCJE_EKONOMIA.md` ze sprostowaniami agenta. Przyjęta jako kierunek, nie gotowy plan.
+- Sprostowania z kodu:
+  - skup u Margi = 65% dla wszystkiego (nie 100% ani 50%);
+  - brak systemu hałasu;
+  - rzut pochodnią, zrzut sakwy i odkrywanie łupu po kolei już są;
+  - sakwa ma 12 miejsc;
+  - zużycie pancerza jest, bez wpływu na ochronę;
+  - dwie szable, buzdygan i noże wymagają animacji i modeli.
+- Polecana kolejność: broń i pancerz → bossowie i moby → hałas → łup i pojemniki → wyjścia i Zmrok.
+- Wcześniej (00:30–00:41): kod dla Gemini (`NIGHTBRAND\WAROWNIA_POPIOLOW\KOD_DLA_GEMINI\`) i treść `przedmioty.json`, `warownia.json`, `FUNDAMENT.md` dla autora.
+- NIE sprawdzone: tarcza przy broni 2H w regułach; złoto noszone w rajdzie; krwawienie i poparzenie.
+
 ## 2026-11-26 23:30 — nowe konto, rola: agent główny — przekazanie dla ChatGPT
 - **Decyzja autora (23:15):** do niedzieli projekt przejmuje ChatGPT (także Codex), pilnuje formy graficznej i spójności kodu (jak przy NightBrand).
 - Zrobione: `docs/PRZEKAZANIE_CHATGPT_2026-11-26.md` (gra, NightBrand, repo i ścieżki, zasady, jak pracujemy, mapa kodu, środowisko, stan, raport, otwarte sprawy, pułapki) + instrukcje ról w `docs/chatgpt/` (agent główny, gamedev, grafik, recenzent, mentor NightBrand). Kopie w `NIGHTBRAND\WAROWNIA_POPIOLOW\PRZEKAZANIE_CHATGPT\`.
