@@ -37,6 +37,7 @@ func _ready() -> void:
 	hub_warstwa.add_child(hub)
 	pauza = Pauza.new()
 	add_child(pauza)
+	pauza.porzucono_rajd.connect(_porzuc_rajd)
 	# HUD chowa się pod pauzą (nie przebija licznikiem, minimapą ani podpowiedziami)
 	pauza.otwarto.connect(func(): if hud != null and is_instance_valid(hud): hud.visible = false)
 	pauza.wznowiono.connect(func(): if hud != null and is_instance_valid(hud) and rajd != null: hud.visible = true)
@@ -56,12 +57,16 @@ func _ready() -> void:
 	pauza.wznowiono.connect(func(): if _w_tytule: tytul.visible = true; tytul.przycisk_opcje.grab_focus())
 	var narzedzia_agenta := false
 	for a in OS.get_cmdline_user_args():
-		if a in ["--test", "--test-ekonomii"] or a.begins_with("--podglad") or a.begins_with("--pomiar"):
+		if a in ["--test", "--test-ekonomii", "--test-ulepszen", "--test-interakcji", "--test-pada"] or a.begins_with("--podglad") or a.begins_with("--pomiar"):
 			narzedzia_agenta = true
 	if not narzedzia_agenta:
 		pokaz_tytul.call_deferred()
-	if "--test-ekonomii" in OS.get_cmdline_user_args():
+	if "--test-ekonomii" in OS.get_cmdline_user_args() or "--test-ulepszen" in OS.get_cmdline_user_args():
 		_test_ekonomii.call_deferred()
+	if "--test-pada" in OS.get_cmdline_user_args():
+		_test_pada_i_powrotu.call_deferred()
+	if "--test-interakcji" in OS.get_cmdline_user_args():
+		_test_interakcji.call_deferred()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
 	for a in OS.get_cmdline_user_args():
@@ -655,6 +660,14 @@ func powrot_do_warowni() -> void:
 	hub.zakladki.current_tab = 0
 	hub.odswiez()
 	_przystan()
+
+
+func _porzuc_rajd() -> void:
+	if rajd == null or rajd.zakonczony:return
+	pauza.zamknij()
+	rajd.koniec.disconnect(_koniec_rajdu)
+	rajd.zakoncz(false, "Porzucono wyprawę.", true)
+	powrot_do_warowni()
 
 
 # ====================================================================== TEST AUTOMATYCZNY
@@ -1890,7 +1903,8 @@ func _test_wygladu(p, en) -> void:
 	var anim_unik: String = p.biezaca_anim
 	var anim_unik3d := _anim3d()
 	var biodra_min := biodra_postoj
-	for i in 6:
+	# Mierzymy cały przewrót; sześć klatek pomijało najniższą pozę przy wyższym FPS.
+	while p.unik_czas > 0.0:
 		await _klatka()
 		biodra_min = minf(biodra_min, _biodra3d())
 	await _zrzut("6_hadraen_przewrot")
@@ -2225,7 +2239,7 @@ func _test() -> void:
 	get_tree().quit(0 if zle == 0 else 1)
 
 
-## Regresja ekonomii: rzeczywiste transakcje, walka i migracja starego zapisu.
+## Regresja systemu trzech dodatków i zachowanej ekonomii broni.
 func _test_ekonomii() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--zrzuty="):
@@ -2233,25 +2247,7 @@ func _test_ekonomii() -> void:
 			DirAccess.make_dir_recursive_absolute(_zrzuty)
 	Profil.resetuj()
 	_test_ekonomia_danych()
-	await _czekaj(0.4)
-	var plyta: Dictionary = Profil.nowy_przedmiot("ash_plate")
-	var cena_pelna: int = Dane.cena_skupu(plyta)
-	plyta["durability"] = 70.0
-	_ok("ekonomia: zużycie stopniowo obniża ochronę i skup", is_equal_approx(Dane.ochrona_pancerza(plyta), 0.29) and Dane.cena_skupu(plyta) < cena_pelna)
-	Profil.d["loadout"]["armor"] = plyta
-	var koszt: int = Dane.cena_naprawy(plyta)
-	Profil.d["gold"] = koszt - 1
-	_ok("ekonomia: brak złota zatrzymuje naprawę", not Profil.napraw(plyta["uid"]) and is_equal_approx(float(plyta["durability"]), 70.0))
-	Profil.d["gold"] = 2000
-	_ok("ekonomia: naprawa odejmuje dokładny koszt", Profil.napraw(plyta["uid"]) and int(Profil.d["gold"]) == 2000 - koszt and Dane.cena_naprawy(plyta) == 0)
-	var zloto: int = int(Profil.d["gold"])
-	_ok("ekonomia: ponowna naprawa jest bezskuteczna", not Profil.napraw(plyta["uid"]) and int(Profil.d["gold"]) == zloto)
-	for skad in ["stash", "backpack", "reliquary"]:
-		var it: Dictionary = Profil.nowy_przedmiot("leather_jerkin")
-		it["durability"] = 5.0
-		var lista: Array = Profil.d["stash"] if skad == "stash" else Profil.d["loadout"][skad]
-		lista.append(it)
-		_ok("ekonomia: naprawa z " + skad, Profil.napraw(it["uid"]) and Dane.stan_pancerza(it) == 1.0)
+	var zloto := 0
 	var strzaly: Dictionary = Profil.nowy_przedmiot("iron_arrows", 1)
 	var cena_strzaly: int = Dane.cena_skupu(strzaly)
 	_ok("ekonomia: częściowy kołczan ma proporcjonalną cenę", cena_strzaly > 0 and cena_strzaly < Dane.cena_skupu("iron_arrows"))
@@ -2275,42 +2271,128 @@ func _test_ekonomii() -> void:
 	Profil.zapisz()
 	Profil.wczytaj()
 	_ok("ekonomia: znacznik daru przeżywa zapis", bool(Profil.d["stash"][0].get("dar_margi", false)))
-	var stary: Dictionary = Profil.nowy_przedmiot("ash_plate")
-	stary.erase("durability")
-	Profil.d["loadout"]["armor"] = stary
-	Profil.d.erase("version")
-	var stary_plik := FileAccess.open(Profil.sciezka, FileAccess.WRITE)
-	stary_plik.store_string(JSON.stringify(Profil.d))
-	stary_plik.close()
-	Profil.wczytaj()
-	stary = Profil.d["loadout"]["armor"]
-	_ok("ekonomia: stary pancerz otrzymuje poprawny stan", Dane.stan_pancerza(stary) == 1.0 and int(Profil.d.get("version", 0)) == 2)
+
+	for wersja in [1, 2]:
+		Profil.resetuj()
+		Profil.d["version"] = wersja
+		Profil.d["loadout"].erase("enhancements")
+		var stary: Dictionary = Profil.nowy_przedmiot("ash_plate")
+		var uid: String = stary["uid"]
+		Profil.d["loadout"]["armor"] = stary
+		for para in [["stash", "leather_jerkin"], ["backpack", "chainmail_hauberk"], ["reliquary", "ash_plate"]]:
+			var lista: Array = Profil.d["stash"] if para[0] == "stash" else Profil.d["loadout"][para[0]]
+			lista.append(Profil.nowy_przedmiot(para[1]))
+		Profil.zapisz()
+		Profil.wczytaj()
+		var l: Dictionary = Profil.d["loadout"]
+		_ok("migracja v%d: założona zbroja staje się okuciem, UID zachowane" % wersja, not l.has("armor") and l["enhancements"].size() == 1 and l["enhancements"][0]["id"] == "ulepszenie_ochrona_epic" and l["enhancements"][0]["uid"] == uid)
+		var przeniesione := true
+		for lista: Array in [Profil.d["stash"], l["backpack"], l["reliquary"]]:
+			for inst: Dictionary in lista:
+				przeniesione = przeniesione and Dane.typ(inst["id"]) != "armor"
+		_ok("migracja v%d: wszystkie pojemniki bez dawnych zbroi" % wersja, przeniesione and int(Profil.d["version"]) == 3)
+		var stan := JSON.stringify(Profil.d)
+		Profil.wczytaj()
+		_ok("migracja v%d: ponowne wczytanie nie duplikuje dodatków" % wersja, JSON.stringify(Profil.d) == stan)
 	Profil.resetuj()
-	rozpocznij_rajd("catacombs", "EKONOMIA1")
+	var rodzaje := ["ruch", "ochrona", "odnowa", "unik"]
+	var dodatki: Array = []
+	for rodzaj: String in rodzaje:
+		var inst: Dictionary = Profil.nowy_przedmiot("ulepszenie_%s_legendary" % rodzaj)
+		dodatki.append(inst)
+		Profil.d["stash"].append(inst)
+	for i in 3:
+		_ok("dodatek: montaż %d" % (i + 1), Profil.zaloz_dodatek(dodatki[i]["uid"]))
+	_ok("dodatek: czwarty nie zajmuje miejsca i nie ginie", not Profil.zaloz_dodatek(dodatki[3]["uid"]) and Profil.przedmiot_uid(dodatki[3]["uid"]) == dodatki[3])
+	_ok("dodatek: zdjęcie do Skrytki", Profil.zdejmij_dodatek(dodatki[0]["uid"]))
+	var duplikat: Dictionary = Profil.nowy_przedmiot("ulepszenie_ochrona_common")
+	Profil.d["stash"].append(duplikat)
+	_ok("dodatek: nie można dublować rodzaju", not Profil.zaloz_dodatek(duplikat["uid"]) and Profil.d["loadout"]["enhancements"].size() == 2)
+	Profil.zaloz_dodatek(dodatki[0]["uid"])
+	Profil.zapisz()
+	Profil.wczytaj()
+	_ok("dodatek: trzy miejsca zachowane po zapisie", Profil.d["loadout"]["enhancements"].size() == 3 and is_equal_approx(Dane.bonus_ulepszen(Profil.d["loadout"], "ruch"), 0.1))
+	# Rzeczywisty ekran, akcja myszy i symulowane A pada.
+	otworz_menu(1)
+	await _czekaj(0.5)
+	var lista_dodatkow: Array = hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return str(b.get_meta("klucz", "")).begins_with("dodatek_"))
+	_ok("ekwipunek: trzy osobne miejsca do zdjęcia dodatków", lista_dodatkow.size() == 3)
+	for w: Button in lista_dodatkow:
+		if w.get_meta("klucz", "") == "dodatek_" + str(dodatki[0]["uid"]):
+			w.pressed.emit()
+			break
+	await _klatka()
+	_ok("ekwipunek: klik zdejmuje dodatek", Profil.d["loadout"]["enhancements"].size() == 2)
+	var idx: int = -1
+	for i in Profil.d["stash"].size():
+		if Profil.d["stash"][i].get("uid") == dodatki[0]["uid"]:idx = i
+	var wiersze: Array = hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "st%d" % idx)
+	if not wiersze.is_empty():
+		wiersze[0].grab_focus()
+		await _czekaj(0.4)
+		await _pad(JOY_BUTTON_A)
+	await _klatka()
+	_ok("ekwipunek: A pada zakłada dodatek ze Skrytki", Profil.d["loadout"]["enhancements"].size() == 3)
+	await _zrzut("01_dodatki_ekwipunek")
+	hub.zakladki.current_tab = 2
+	await _klatka()
+	var oferty: Array = hub.kram.lista.find_children("*", "Button", true, false).filter(func(b): return str(b.get_meta("klucz", "")).begins_with("kup_"))
+	var bez_zbroi := true
+	for b: Button in oferty:
+		bez_zbroi = bez_zbroi and not Dane.typ(str(b.get_meta("klucz")).trim_prefix("kup_")) in ["armor", "enhancement"]
+	_ok("kram: bez zbroi i kupowania dodatków", bez_zbroi and not oferty.is_empty())
+	var zloto_przed: int = Profil.d["gold"]
+	hub._kup("ash_plate")
+	hub._kup("ulepszenie_ruch_common")
+	_ok("kram: stare ID nie pozwala kupić wycofanego towaru", Profil.d["gold"] == zloto_przed)
+	await _zrzut("02_kram_bez_zbroi")
+	var sprzedaz: Dictionary = Profil.nowy_przedmiot("ulepszenie_unik_epic")
+	Profil.d["stash"].append(sprzedaz)
+	var cena: int = Dane.cena_skupu(sprzedaz)
+	_ok("dodatek: można sprzedać łup tylko raz", cena > 0 and Profil.sprzedaj(sprzedaz["uid"]) == cena and Profil.sprzedaj(sprzedaz["uid"]) == 0)
+	zamknij_menu()
+	rozpocznij_rajd("czarnobor", "DODATKI1")
 	await _czekaj(0.4)
 	var p = rajd.gracz
-	for en in rajd.wrogowie:
-		en.uspiony = true
+	for en in rajd.wrogowie:en.uspiony = true
 	var zestaw: Dictionary = p.rynsztunek
-	zestaw["armor"] = Profil.nowy_przedmiot("leather_jerkin")
-	p.stamina = 100.0
-	rajd.unik(Vector2.RIGHT)
-	_ok("ekonomia: skórzany pancerz, unik za 22", is_equal_approx(p.stamina, 78.0))
-	p.unik_cd = 0.0
-	p.unik_czas = 0.0
-	p.stamina = 100.0
-	zestaw["armor"] = Profil.nowy_przedmiot("ash_plate")
-	rajd.unik(Vector2.RIGHT)
-	_ok("ekonomia: płytowy pancerz, unik za 31", is_equal_approx(p.stamina, 69.0))
-	p.unik_czas = 0.0
 	p.niet = 0.0
 	p.riposta_niet = 0.0
 	p.blok = false
 	p.okno_parowania = 0.0
 	p.hp = 100.0
-	zestaw["armor"]["durability"] = 70.0
 	rajd.trafienie_gracza(null, 20.0, true)
-	_ok("ekonomia: ochrona uszkodzonej płyty działa w walce", is_equal_approx(p.hp, 85.8))
+	_ok("walka: ochrona stałej zbroi i okucia zmniejsza obrażenia", is_equal_approx(p.hp, 86.8), "HP %.3f, ochrona %.3f" % [p.hp, Dane.ochrona_zbroi(zestaw)])
+	p.stamina = 50.0
+	p.stamina_przerwa = 0.0
+	p.atak_czas = 0.0
+	p.blok = false
+	var obciazenie: float = maxf(0.55, 1.0 - rajd.sakwa_obciazenie() * 0.035)
+	rajd._aktualizuj(0.1)
+	_ok("walka: pieczęć przyspiesza faktyczną odnowę staminy", is_equal_approx(p.stamina, 50.0 + 2.4 * 1.16 * obciazenie))
+	zestaw["enhancements"] = [Profil.nowy_przedmiot("ulepszenie_unik_legendary")]
+	p.stamina = 100.0
+	p.unik_cd = 0.0
+	rajd.unik(Vector2.RIGHT)
+	_ok("walka: rzemień zmniejsza faktyczny koszt przewrotu", is_equal_approx(p.stamina, 100.0 - 22.0 * 0.86))
+	p.unik_czas = 0.0
+	p.unik_cd = 0.0
+	p.niet = 0.0
+	p.atak_czas = 0.0
+	p.atak_cd = 0.0
+	p.ladowanie = 0.0
+	p.predkosc = Vector2.ZERO
+	zestaw["enhancements"] = [Profil.nowy_przedmiot("ulepszenie_ruch_legendary")]
+	Input.action_press("ruch_prawo")
+	for i in 3:rajd._aktualizuj(0.1)
+	Input.action_release("ruch_prawo")
+	_ok("ruch: klamra zwiększa faktyczną prędkość do 3,74 m/s", is_equal_approx(p.predkosc.length(), 3.74), "%.3f m/s" % p.predkosc.length())
+	p.predkosc = Vector2.ZERO
+	# Dodatek z łupu można przenieść, ale nie montować podczas rajdu.
+	var znalezisko: Dictionary = Profil.nowy_przedmiot("ulepszenie_ruch_epic")
+	zestaw["backpack"].append(znalezisko)
+	okno._klik_sakwa("glowna", zestaw["backpack"].size() - 1)
+	_ok("rajd: łup nie zmienia dodatków założonych przed wyprawą", zestaw["enhancements"].size() == 1 and zestaw["backpack"].has(znalezisko))
 	zestaw["weapon"] = Profil.nowy_przedmiot("rusty_sword")
 	zestaw["shield"] = null
 	Profil.d["stronghold"]["altar"] = 2
@@ -2345,6 +2427,14 @@ func _test_ekonomii() -> void:
 	zestaw["weapon"] = Profil.nowy_przedmiot("rusty_sword")
 	var okno_z_tarcza: float = rajd.dlugosc_okna_parowania()
 	_ok("ekonomia: powrót do 1H aktywuje zachowaną tarczę", not Dane.aktywna_tarcza(zestaw).is_empty() and okno_z_tarcza > jednor)
+
+	await _zrzut("03_staly_stroj_w_rajdzie")
+	# Rozliczenie prawdziwego rajdu bez uruchamiania ekranu wyniku.
+	rajd.koniec.disconnect(_koniec_rajdu)
+	var zalozony_uid: String = zestaw["enhancements"][0]["uid"]
+	rajd.zakoncz(true, "test")
+	_ok("ekstrakcja: założony dodatek wraca z tym samym UID", Profil.d["loadout"]["enhancements"][0]["uid"] == zalozony_uid)
+	# Drugi rajd: śmierć gubi dodatki, Relikwiarz przeżywa.
 	rajd.queue_free()
 	hud.queue_free()
 	okno.queue_free()
@@ -2352,27 +2442,14 @@ func _test_ekonomii() -> void:
 	hud = null
 	okno = null
 	await _klatka()
-	_przystan()
-	# Przycisk naprawy w normalnym ekranie Margi.
-	Profil.d["gold"] = 2000
-	Profil.d["loadout"]["armor"]["durability"] = 25.0
-	hub.tryb_kupca = "kup"
-	hub.zakladki.current_tab = 2
-	otworz_menu(2)
-	await _klatka()
-	var nap = null
-	for w in hub.kram.lista.get_children():
-		if w is Button and str(w.get_meta("klucz", "")).begins_with("napraw_"):
-			nap = w
-	if nap != null:
-		nap.grab_focus()
-		nap.focus_entered.emit()
-	await _zrzut("ekonomia_naprawa")
-	if nap != null:
-		nap.pressed.emit()
-	_ok("ekonomia: naprawa działa przez przycisk Margi", nap != null and Dane.stan_pancerza(Profil.d["loadout"]["armor"]) == 1.0)
-	await _klatka()
-	print("WYNIK (ekonomia): ", "OK" if not _wyniki.has(false) else "BŁĄD", " (", _wyniki.count(true), "/", _wyniki.size(), ")")
+	Profil.d["loadout"]["reliquary"] = [Profil.nowy_przedmiot("ulepszenie_ochrona_rare")]
+	rozpocznij_rajd("czarnobor", "DODATKI2")
+	await _czekaj(0.3)
+	rajd.koniec.disconnect(_koniec_rajdu)
+	rajd.zakoncz(false, "test")
+	_ok("śmierć: dodatki stracone, Relikwiarz zachowany", Profil.d["loadout"]["enhancements"].is_empty() and Profil.d["loadout"]["reliquary"][0]["id"] == "ulepszenie_ochrona_rare")
+	_ok("śmierć: bazowa ochrona pozostaje bez kupowania zbroi", is_equal_approx(Dane.ochrona_zbroi(Profil.d["loadout"]), 0.24))
+	print("WYNIK (ulepszenia): ", "OK" if not _wyniki.has(false) else "BŁĄD", " (", _wyniki.count(true), "/", _wyniki.size(), ")")
 	get_tree().quit(0 if not _wyniki.has(false) else 1)
 
 
@@ -2383,14 +2460,265 @@ func _test_ekonomia_danych() -> void:
 		var def: Dictionary = Dane.p(id)
 		poprawne = poprawne and int(def.get("hands", 0)) == int(rodzaje[id]) and Dane.postura_broni(def) > 0.0
 	_ok("ekonomia: pięć broni ma chwyt i posturę", poprawne)
-	var bez: Dictionary = {"armor": null}
-	var plyta: Dictionary = {"armor": Profil.nowy_przedmiot("ash_plate")}
-	_ok("ekonomia: ciężka zbroja zwiększa koszt uniku także przy wysokiej biegłości", Dane.koszt_uniku(plyta, 10) > Dane.koszt_uniku(bez, 10))
-	var bez_zysku := true
-	for id in ["leather_jerkin", "chainmail_hauberk", "ash_plate"]:
-		var inst: Dictionary = Profil.nowy_przedmiot(id)
-		var pelny: int = Dane.cena_skupu(inst)
-		inst["durability"] = 0.0
-		bez_zysku = bez_zysku and pelny - Dane.cena_naprawy(inst) <= Dane.cena_skupu(inst)
-	_ok("ekonomia: naprawa i sprzedaż nie tworzą darmowego zysku", bez_zysku)
 	_ok("ekonomia: fallback dla starej definicji broni", Dane.postura_broni({"dmg": 17}) == 17.0)
+	var r1 := RandomNumberGenerator.new()
+	var r2 := RandomNumberGenerator.new()
+	r1.seed = 7351
+	r2.seed = 7351
+	var zgodne := true
+	var jakosci: Dictionary = {}
+	for i in 1000:
+		var id: String = Dane.losuj_dodatek(r1)
+		zgodne = zgodne and id == Dane.losuj_dodatek(r2) and Dane.typ(id) == "enhancement"
+		jakosci[Dane.p(id)["rarity"]] = true
+	_ok("łup: dodatki deterministyczne, cztery jakości osiągalne", zgodne and jakosci.size() == 4)
+	for rodzaj: String in Dane.ulepszenia_zbroi["kinds"]:
+		var poprzedni := 0.0
+		var rosnace := true
+		for jakosc: String in Dane.ulepszenia_zbroi["rarityWeights"]:
+			var def: Dictionary = Dane.p("ulepszenie_%s_%s" % [rodzaj, jakosc])
+			rosnace = rosnace and float(def["bonus"]) > poprzedni and Dane.ikona(def["id"]) != null
+			poprzedni = float(def["bonus"])
+		_ok("jakość: rosnąca siła i ikony — " + rodzaj, rosnace)
+	var bez: Dictionary = {"enhancements": []}
+	_ok("zbroja: stała ochrona i podstawowy koszt uniku", is_equal_approx(Dane.ochrona_zbroi(bez), 0.24) and is_equal_approx(Dane.koszt_uniku(bez, 1), 22.0))
+	for para: Array in [[Mapgen, "catacombs"], [MapgenLas, "czarnobor"], [MapgenOsada, "spalona_osada"]]:
+		var mapa = para[0].new()
+		mapa.generuj(Dane.kraina(para[1]), "DODATKI_LUP", 1)
+		var bez_zbroi := true
+		var dodatki := 0
+		for skrzynia: Dictionary in mapa.skrzynie:
+			for wpis: Dictionary in skrzynia["przedmioty"]:
+				var typ: String = Dane.typ(wpis["przedmiot"]["id"])
+				bez_zbroi = bez_zbroi and typ != "armor"
+				if typ == "enhancement":dodatki += 1
+		_ok("łup: bez zbroi, dodatki w pojemnikach — " + str(para[1]), bez_zbroi and dodatki > 0)
+
+
+func _klik_testowy(punkt: Vector2) -> void:
+	var ruch := InputEventMouseMotion.new()
+	ruch.position = punkt
+	ruch.global_position = punkt
+	ruch.relative = Vector2(4, 0)
+	get_viewport().push_input(ruch, true)
+	await _klatka()
+	for nacisniety: bool in [true, false]:
+		var e := InputEventMouseButton.new()
+		e.position = punkt
+		e.global_position = punkt
+		e.button_index = MOUSE_BUTTON_LEFT
+		e.pressed = nacisniety
+		# push_input dostaje współrzędne viewportu; stan Input uzupełniamy jak przy fizycznym LPM.
+		for akcja: String in ["atak", "klik_interakcji"]:
+			if nacisniety:Input.action_press(akcja)
+			else:Input.action_release(akcja)
+		get_viewport().push_input(e, true)
+		await _klatka()
+	await _klatka()
+
+
+func _test_interakcji() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--zrzuty="):
+			_zrzuty = arg.trim_prefix("--zrzuty=")
+			DirAccess.make_dir_recursive_absolute(_zrzuty)
+	Profil.resetuj()
+	await _czekaj(0.4)
+	var npc: Vector2 = przystan.MIEJSCA["marga"][2]
+	przystan.poz = npc + Vector2(0, 1.2)
+	await _czekaj(0.3)
+	_ok("NPC: etykieta przy rozmówcy", przystan.cel == "marga" and przystan.podpowiedz_obiektu.visible and not przystan._etykieta.visible)
+	var kotwica := przystan.kamera.unproject_position(Vector3(npc.x, 2.05, npc.y))
+	var etykieta := przystan.podpowiedz_obiektu.get_global_rect()
+	_ok("NPC: napis nad głową, nie u góry ekranu", absf(etykieta.end.y - (kotwica.y - 8)) < 1 and absf(etykieta.get_center().x - kotwica.x) < 1)
+	await _zrzut("04_npc_nad_glowa")
+	var korpus := przystan.kamera.unproject_position(Vector3(npc.x, 1, npc.y))
+	_ok("NPC: wybór sylwetki pod kursorem", przystan.miejsce_pod_kursorem(korpus) == "marga")
+	await _klik_testowy(korpus)
+	_ok("NPC: klik postaci otwiera handel", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2)
+	zamknij_menu()
+	await _czekaj(0.5)
+	await _pad(JOY_BUTTON_LEFT_STICK)
+	_ok("NPC: podpowiedź pokazuje przycisk Y", przystan.podpowiedz_obiektu.text.begins_with("[Y]"))
+	await _pad(JOY_BUTTON_Y)
+	_ok("NPC: Y otwiera tę samą rozmowę", hub.is_visible_in_tree() and hub.zakladki.current_tab == 2)
+	zamknij_menu()
+	przystan.poz = npc + Vector2(5, 0)
+	await _czekaj(0.5)
+	_ok("NPC: nie można kliknąć rozmówcy z daleka", przystan.miejsce_pod_kursorem(przystan.kamera.unproject_position(Vector3(npc.x, 1, npc.y))) == "")
+	rozpocznij_rajd("czarnobor", "INTERAKCJE")
+	await _czekaj(0.4)
+	for en in rajd.wrogowie:
+		en.uspiony = true
+		en.w = Vector2(1, 1)
+	var poj: Dictionary = rajd.mapa.skrzynie[0]
+	for kier: Vector2 in [Vector2.DOWN, Vector2.UP, Vector2.LEFT, Vector2.RIGHT]:
+		var obok: Vector2 = poj["w"] + kier * 0.8
+		if not Mapgen.blokuje_ruch(rajd.mapa.kafel(floori(obok.x), floori(obok.y))):
+			rajd.gracz.w = obok
+			break
+	rajd._licz_widok()
+	rajd._kamera(1.0)
+	rajd.kamera.force_update_scroll()
+	rajd.swiat3d._ustaw_kamere()
+	await _czekaj(0.3)
+	_ok("skrzynia: podpowiedź przy obiekcie", hud.podpowiedz_obiektu.visible and hud._cel_podpowiedzi == poj and hud.podpowiedz.text == "")
+	await _zrzut("05_skrzynia_nad_obiektem")
+	var punkt: Vector2 = rajd.punkt_obiektu(poj, 0.35)
+	_ok("skrzynia: wybierana pod kursorem", rajd.pojemnik_pod_kursorem(punkt) == poj)
+	await _klik_testowy(punkt)
+	_ok("skrzynia: klik otwiera wskazany pojemnik", rajd.okno_otwarte and rajd.aktywny_pojemnik == poj)
+	_ok("skrzynia: klik nie wykonuje ataku", not rajd.gracz.trzyma_atak and rajd.bufor_ataku == 0 and rajd.gracz.atak_czas == 0)
+	_ok("skrzynia: etykieta znika po otwarciu", not hud.podpowiedz_obiektu.visible)
+	okno.zamknij_okno()
+	await _czekaj(0.5)
+	await _pad(JOY_BUTTON_Y)
+	_ok("skrzynia: Y otwiera najbliższy pojemnik", rajd.okno_otwarte and rajd.aktywny_pojemnik == poj)
+	okno.zamknij_okno()
+	await _czekaj(0.5)
+	rajd._dodaj_zwloki({"w": rajd.gracz.w + Vector2(0.3, 0), "rodzaj": "warden", "kat": 0.0, "nazwa": "Szczątki Gwardzisty", "boss": false, "sakwa": false, "przedmioty": [{"przedmiot": Profil.nowy_przedmiot("ulepszenie_ochrona_rare"), "odkryty": true}]})
+	var zwloki: Dictionary = rajd.zwloki.back()
+	rajd._licz_widok()
+	await _czekaj(0.3)
+	await _zrzut("06_zwloki_nad_obiektem")
+	_ok("zwłoki: własna podpowiedź nad ciałem", hud._cel_podpowiedzi == zwloki and hud.podpowiedz_obiektu.text.contains("Szczątki Gwardzisty"))
+	await _klik_testowy(rajd.punkt_obiektu(zwloki, 0.35))
+	_ok("zwłoki: klik otwiera właściwe szczątki", rajd.okno_otwarte and rajd.aktywny_pojemnik == zwloki)
+	okno.zamknij_okno()
+	await _czekaj(0.5)
+	# Kliknięcie samej podpowiedzi również wykonuje akcję.
+	await _klik_testowy(hud.podpowiedz_obiektu.get_global_rect().get_center())
+	_ok("zwłoki: klikalna etykieta", rajd.okno_otwarte and rajd.aktywny_pojemnik == zwloki)
+	okno.zamknij_okno()
+	await _czekaj(0.5)
+	var dawna_pozycja: Vector2 = rajd.gracz.w
+	rajd.gracz.w = zwloki["w"] + Vector2(4, 0)
+	_ok("zasięg: odległy obiekt nie otwiera się po kliknięciu", not rajd.przeszukaj(zwloki) and not rajd.okno_otwarte)
+	rajd.gracz.w = dawna_pozycja
+	rajd.widok.fill(0)
+	_ok("widoczność: ukryty łup nie daje interakcji", not rajd.mozna_przeszukac(zwloki))
+	print("WYNIK (interakcje): ", "OK" if not _wyniki.has(false) else "BŁĄD", " (", _wyniki.count(true), "/", _wyniki.size(), ")")
+	get_tree().quit(0 if not _wyniki.has(false) else 1)
+
+
+func _test_pada_i_powrotu() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--zrzuty="):
+			_zrzuty = arg.trim_prefix("--zrzuty=")
+			DirAccess.make_dir_recursive_absolute(_zrzuty)
+	Profil.resetuj()
+	Profil.d["gold"] = 5000
+	Profil.d["stronghold"]["forge"] = 2
+	otworz_menu(2)
+	await _czekaj(0.6)
+	var fokus := get_viewport().gui_get_focus_owner()
+	_ok("pad: sklep zaczyna z fokusem na towarze", fokus != null and str(fokus.get_meta("klucz", "")).begins_with("kup_"))
+	await _os_z_klatka(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	await _os_z_klatka(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	_ok("pad: RT przełącza Kup na Sprzedaj", hub.tryb_kupca == "sprzedaj")
+	await _os_z_klatka(JOY_AXIS_TRIGGER_LEFT, 1.0)
+	await _os_z_klatka(JOY_AXIS_TRIGGER_LEFT, 0.0)
+	_ok("pad: LT przełącza Sprzedaj na Kup", hub.tryb_kupca == "kup")
+	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+	_ok("pad: RB zmienia sekcję sklepu na Warownię", hub.zakladki.current_tab == 3)
+	await _pad(JOY_BUTTON_LEFT_SHOULDER)
+	_ok("pad: LB wraca do sklepu", hub.zakladki.current_tab == 2)
+	await _pad(JOY_BUTTON_B)
+	_ok("pad: B zamyka sklep i przywraca ruch w Przystani", not hub.is_visible_in_tree() and przystan.aktywna)
+	for sekcja in 5:
+		otworz_menu(sekcja)
+		await _czekaj(0.5)
+		_ok("pad: fokus w sekcji %d" % sekcja, get_viewport().gui_get_focus_owner() != null)
+		await _pad(JOY_BUTTON_B)
+		_ok("pad: powrót z sekcji %d" % sekcja, not hub.is_visible_in_tree() and przystan.aktywna)
+	otworz_menu(2)
+	await _czekaj(0.5)
+	var karty: Array = hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return b.get_meta("klucz", "") == "kup_ember_flask")
+	if not karty.is_empty():karty[0].grab_focus()
+	await _klatka()
+	await _pad(JOY_BUTTON_DPAD_RIGHT)
+	_ok("pad: prawo przenosi fokus z towaru na Kup", hub._sz_akcja != null and hub._sz_akcja.has_focus())
+	var zloto: int = Profil.d["gold"]
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return get_viewport().gui_get_focus_owner() != null, 1.0)
+	_ok("pad: A kupuje raz za właściwą cenę", int(Profil.d["gold"]) == zloto - int(Dane.p("ember_flask")["price"]))
+	fokus = get_viewport().gui_get_focus_owner()
+	_ok("pad: po zakupie fokus wraca do aktualnego towaru", fokus != null and fokus.get_meta("klucz", "") == "kup_ember_flask", str(fokus.get_meta("klucz", "")) if fokus != null else "brak fokusu")
+	await _os_z_klatka(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	await _os_z_klatka(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	var oferty: Array = hub.ekran.lista.find_children("*", "Button", true, false).filter(func(b): return str(b.get_meta("klucz", "")).begins_with("sp_") and not b.disabled)
+	var cena := 0
+	if not oferty.is_empty():
+		var ostatni: Button = oferty.back()
+		ostatni.grab_focus()
+		var klucz: String = ostatni.get_meta("klucz", "")
+		var w_sakwie := klucz.begins_with("sp_backpack")
+		var indeks: int = int(klucz.trim_prefix("sp_backpack" if w_sakwie else "sp_stash"))
+		var przedmiot: Dictionary = Profil.d["loadout"]["backpack"][indeks] if w_sakwie else Profil.d["stash"][indeks]
+		cena = Dane.cena_skupu(przedmiot)
+	zloto = int(Profil.d["gold"])
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return get_viewport().gui_get_focus_owner() != null, 1.0)
+	_ok("pad: sprzedaż ostatniej pozycji dodaje właściwą kwotę", cena > 0 and int(Profil.d["gold"]) == zloto + cena, "tryb %s, cena %d, złoto %d → %d" % [hub.tryb_kupca, cena, zloto, Profil.d["gold"]])
+	fokus = get_viewport().gui_get_focus_owner()
+	_ok("pad: po sprzedaży fokus zostaje na istniejącej pozycji", fokus != null and is_instance_valid(fokus) and not fokus.is_queued_for_deletion() and str(fokus.get_meta("klucz", "")).begins_with("sp_"), str(fokus.get_meta("klucz", "")) if fokus != null else "brak fokusu")
+	await _zrzut("07_sklep_pad")
+	await _pad(JOY_BUTTON_B)
+	await _pad(JOY_BUTTON_START)
+	_ok("pad: Start otwiera pauzę w Przystani", pauza.visible and get_tree().paused and not pauza.porzuc.visible)
+	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+	await _pad(JOY_BUTTON_RIGHT_SHOULDER)
+	_ok("pad: RB otwiera Opcje pauzy", pauza.zakladki.current_tab == 2)
+	pauza._grafika.grab_focus()
+	var jakosc := Profil.jakosc()
+	await _pad(JOY_BUTTON_A)
+	_ok("pad: przycisk jakości reaguje i zapisuje ustawienie", Profil.jakosc() == (jakosc + 1) % Profil.JAKOSCI.size())
+	await _pad(JOY_BUTTON_B)
+	_ok("pad: B zamyka pauzę i odmraża Przystań", not pauza.visible and not get_tree().paused and przystan.aktywna)
+	Profil.d["loadout"]["enhancements"] = [Profil.nowy_przedmiot("ulepszenie_ruch_epic")]
+	Profil.d["loadout"]["reliquary"] = [Profil.nowy_przedmiot("ulepszenie_ochrona_rare")]
+	Profil.d["stronghold"]["alchemist"] = 1
+	var xp_przed: float = _suma_pd("melee")
+	var kontrakty_przed := JSON.stringify(Profil.d["kontrakty"])
+	var skrytka_przed := JSON.stringify(Profil.d["stash"])
+	zloto = int(Profil.d["gold"])
+	rozpocznij_rajd("czarnobor", "PORZUCENIE")
+	await _czekaj(0.4)
+	for en in rajd.wrogowie:en.uspiony = true
+	rajd.xp("melee", 60.0)
+	rajd.zabici = 9
+	rajd.gracz.rynsztunek["backpack"].append(Profil.nowy_przedmiot("golden_idol"))
+	await _pad(JOY_BUTTON_START)
+	_ok("powrót: opcja porzucenia dostępna tylko w rajdzie", pauza.visible and pauza.porzuc.visible)
+	pauza.porzuc.grab_focus()
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return pauza.dialog_porzuconego_rajdu.visible and pauza.dialog_porzuconego_rajdu.get_cancel_button().has_focus(), 1.0)
+	_ok("powrót: A wyświetla potwierdzenie z bezpiecznym fokusem", pauza.dialog_porzuconego_rajdu.visible and pauza.dialog_porzuconego_rajdu.get_cancel_button().has_focus(), "widoczny %s, anuluj ma fokus %s" % [pauza.dialog_porzuconego_rajdu.visible, pauza.dialog_porzuconego_rajdu.get_cancel_button().has_focus()])
+	await _zrzut("08_porzucenie_potwierdzenie")
+	await _pad(JOY_BUTTON_B)
+	_ok("powrót: B anuluje, wyprawa nie jest utracona", not pauza.dialog_porzuconego_rajdu.visible and rajd != null and not rajd.zakonczony)
+	pauza.porzuc.grab_focus()
+	await _pad(JOY_BUTTON_A)
+	await _czekaj_az(func(): return pauza.dialog_porzuconego_rajdu.visible and pauza.dialog_porzuconego_rajdu.get_cancel_button().has_focus(), 1.0)
+	await _klatka()
+	await _klatka()
+	pauza.dialog_porzuconego_rajdu.get_ok_button().grab_focus()
+	await _klatka()
+	await _pad(JOY_BUTTON_A)
+	await _czekaj(0.3)
+	_ok("powrót: zatwierdzenie wraca bezpośrednio do Przystani", rajd == null and przystan != null and przystan.aktywna and not get_tree().paused)
+	var l: Dictionary = Profil.d["loadout"]
+	_ok("powrót: niesiony ekwipunek i dodatki utracone", l["weapon"] == null and l["shield"] == null and l["bow"] == null and l["backpack"].is_empty() and l["enhancements"].is_empty())
+	_ok("powrót: Relikwiarz bezpieczny", l["reliquary"].size() == 1 and l["reliquary"][0]["id"] == "ulepszenie_ochrona_rare")
+	_ok("powrót: zero doświadczenia i postępu kontraktów", is_equal_approx(_suma_pd("melee"), xp_przed) and JSON.stringify(Profil.d["kontrakty"]) == kontrakty_przed)
+	_ok("powrót: bez złota, łupu i darmowej flaszki", int(Profil.d["gold"]) == zloto and JSON.stringify(Profil.d["stash"]) == skrytka_przed)
+	Profil.wczytaj()
+	_ok("powrót: utrata rajdu została zapisana", Profil.d["loadout"]["weapon"] == null and Profil.d["loadout"]["enhancements"].is_empty())
+	print("WYNIK (pad i powrót): ", "OK" if not _wyniki.has(false) else "BŁĄD", " (", _wyniki.count(true), "/", _wyniki.size(), ")")
+	get_tree().quit(0 if not _wyniki.has(false) else 1)
+
+
+func _os_z_klatka(os: JoyAxis, wartosc: float) -> void:
+	_os(os, wartosc)
+	await _klatka()
+	await _klatka()

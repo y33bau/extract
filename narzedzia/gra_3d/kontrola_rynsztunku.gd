@@ -108,7 +108,7 @@ func _test() -> void:
 		eq["shield"] = null
 		wyglad.odswiez(eq, "miecz")
 		var pancerz: MeshInstance3D = wyglad.wezly.get("pancerz_" + id)
-		sprawdz("skóra i widoczność " + id, pancerz != null and pancerz.skin != null and pancerz.visible and not pokazany("cialo") and pokazany("cialo_pod_pancerzem"))
+		sprawdz("stały strój bez wycofanego pancerza " + id, pancerz != null and not pancerz.visible and pokazany("cialo") and not pokazany("cialo_pod_pancerzem"))
 		await poza("miecz_postoj")
 		await zrzut(id)
 	for id in Wyglad.LUKI:

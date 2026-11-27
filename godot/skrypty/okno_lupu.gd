@@ -177,7 +177,7 @@ func odswiez() -> void:
 		return
 	var l: Dictionary = rajd.gracz.rynsztunek
 	var nazwa := func(k): return Dane.p(l[k]["id"])["name"] if l[k] else "brak"
-	rynsztunek_txt.text = "Broń: %s   •   Tarcza: %s\nŁuk: %s   •   Pancerz: %s" % [nazwa.call("weapon"), nazwa.call("shield"), nazwa.call("bow"), nazwa.call("armor")]
+	rynsztunek_txt.text = "Broń: %s   •   Tarcza: %s\nŁuk: %s   •   Stała zbroja: %d%% ochrony   •   Dodatki %d/3" % [nazwa.call("weapon"), nazwa.call("shield"), nazwa.call("bow"), roundi(Dane.ochrona_zbroi(l) * 100), l.get("enhancements", []).size()]
 	for s in [siatka_rel, siatka_sakwy, siatka_lupu]:
 		for c in s.get_children():
 			c.queue_free()
@@ -324,7 +324,10 @@ func _klik_sakwa(tryb: String, i: int) -> void:
 				zamknij_okno()
 				rajd.uzyj_mikstury(d["elixKind"])
 				return
-			elif d.get("type") in ["weapon", "shield", "bow", "armor"]:
+			elif d.get("type") == "enhancement":
+				rajd.toast.emit("Dodatki zakładasz przed wyprawą w Warowni.", "warn")
+				return
+			elif d.get("type") in ["weapon", "shield", "bow"]:
 				var stary = l[d["type"]]
 				l[d["type"]] = l["backpack"].pop_at(i)
 				if stary:

@@ -9,6 +9,7 @@ const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
 const WygladRynsztunku = preload("res://skrypty/wyglad_rynsztunku.gd")
+const PodpowiedzObiektu = preload("res://skrypty/podpowiedz_obiektu.gd")
 const SHADER_TERENU := preload("res://zasoby/3d/shadery/teren.gdshader")
 const SHADER_MURU := preload("res://zasoby/3d/shadery/mur.gdshader")
 const SHADER_MGLY := preload("res://zasoby/3d/shadery/mgla.gdshader")
@@ -57,6 +58,7 @@ var lekki := false
 var _npc := {}            # nazwa -> {wezel, ap}
 var _przeszkody: Array = []  # [Vector2 środek, promień]
 var _etykieta: Label3D
+var podpowiedz_obiektu: PodpowiedzObiektu
 var _dymek: Label3D
 var _dymek_czas := 0.0
 var _kwestia := 0
@@ -84,6 +86,12 @@ func _ready() -> void:
 	_bohater()
 	_atmosfera()
 	_etykieta = _label(44, Color(1.0, 0.86, 0.6))
+	var nakladka := CanvasLayer.new()
+	add_child(nakladka)
+	podpowiedz_obiektu = PodpowiedzObiektu.new()
+	nakladka.add_child(podpowiedz_obiektu)
+	podpowiedz_obiektu.pressed.connect(func():
+		if aktywna and cel != "":uzyj(cel))
 	_dymek = _label(38, Color(0.92, 0.9, 0.86))
 	_dymek.width = 700.0
 	if not lekki:
@@ -741,10 +749,12 @@ func _label(rozmiar: int, kolor: Color) -> Label3D:
 func _process(dt: float) -> void:
 	if aktywna:
 		_ruch(dt)
+	_ustaw_kamere()
+	if aktywna:
 		_interakcja()
 	else:
 		_etykieta.visible = false
-	_ustaw_kamere()
+		podpowiedz_obiektu.hide()
 	if _popiol:
 		_popiol.position = Vector3(poz.x, 6.0, poz.y)
 	_npc_patrza(dt)
@@ -813,17 +823,47 @@ func _interakcja() -> void:
 			dn = d
 			najb = k
 	cel = najb
-	_krag_celu(najb)
+	if not Sterowanie.pad_aktywny:
+		var pod_mysza := miejsce_pod_kursorem(get_viewport().get_mouse_position())
+		if pod_mysza != "":cel = pod_mysza
+	_krag_celu(cel)
 	if cel == "":
 		_etykieta.visible = false
+		podpowiedz_obiektu.hide()
 		return
 	var m: Array = MIEJSCA[cel]
 	var w2: Vector2 = m[2]
-	_etykieta.text = "E / Y:  " + str(m[0])
-	_etykieta.position = Vector3(w2.x, 2.5, w2.y)
-	_etykieta.visible = true
+	_etykieta.visible = false
+	var wysokosc := 2.05 if cel in _npc else 1.1
+	var punkt := kamera.unproject_position(Vector3(w2.x, wysokosc, w2.y))
+	podpowiedz_obiektu.pokaz(punkt, str(m[0]).split(" — ")[0], "Porozmawiaj" if cel in _npc else "Skorzystaj")
 	if Input.is_action_just_pressed("interakcja"):
 		uzyj(cel)
+
+
+func miejsce_pod_kursorem(punkt: Vector2) -> String:
+	var najlepsze := ""
+	var odleglosc := 1000.0
+	for k: String in MIEJSCA:
+		var w: Vector2 = MIEJSCA[k][2]
+		if poz.distance_to(w) >= 2.0:continue
+		var stopy := kamera.unproject_position(Vector3(w.x, 0, w.y))
+		var szczyt := kamera.unproject_position(Vector3(w.x, 1.8 if k in _npc else 1.0, w.y))
+		var obszar := Rect2(Vector2(stopy.x - 28, szczyt.y - 6), Vector2(56, maxf(32, stopy.y - szczyt.y + 14)))
+		var d := punkt.distance_to((stopy + szczyt) * 0.5)
+		if obszar.has_point(punkt) and d < odleglosc:
+			odleglosc = d
+			najlepsze = k
+	return najlepsze
+
+
+func _unhandled_input(e: InputEvent) -> void:
+	if not aktywna or get_tree().paused or not e.is_action_pressed("klik_interakcji"):return
+	var punkt: Vector2 = e.position if e is InputEventMouseButton else get_viewport().get_mouse_position()
+	var miejsce := miejsce_pod_kursorem(punkt)
+	if miejsce != "":
+		uzyj(miejsce)
+		get_viewport().set_input_as_handled()
 
 
 ## Złoty krąg pod stopami rozmówcy (albo przy miejscu) — zamiast podświetlania całej postaci.

@@ -29,6 +29,7 @@ var t_umiej: Control
 var dialog_startu: ConfirmationDialog
 var _komunikat_kupca := ""  # komunikat dla gracza (kupiono, brak złota…) — w panelu szczegółów
 var _fokus_klucz := ""
+var _fokus_indeks := 0
 
 
 func _ready() -> void:
@@ -53,13 +54,14 @@ func _ready() -> void:
 	t_warownia = ekran.lista
 	t_umiej = ekran.lista
 	# zmiana sekcji czyści komunikat (wcześniej w Kupcu wisiał tekst krainy z Wyprawy)
-	zakladki.tab_changed.connect(func(_i): Dzwiek.ui(); _fokus_klucz = ""; _komunikat_kupca = ""; odswiez())
+	zakladki.tab_changed.connect(func(_i): Dzwiek.ui(); _fokus_klucz = ""; _fokus_indeks = 0; _komunikat_kupca = ""; odswiez())
 	dialog_startu = ConfirmationDialog.new()
 	dialog_startu.title = "Wyruszyć?"
 	dialog_startu.ok_button_text = "Wyrusz"
 	dialog_startu.cancel_button_text = "Jeszcze nie"
 	dialog_startu.confirmed.connect(_wyrusz)
 	add_child(dialog_startu)
+	Ui.dialog_na_padzie(dialog_startu)
 	Profil.awans.connect(func(u, lv): _info("Awans: %s (poziom %d)!" % [Dane.umiejetnosci[u]["name"], lv]))
 	visibility_changed.connect(func(): if is_visible_in_tree(): Ui.blokada_po_otwarciu(self))
 	odswiez()
@@ -73,7 +75,7 @@ func _info(t: String) -> void:
 		_sz_kom.add_theme_color_override("font_color", Ui.M_ZLOTO2)
 
 
-func _unhandled_input(e: InputEvent) -> void:
+func _input(e: InputEvent) -> void:
 	if not is_visible_in_tree() or dialog_startu.visible:
 		return
 	if e.is_action_pressed("ui_cancel"):
@@ -126,17 +128,16 @@ func odswiez() -> void:
 
 
 func _przywroc_fokus() -> void:
-	var pierwszy: Control = null
+	var kandydaci: Array[Control] = []
 	for c in ekran.lista.find_children("*", "Button", true, false):
-		if c.is_queued_for_deletion() or not c.is_visible_in_tree() or c.disabled:
+		if c.is_queued_for_deletion() or not c.is_visible_in_tree() or c.disabled or c.focus_mode == Control.FOCUS_NONE:
 			continue
-		if pierwszy == null:
-			pierwszy = c
+		kandydaci.append(c)
 		if _fokus_klucz != "" and c.get_meta("klucz", "") == _fokus_klucz:
 			c.grab_focus()
 			return
-	if pierwszy:
-		pierwszy.grab_focus()
+	if not kandydaci.is_empty():
+		kandydaci[clampi(_fokus_indeks, 0, kandydaci.size() - 1)].grab_focus()
 
 
 func _zmiana() -> void:
@@ -193,13 +194,16 @@ func _wyprawa() -> void:
 			flaszki += 1
 		if it["id"] == "iron_arrows":
 			strzaly += int(it["qty"])
-	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"], ["armor", "Pancerz"]]:
+	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"]]:
 		var it = l[s[0]]
 		var nazwa: String = Dane.p(it["id"])["name"] if it else "brak"
 		var dop := "  ·  %d strzał" % strzaly if s[0] == "bow" and it else ""
 		if s[0] == "shield" and it and Dane.dwureczna(l):
 			dop += "  ·  odłożona przy broni 2H"
 		ekran.lista.add_child(_wiersz_info(Dane.ikona(it["id"]) if it else null, "%s: %s%s" % [s[1], nazwa, dop], Ui.M_TEKST if it else Ui.M_OSTRZ))
+	ekran.lista.add_child(_wiersz_info(Dane.ikona("ulepszenie_ochrona_common"), "Stała zbroja Hadrana  ·  ochrona %d%%  ·  dodatki %d/3" % [roundi(Dane.ochrona_zbroi(l) * 100), l["enhancements"].size()], Ui.M_TEKST))
+	for inst: Dictionary in l["enhancements"]:
+		ekran.lista.add_child(_wiersz_info(Dane.ikona(inst["id"]), str(Dane.p(inst["id"])["name"]) + "  ·  " + Dane.opis_dodatku(inst), Ui.M_ZLOTO2))
 	ekran.lista.add_child(_wiersz_info(Dane.ikona("ember_flask"), "Flaszki Żaru: %d   ·   Sakwa %d/12   ·   Relikwiarz %d/%d" % [flaszki, l["backpack"].size(), l["reliquary"].size(), Profil.max_relikwiarz()], Ui.M_TEKST if flaszki > 0 else Ui.M_OSTRZ))
 	_pokaz_kraine(wybrana)
 
@@ -310,7 +314,7 @@ func _ekwipunek() -> void:
 	ekran.lista.add_child(Ui.belka_sekcji("Rynsztunek na wyprawę"))
 	if Dane.dwureczna(l) and l.get("shield") != null:
 		ekran.lista.add_child(Ui.tekst_menu("Broń 2H: tarcza odłożona, okno parowania krótsze o połowę.", 14, Ui.M_OSTRZ))
-	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"], ["armor", "Pancerz"]]:
+	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"]]:
 		var slot: String = s[0]
 		if l[slot] == null:
 			ekran.lista.add_child(_wiersz_info(null, "%s: puste miejsce" % s[1], Ui.M_WYL))
@@ -323,6 +327,21 @@ func _ekwipunek() -> void:
 			d["stash"].append(l[slot])
 			l[slot] = null
 			_zmiana())
+	ekran.lista.add_child(Ui.belka_sekcji("Stała zbroja Hadrana — dodatki %d / 3" % l["enhancements"].size()))
+	var opis_zbroi := Ui.tekst_menu("Ochrona %d%%. Załóż trzy różne dodatki przed wyprawą. Założone dodatki tracisz po śmierci." % roundi(Dane.ochrona_zbroi(l) * 100), 14, Ui.M_TEKST)
+	opis_zbroi.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ekran.lista.add_child(opis_zbroi)
+	for i in 3:
+		if i >= l["enhancements"].size():
+			ekran.lista.add_child(_wiersz_info(null, "Dodatek %d: puste miejsce" % (i + 1), Ui.M_WYL))
+			continue
+		var inst: Dictionary = l["enhancements"][i]
+		var uid: String = inst["uid"]
+		_wiersz_przedmiotu(inst, "dodatek_" + uid, "A: zdejmij do Skrytki", func():
+			if Profil.zdejmij_dodatek(uid):
+				_zmiana()
+			else:
+				_info("Skrytka jest pełna!"))
 	ekran.lista.add_child(Ui.belka_sekcji("Relikwiarz  %d / %d  (przeżywa śmierć)" % [l["reliquary"].size(), Profil.max_relikwiarz()]))
 	for i in l["reliquary"].size():
 		var idx: int = i
@@ -338,6 +357,9 @@ func _ekwipunek() -> void:
 		var idx: int = i
 		_wiersz_przedmiotu(l["backpack"][i], "bp%d" % i, "A: do Skrytki   ·   Y: do Relikwiarza",
 			func():
+				if Dane.typ(l["backpack"][idx]["id"]) == "enhancement":
+					_zaloz_dodatek(l["backpack"][idx])
+					return
 				if d["stash"].size() >= Profil.max_skrytka():
 					_info("Skrytka jest pełna!")
 					return
@@ -351,11 +373,11 @@ func _ekwipunek() -> void:
 				_zmiana())
 	_wolne(Profil.SAKWA_MAX - l["backpack"].size())
 	ekran.lista.add_child(Ui.belka_sekcji("Skrytka Warowni  %d / %d" % [d["stash"].size(), Profil.max_skrytka()]))
-	var sort := Ui.wiersz_listy(load("res://zasoby/ui/menu/ikona_kronika.webp"), "Sortuj Skrytkę", "broń, tarcze, łuki, pancerze, strzały, mikstury…", "")
+	var sort := Ui.wiersz_listy(load("res://zasoby/ui/menu/ikona_kronika.webp"), "Sortuj Skrytkę", "broń, tarcze, łuki, dodatki, strzały, mikstury…", "")
 	sort.set_meta("klucz", "sortuj")
 	sort.pressed.connect(func():
 		_fokus_klucz = "sortuj"
-		var kol := {"weapon": 1, "shield": 2, "bow": 3, "armor": 4, "arrow": 5, "elixir": 6, "material": 7, "valuable": 8}
+		var kol := {"weapon": 1, "shield": 2, "bow": 3, "enhancement": 4, "arrow": 5, "elixir": 6, "material": 7, "valuable": 8}
 		d["stash"].sort_custom(func(a, b): return kol.get(Dane.typ(a["id"]), 9) < kol.get(Dane.typ(b["id"]), 9))
 		_zmiana())
 	_kram_wiersz(sort, func(): _pokaz_bohatera())
@@ -365,7 +387,10 @@ func _ekwipunek() -> void:
 			func():
 				var it: Dictionary = d["stash"][idx]
 				var t := Dane.typ(it["id"])
-				if t in ["weapon", "shield", "bow", "armor"] and l[t] == null:
+				if t == "enhancement":
+					_zaloz_dodatek(it)
+					return
+				if t in ["weapon", "shield", "bow"] and l[t] == null:
 					l[t] = d["stash"].pop_at(idx)
 				elif l["backpack"].size() < Profil.SAKWA_MAX:
 					l["backpack"].append(d["stash"].pop_at(idx))
@@ -388,9 +413,18 @@ func _wolne(ile: int) -> void:
 		ekran.lista.add_child(_wiersz_info(null, "wolne miejsca: %d" % ile, Ui.M_WYL))
 
 
+func _zaloz_dodatek(inst: Dictionary) -> void:
+	if Profil.zaloz_dodatek(str(inst["uid"])):
+		_zmiana()
+	else:
+		_info("Zdejmij dodatek tego samego rodzaju albo zwolnij jedno z trzech miejsc.")
+
+
 ## Wiersz przedmiotu: A = akcja, Y (pad) / Shift+klik = do Relikwiarza.
 func _wiersz_przedmiotu(inst: Dictionary, klucz: String, podpowiedz: String, akcja: Callable, na_relikwiarz := Callable()) -> void:
 	var d := Dane.p(inst["id"])
+	if d.get("type") == "enhancement" and (klucz.begins_with("st") or klucz.begins_with("bp")):
+		podpowiedz = "A: załóż na zbroję przed rajdem  ·  Y: do Relikwiarza"
 	var dop := " ×%d" % int(inst["qty"]) if d.get("type") == "arrow" else ""
 	var rz: Color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
 	var w := Ui.wiersz_listy(Dane.ikona(inst["id"]), str(d["name"]) + dop, _krotkie_staty(inst), str(Dane.NAZWY_TYPOW.get(d.get("type"), "")), false, rz.lightened(0.3))
@@ -418,9 +452,15 @@ func _pokaz_bohatera() -> void:
 	ekran.szczegoly.add_child(Ui.naglowek_menu("BOHATER", 11, Ui.M_ZAR, 3))
 	_sz_nazwa = Ui.naglowek_menu("Hadræn", 26, Ui.M_JASNY)
 	ekran.szczegoly.add_child(_sz_nazwa)
-	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"], ["armor", "Pancerz"]]:
+	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"]]:
 		var it = l[s[0]]
 		ekran.szczegoly.add_child(Ui.para(s[1], Dane.p(it["id"])["name"] if it else "brak", Ui.M_ZLOTO2 if it else Ui.M_OSTRZ))
+	ekran.szczegoly.add_child(Ui.para("Stała zbroja", "Ochrona %d%%" % roundi(Dane.ochrona_zbroi(l) * 100)))
+	for i in 3:
+		var tekst := "puste miejsce"
+		if i < l["enhancements"].size():
+			tekst = Dane.opis_dodatku(l["enhancements"][i])
+		ekran.szczegoly.add_child(Ui.para("Dodatek %d" % (i + 1), tekst))
 	_kram_dol("", Callable(), true)
 
 
@@ -474,7 +514,7 @@ var _sz_akcja: Button
 var _kram_akcja := Callable()
 var _kram_ostatni: Button
 
-const SEKCJE_KRAMU := [["weapon", "Broń biała"], ["shield", "Tarcze"], ["bow", "Łuki i strzały"], ["armor", "Pancerze"], ["elixir", "Mikstury"]]
+const SEKCJE_KRAMU := [["weapon", "Broń biała"], ["shield", "Tarcze"], ["bow", "Łuki i strzały"], ["elixir", "Mikstury"]]
 
 
 func _kram_tryb(t: String) -> void:
@@ -483,6 +523,7 @@ func _kram_tryb(t: String) -> void:
 	tryb_kupca = t
 	_komunikat_kupca = ""
 	_fokus_klucz = ""
+	_fokus_indeks = 0
 	Dzwiek.ui()
 	odswiez()
 
@@ -516,26 +557,6 @@ func _kupiec() -> void:
 				if Profil.przyjmij_dar():
 					_zmiana())
 			_kram_wiersz(z, func(): _kram_pokaz_tekst("Zestaw Wygnańca", "DAR MARGI", "Dla tych, którzy wracają z niczym: zardzewiały miecz, drewniany puklerz i jedna Flaszka Żaru. Dary mają wartość skupu 0 zł. Puklerz otrzymasz, jeśli nie masz założonej tarczy. Flaszkę dostaniesz, jeśli nie masz żadnej i masz na nią miejsce.", "Weź zestaw", func(): z.pressed.emit()))
-		kram.lista.add_child(Ui.belka_sekcji("Naprawa pancerza"))
-		var pancerze: Array = d["stash"] + d["loadout"]["backpack"] + d["loadout"]["reliquary"]
-		if d["loadout"].get("armor") != null:
-			pancerze.append(d["loadout"]["armor"])
-		for inst in pancerze:
-			if Dane.typ(str(inst.get("id", ""))) != "armor" or Dane.cena_naprawy(inst) <= 0:
-				continue
-			var naprawiany: Dictionary = inst
-			var uid: String = str(inst.get("uid", ""))
-			var cena_naprawy: int = Dane.cena_naprawy(inst)
-			var nap := Ui.wiersz_listy(Dane.ikona(inst["id"]), "Napraw: " + str(Dane.p(inst["id"])["name"]), "Wytrzymałość %d%%" % roundi(Dane.stan_pancerza(inst) * 100), "%d zł" % cena_naprawy, false, Ui.M_ZLOTO if int(d["gold"]) >= cena_naprawy else Ui.M_OSTRZ)
-			nap.set_meta("klucz", "napraw_" + uid)
-			nap.pressed.connect(func():
-				_fokus_klucz = "napraw_" + uid
-				if Profil.napraw(uid):
-					_zmiana()
-				else:
-					_info("Naprawa niedostępna. Sprawdź stan pancerza i złoto."))
-			_kram_wiersz(nap, func():
-				_kram_pokaz_tekst(str(Dane.p(naprawiany["id"])["name"]), "NAPRAWA", Dane.opis_statystyk(naprawiany), "Napraw za %d zł" % Dane.cena_naprawy(naprawiany), func(): nap.pressed.emit()))
 		for sek in SEKCJE_KRAMU:
 			var typy: Array = ["bow", "arrow"] if sek[0] == "bow" else [sek[0]]
 			var ids: Array = []
@@ -624,6 +645,10 @@ func _kram_wiersz(w: Button, pokaz: Callable) -> void:
 	kram.lista.add_child(w)
 	kram.lista.add_child(Ui.linia())
 	w.focus_entered.connect(func(): _kram_ostatni = w; pokaz.call())
+	w.focus_entered.connect(func():
+		_fokus_klucz = str(w.get_meta("klucz", ""))
+		var przyciski: Array = kram.lista.find_children("*", "Button", true, false).filter(func(b): return b.focus_mode != Control.FOCUS_NONE and not b.disabled)
+		_fokus_indeks = maxi(0, przyciski.find(w)))
 	w.mouse_entered.connect(func(): _kram_ostatni = w; pokaz.call())
 
 
@@ -631,14 +656,14 @@ func _kram_wiersz(w: Button, pokaz: Callable) -> void:
 func _krotkie_staty(inst: Dictionary) -> String:
 	var d := Dane.p(inst["id"])
 	match str(d.get("type", "")):
+		"enhancement":
+			return Dane.opis_dodatku(inst)
 		"weapon":
 			return "%dH  ·  Obrażenia %d  ·  Postura %d" % [int(d.get("hands", 1)), d["dmg"], roundi(Dane.postura_broni(d))]
 		"shield":
 			return "Blok %d%%  ·  Parowanie +%d ms" % [roundi(d["blockRed"] * 100), roundi(d["parryBonus"] * 1000)]
 		"bow":
 			return "Obrażenia %d  ·  Zasięg %d m" % [d["dmg"], roundi(float(d["range"]))]
-		"armor":
-			return "Ochrona %d%%  ·  Unik +%d staminy" % [roundi(Dane.ochrona_pancerza(inst) * 100), int(d.get("dodgeCost", 0))]
 		"arrow":
 			return "%d szt." % int(inst.get("qty", 0))
 	return str(Dane.NAZWY_TYPOW.get(d.get("type"), ""))
@@ -693,14 +718,12 @@ func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
 			kram.szczegoly.add_child(Ui.para("Parowanie", "+%d ms" % roundi(def["parryBonus"] * 1000)))
 		"bow":
 			kram.szczegoly.add_child(Ui.para("Obrażenia", "%d" % int(def["dmg"])))
-		"armor":
-			kram.szczegoly.add_child(Ui.para("Redukcja", "%d%%  (Kl. %d)" % [roundi(Dane.ochrona_pancerza(inst) * 100), int(def["tier"])]))
 			kram.szczegoly.add_child(Ui.para("Wytrzymałość", "%d / %d" % [ceili(float(inst.get("durability", def["maxDurability"]))), int(def["maxDurability"])]))
 			kram.szczegoly.add_child(Ui.para("Unik", "+%d staminy" % int(def.get("dodgeCost", 0))))
 		"arrow":
 			kram.szczegoly.add_child(Ui.para("Ilość", "%d szt." % int(inst.get("qty", 0))))
 	# porównanie z założonym tego samego rodzaju: zielone ▲ lepsze, czerwone ▼ gorsze
-	var zal = d["loadout"].get(t) if t in ["weapon", "shield", "bow", "armor"] else null
+	var zal = d["loadout"].get(t) if t in ["weapon", "shield", "bow"] else null
 	_sz_porown = Ui.tekst_menu("", 14, Ui.M_DRUGI)
 	if zal != null:
 		var zd := Dane.p(zal["id"])
@@ -712,12 +735,9 @@ func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
 		elif t == "shield":
 			roznica = roundi((float(def["blockRed"]) - float(zd["blockRed"])) * 100)
 			co = "blok %+d%%" % roznica
-		elif t == "armor":
-			roznica = roundi((Dane.ochrona_pancerza(inst) - Dane.ochrona_pancerza(zal)) * 100)
-			co = "redukcja %+d%%" % roznica
 		_sz_porown.text = "Założone: %s   %s %s" % [zd["name"], "▲" if roznica > 0 else ("▼" if roznica < 0 else "="), co]
 		_sz_porown.add_theme_color_override("font_color", Ui.M_ZIELONY if roznica > 0 else (Ui.M_OSTRZ if roznica < 0 else Ui.M_DRUGI))
-	elif t in ["weapon", "shield", "bow", "armor"]:
+	elif t in ["weapon", "shield", "bow"]:
 		_sz_porown.text = "Nie masz założonego przedmiotu tego rodzaju."
 	kram.szczegoly.add_child(_sz_porown)
 	var kuznia := Profil.budynek("forge")
@@ -759,6 +779,9 @@ func _kram_dol(tekst: String, akcja: Callable, tylko_gdy_akcja: bool, ostrzezeni
 func _kup(id: String) -> void:
 	var d := Profil.d
 	var def := Dane.p(id)
+	if def.get("type") in ["armor", "enhancement"]:
+		_info("Dodatki do zbroi znajdziesz podczas wypraw.")
+		return
 	var cena := int(def["price"])
 	if int(def.get("forgeReq", 0)) > Profil.budynek("forge"):
 		_info("Ten oręż wymaga Kuźni na poziomie %d." % int(def["forgeReq"]))
@@ -773,7 +796,7 @@ func _kup(id: String) -> void:
 	var inst := Profil.nowy_przedmiot(id)
 	var t: String = def["type"]
 	var l: Dictionary = d["loadout"]
-	if t in ["weapon", "shield", "bow", "armor"] and l[t] == null:
+	if t in ["weapon", "shield", "bow"] and l[t] == null:
 		l[t] = inst
 	elif d["stash"].size() < Profil.max_skrytka():
 		d["stash"].append(inst)

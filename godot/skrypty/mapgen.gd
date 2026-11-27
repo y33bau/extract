@@ -9,11 +9,11 @@ enum K { PODLOGA, SCIEZKA, MUR, FILAR, KOSZ, GRUZ, EKSTRAKCJA, WODA }   # WODA: 
 
 const PULE_LUPU := {
 	"loot_chest": ["iron_ingot", "iron_arrows", "ember_flask", "stamina_tonic", "ash_salve", "silver_goblet", "steel_falchion", "iron_kite", "yew_longbow"],
-	"loot_sarcophagus": ["ash_essence", "ancient_relic", "runic_ring", "golden_idol", "ash_greatsword", "ash_plate", "ember_flask"],
-	"loot_knight": ["iron_ingot", "iron_arrows", "chainmail_hauberk", "warden_glaive", "iron_kite", "ash_salve", "silver_goblet"],
+	"loot_sarcophagus": ["ash_essence", "ancient_relic", "runic_ring", "golden_idol", "ash_greatsword", "@rzadki_dodatek", "ember_flask"],
+	"loot_knight": ["iron_ingot", "iron_arrows", "@dodatek", "warden_glaive", "iron_kite", "ash_salve", "silver_goblet"],
 }
 const NAZWY := {"loot_chest": "Okuta Skrzynia", "loot_sarcophagus": "Kamienny Sarkofag", "loot_knight": "Szczątki Rycerza"}
-const RZADKIE := ["ancient_relic", "golden_idol", "ash_greatsword", "ash_plate"]
+const RZADKIE := ["ancient_relic", "golden_idol", "ash_greatsword", "@rzadki_dodatek"]
 
 ## Rodzaje komnat: [min szer, max szer, min wys, max wys, waga losowania].
 const RODZAJE := {
@@ -198,6 +198,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 		var c: Vector2i = korytarze[rng_lup.randi_range(0, korytarze.size() - 1)]
 		if siatka[idx(c.x, c.y)] == K.SCIEZKA and not _zajete(c.x, c.y):
 			_dodaj_skrzynie(c.x, c.y, "loot_knight", szczescie)
+	uzupelnij_dodatki(skrzynie, rng_lup)
 
 
 func _postaw_ekstrakcje(c: Vector2i, komnata: int) -> void:
@@ -505,3 +506,13 @@ func _dodaj_skrzynie(x: int, y: int, rodzaj: String, szczescie: float) -> void:
 			id = "ash_essence" if rng_lup.randf() < 0.5 else "runic_ring"
 		lista.append({"przedmiot": Profil.nowy_przedmiot(id), "odkryty": false})
 	skrzynie.append({"tx": x, "ty": y, "w": Vector2(x + 0.5, y + 0.5), "rodzaj": rodzaj, "nazwa": NAZWY[rodzaj], "przedmioty": lista})
+
+
+## Jakość dodatków losujemy po rozmieszczeniu obiektów, by nie przestawiać skrzyń i wrogów.
+static func uzupelnij_dodatki(pojemniki: Array, rng: RandomNumberGenerator) -> void:
+	for poj: Dictionary in pojemniki:
+		for wpis: Dictionary in poj["przedmioty"]:
+			if str(wpis["przedmiot"]["id"]).begins_with("@"):
+				wpis["przedmiot"] = Profil.nowy_przedmiot(Dane.losuj_dodatek(rng))
+		if rng.randf() < float(Dane.ulepszenia_zbroi["containerDropChance"]):
+			poj["przedmioty"].append({"przedmiot": Profil.nowy_przedmiot(Dane.losuj_dodatek(rng)), "odkryty": false})

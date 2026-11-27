@@ -2,6 +2,8 @@ Stan na 2026-11-27, rola grafik.
 
 # Wyposażenie widoczne na Hadranie
 
+**Aktualizacja decyzji autora 27.11:** wymienne nakładki pancerzy zostały odrzucone i wycofane w rundzie `ulepszenia-interakcje-i-pad`. Hadræn zachowuje oryginalny strój; trzy dodatki z łupu zmieniają statystyki. Poniższy opis pancerzy jest historią produkcji assetów. Bieżący system i migrację opisuje `DODATKI_INTERAKCJE_PAD_2026-11-27.md`. Bronie, tarcze, łuki i poprawki chwytów pozostają w grze.
+
 ## Korekta chwytów po ocenie autora
 
 Gałąź `grafika-poprawne-chwyty`, od `fb91b01`. Ostrza wychodzą od strony kciuka, a pivot znajduje się w zamkniętej dłoni. Poprawiono przód wszystkich tarcz, ich odłożenie na plecach i tylne uchwyty. Z puklerza usunięto wygenerowaną bryłę przypominającą dodatkową pięść. Drzewce glewii zwężono w części chwytowej; głownia pozostaje szeroka i skierowana ku górze lub ku celowi.

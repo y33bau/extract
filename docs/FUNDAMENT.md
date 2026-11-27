@@ -26,11 +26,13 @@ Warownia (przygotowanie) → rajd (walka, łup, decyzja: wyjść czy iść głę
 
 - Długość: ok. 20 minut (decyzja autora 26.11.2026: mapy 128×128 m, rajd 20 min).
 - Wczesne wyjście możliwe po kilku minutach. Gracz sam wybiera ryzyko: wyjść z małym łupem albo iść głębiej po więcej.
+- **Decyzja autora 27.11.2026:** menu pauzy umożliwia porzucenie rajdu i powrót do Przystani po potwierdzeniu. Porzucenie oznacza utratę niesionego wyposażenia i bieżącego łupu, bez doświadczenia ani postępu kontraktów z wyprawy. Relikwiarz pozostaje bezpieczny.
 
 ## Bohater
 
 - Jedna postać: Hadræn. Cały postęp idzie w jednego bohatera.
 - **Broń jest klasą:** topór gra jak Kat, dwie szable jak Zabójczyni, miecz i tarcza jak Rycerz. Broń zmieniasz przed każdym rajdem.
+- **Decyzja autora 27.11.2026:** Hadræn ma jeden stały strój. Wycofujemy wymienne zbroje ze sklepu i świata; rozwój ochrony i mobilności zapewniają dodatki z łupu. Przed wyprawą można założyć trzy dodatki, o jakości zwykłej, magicznej, epickiej lub legendarnej. Założone dodatki podlegają utracie jak inne wyposażenie.
 
 ## Walka (decyzja autora 25.11.2026)
 

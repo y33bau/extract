@@ -4,18 +4,21 @@ extends Node
 signal awans(umiejetnosc: String, poziom: int)
 signal zmiana
 
-const SCIEZKA := "user://warownia_zapis_v2.json"
-const STARY_ZAPIS := "user://warownia_zapis_v1.json"
+const SCIEZKA := "user://warownia_zapis_v3.json"
+const STARE_ZAPISY := ["user://warownia_zapis_v2.json", "user://warownia_zapis_v1.json"]
 const SAKWA_MAX := 12
 
 var d: Dictionary = {}
 var sciezka := SCIEZKA  # testy mogą podmienić
+var sciezka_ustawien := "user://ustawienia.cfg"
 
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--zapis="):
 			sciezka = a.substr(8)
+		if a.begins_with("--ustawienia="):
+			sciezka_ustawien = a.trim_prefix("--ustawienia=")
 	wczytaj()
 
 
@@ -34,7 +37,7 @@ func domyslny() -> Dictionary:
 	for k in ["melee", "parry", "endurance", "archery", "scavenger"]:
 		sk[k] = {"lv": 1, "xp": 0.0}
 	return {
-		"version": 2,
+		"version": 3,
 		"gold": 650,
 		"stats": {"raids": 0, "survived": 0, "kills": 0, "parries": 0},
 		"stronghold": {"forge": 0, "alchemist": 0, "altar": 0, "vault": 0},
@@ -43,7 +46,7 @@ func domyslny() -> Dictionary:
 			"weapon": nowy_przedmiot("rusty_sword"),
 			"shield": nowy_przedmiot("wood_buckler"),
 			"bow": nowy_przedmiot("hunter_bow"),
-			"armor": nowy_przedmiot("leather_jerkin"),
+			"enhancements": [],
 			"backpack": [nowy_przedmiot("iron_arrows", 16), nowy_przedmiot("ember_flask"), nowy_przedmiot("ember_flask"),
 				nowy_przedmiot("stamina_tonic"), nowy_przedmiot("ash_salve")],
 			"reliquary": [nowy_przedmiot("ember_flask")],
@@ -56,8 +59,11 @@ func domyslny() -> Dictionary:
 
 func wczytaj() -> void:
 	var plik: String = sciezka
-	if sciezka == SCIEZKA and not FileAccess.file_exists(sciezka) and FileAccess.file_exists(STARY_ZAPIS):
-		plik = STARY_ZAPIS
+	if sciezka == SCIEZKA and not FileAccess.file_exists(sciezka):
+		for stary: String in STARE_ZAPISY:
+			if FileAccess.file_exists(stary):
+				plik = stary
+				break
 	if FileAccess.file_exists(plik):
 		var f := FileAccess.open(plik, FileAccess.READ)
 		var w: Variant = JSON.parse_string(f.get_as_text())
@@ -65,15 +71,17 @@ func wczytaj() -> void:
 			d = w
 			if not d.has("kontrakty"):  # migracja zapisu sprzed kontraktów (25.11.2026)
 				d["kontrakty"] = nowe_kontrakty(3)
+			var stara_wersja: int = int(d.get("version", 1))
+			_migruj_dodatki()
 			_napraw_liczby()
-			if plik != sciezka:
+			if plik != sciezka or stara_wersja < 3:
 				zapisz()
 			return
 	d = domyslny()
 
 
 func _napraw_liczby() -> void:
-	d["version"] = 2
+	d["version"] = 3
 	# JSON zamienia liczby całkowite na zmiennoprzecinkowe: przywracamy
 	d["gold"] = int(d["gold"])
 	for k in d["stats"]:
@@ -97,6 +105,53 @@ func _napraw_liczby() -> void:
 				it["durability"] = clampf(float(it.get("durability", maks)), 0.0, maks)
 
 
+## Każda dawna zbroja staje się okuciem tej samej jakości. UID i własność zostają.
+func _migruj_dodatki() -> void:
+	var l: Dictionary = d["loadout"]
+	var lista: Array = l.get("enhancements", [])
+	if l.get("armor") is Dictionary:
+		lista.append(l["armor"])
+	l.erase("armor")
+	var poprawne: Array = []
+	for pojemnik: Array in [d["stash"], l["backpack"], l["reliquary"], lista]:
+		for inst: Dictionary in pojemnik:
+			var id: String = str(inst.get("id", ""))
+			if Dane.ulepszenia_zbroi["legacyArmor"].has(id):
+				inst["id"] = Dane.ulepszenia_zbroi["legacyArmor"][id]
+				inst.erase("durability")
+	l["enhancements"] = poprawne
+	for inst: Dictionary in lista:
+		if Dane.moze_zalozyc_dodatek(l, inst):
+			poprawne.append(inst)
+		else:
+			# Migracja nie kasuje nadmiaru, nawet jeśli stara skrytka była pełna.
+			d["stash"].append(inst)
+
+
+func zaloz_dodatek(uid: String) -> bool:
+	var l: Dictionary = d["loadout"]
+	for pojemnik: Array in [d["stash"], l["backpack"]]:
+		for i in pojemnik.size():
+			var inst: Dictionary = pojemnik[i]
+			if str(inst.get("uid", "")) == uid and Dane.moze_zalozyc_dodatek(l, inst):
+				l["enhancements"].append(pojemnik.pop_at(i))
+				zapisz()
+				return true
+	return false
+
+
+func zdejmij_dodatek(uid: String) -> bool:
+	if d["stash"].size() >= max_skrytka():
+		return false
+	var lista: Array = d["loadout"]["enhancements"]
+	for i in lista.size():
+		if str(lista[i].get("uid", "")) == uid:
+			d["stash"].append(lista.pop_at(i))
+			zapisz()
+			return true
+	return false
+
+
 func zapisz() -> void:
 	var f := FileAccess.open(sciezka, FileAccess.WRITE)
 	if f:
@@ -115,7 +170,10 @@ func przedmiot_uid(uid: String) -> Dictionary:
 		for it in lista:
 			if str(it.get("uid", "")) == uid and uid != "":
 				return it
-	for slot in ["weapon", "shield", "bow", "armor"]:
+	for it: Dictionary in d["loadout"].get("enhancements", []):
+		if str(it.get("uid", "")) == uid and uid != "":
+			return it
+	for slot in ["weapon", "shield", "bow"]:
 		var it = d["loadout"].get(slot)
 		if it is Dictionary and str(it.get("uid", "")) == uid and uid != "":
 			return it
@@ -240,16 +298,16 @@ const JAKOSCI := ["Niska", "Średnia", "Wysoka", "Ultra"]
 ## Jakość grafiki 0..3 (domyślnie Wysoka).
 func jakosc() -> int:
 	var c := ConfigFile.new()
-	if c.load(PLIK_USTAWIEN) != OK:
+	if c.load(sciezka_ustawien) != OK:
 		return 2
 	return clampi(int(c.get_value("grafika", "jakosc", 2)), 0, 3)
 
 
 func ustaw_jakosc(j: int) -> void:
 	var c := ConfigFile.new()
-	c.load(PLIK_USTAWIEN)
+	c.load(sciezka_ustawien)
 	c.set_value("grafika", "jakosc", clampi(j, 0, 3))
-	c.save(PLIK_USTAWIEN)
+	c.save(sciezka_ustawien)
 
 
 # ---------------------------------------------------------------- KONTRAKTY CHOJRAKA (KONCEPCJE pkt 1, runda 5)

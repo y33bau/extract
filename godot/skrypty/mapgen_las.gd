@@ -114,6 +114,7 @@ func generuj(kraina: Dictionary, ziarno: String, poziom_poszukiwacza: int) -> vo
 	_lupy(szczescie)
 	_wrogowie()
 	_dla_rajdu()
+	Mapgen.uzupelnij_dodatki(skrzynie, rng_lup)
 
 
 const K = Mapgen.K

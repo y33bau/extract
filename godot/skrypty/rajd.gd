@@ -777,8 +777,10 @@ func _zywy(en) -> bool:
 
 
 ## Wróg pod kursorem myszy (środek sylwetki na ekranie, nie stopy).
-func wrog_pod_kursorem():
+func wrog_pod_kursorem(punkt_ekranu := Vector2.INF):
 	var m := get_global_mouse_position()
+	if punkt_ekranu != Vector2.INF:
+		m = get_global_transform_with_canvas().affine_inverse() * punkt_ekranu
 	var naj = null
 	var min_d := 46.0
 	for en in wrogowie:
@@ -1134,12 +1136,7 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		if p.stamina <= 0.0:
 			napis(p.w - Vector2(0.95, 0.95), "PRZEŁAMANIE BLOKU!", Color("f87171"), 11)
 	else:
-		var zbroja = p.rynsztunek["armor"]
-		if zbroja and float(zbroja["durability"]) > 0.0:
-			var red: float = Dane.ochrona_pancerza(zbroja)
-			var poch := obr * red
-			zbroja["durability"] = maxf(0.0, float(zbroja["durability"]) - poch * 0.75)
-			obr = maxf(2.0, obr - poch)
+		obr = maxf(2.0, obr * (1.0 - Dane.ochrona_zbroi(p.rynsztunek)))
 		Dzwiek.bol()
 		p.niet = NIET_PO_TRAFIENIU
 		p.niet_miganie = true
@@ -1175,6 +1172,7 @@ func zabij(en: Wrog) -> void:
 	if en.boss:
 		for id in ["ash_crown", "ancient_relic", "ash_essence", "ash_greatsword"]:
 			lup.append(Profil.nowy_przedmiot(id))
+		lup.append(Profil.nowy_przedmiot(Dane.losuj_dodatek(r)))
 		toast.emit("🏆 POKONANO POPIELNEGO STRAŻNIKA! Przeszukaj jego szczątki!", "success")
 	else:
 		if r.randf() < 0.65:
@@ -1184,7 +1182,7 @@ func zabij(en: Wrog) -> void:
 		if en.rodzaj == "warden" and r.randf() < 0.55:
 			lup.append(Profil.nowy_przedmiot("iron_kite" if r.randf() < 0.5 else "runic_ring"))
 		if en.rodzaj == "knight" and r.randf() < 0.5:
-			lup.append(Profil.nowy_przedmiot("chainmail_hauberk" if r.randf() < 0.6 else "ancient_relic"))
+			lup.append(Profil.nowy_przedmiot(Dane.losuj_dodatek(r) if r.randf() < 0.6 else "ancient_relic"))
 		if en.rodzaj == "brute":
 			lup.append(Profil.nowy_przedmiot("iron_ingot"))
 			if r.randf() < 0.08:
@@ -1193,6 +1191,8 @@ func zabij(en: Wrog) -> void:
 				lup.append(Profil.nowy_przedmiot("golden_idol"))
 		if r.randf() < 0.45:
 			lup.append(Profil.nowy_przedmiot("ember_flask"))
+		if r.randf() < float(Dane.ulepszenia_zbroi["dropChance"]):
+			lup.append(Profil.nowy_przedmiot(Dane.losuj_dodatek(r)))
 		if lup.is_empty():
 			lup.append(Profil.nowy_przedmiot("silver_goblet"))
 	var lista: Array = []
@@ -1234,11 +1234,13 @@ func najblizszy_pojemnik():
 	var najlepszy = null
 	var nd := 1.7
 	for s in mapa.skrzynie:
+		if not mozna_przeszukac(s):continue
 		var d: float = s["w"].distance_to(gracz.w)
 		if d < nd:
 			nd = d
 			najlepszy = s
 	for z in zwloki:
+		if not mozna_przeszukac(z):continue
 		var d2: float = z["w"].distance_to(gracz.w)
 		if d2 < nd:
 			nd = d2
@@ -1246,15 +1248,60 @@ func najblizszy_pojemnik():
 	return najlepszy
 
 
+func mozna_przeszukac(poj: Dictionary) -> bool:
+	return not gracz.martwy and not zakonczony and gracz.w.distance_to(poj["w"]) < 1.7 and widoczne(poj["w"]) == 2 and linia_wzroku(gracz.w, poj["w"])
+
+
+func punkt_obiektu(poj: Dictionary, wysokosc := 0.7) -> Vector2:
+	var w: Vector2 = poj["w"]
+	if swiat3d != null:
+		return swiat3d.kamera.unproject_position(Vector3(w.x, wysokosc, w.y))
+	return get_global_transform_with_canvas() * Iso.ekran(w) - Vector2(0, wysokosc * 45)
+
+
+func pojemnik_pod_kursorem(punkt: Vector2):
+	var najlepszy = null
+	var odleglosc := 1000.0
+	for poj: Dictionary in mapa.skrzynie + zwloki:
+		if not mozna_przeszukac(poj):continue
+		var srodek := punkt_obiektu(poj, 0.35)
+		var d := punkt.distance_to(srodek)
+		if Rect2(srodek - Vector2(32, 24), Vector2(64, 48)).has_point(punkt) and d < odleglosc:
+			odleglosc = d
+			najlepszy = poj
+	return najlepszy
+
+
+func cel_interakcji():
+	if not Sterowanie.pad_aktywny:
+		var wskazany = pojemnik_pod_kursorem(get_viewport().get_mouse_position())
+		if wskazany != null:return wskazany
+	return najblizszy_pojemnik()
+
+
+func przeszukaj(poj: Dictionary) -> bool:
+	if okno_otwarte or not mozna_przeszukac(poj):return false
+	otworz(poj)
+	return true
+
+
 func interakcja() -> void:
 	if okno_otwarte or gracz.martwy:
 		return
-	var p = najblizszy_pojemnik()
+	var p = cel_interakcji()
 	if p != null:
-		otworz(p)
+		przeszukaj(p)
+
+
+func przerwij_klik_ataku() -> void:
+	bufor_ataku = 0.0
+	bufor_mocnego = 0.0
+	gracz.trzyma_atak = false
+	gracz.ladowanie = 0.0
 
 
 func otworz(pojemnik) -> void:
+	przerwij_klik_ataku()
 	okno_otwarte = true
 	aktywny_pojemnik = pojemnik
 	postep_szukania = 0.0
@@ -1272,9 +1319,15 @@ func zamknij_okno() -> void:
 
 # ---------------------------------------------------------------- PĘTLA
 func _unhandled_input(e: InputEvent) -> void:
+	if not okno_otwarte and not get_tree().paused and e.is_action_pressed("klik_interakcji"):
+		var punkt: Vector2 = e.position if e is InputEventMouseButton else get_viewport().get_mouse_position()
+		var poj = pojemnik_pod_kursorem(punkt)
+		if wrog_pod_kursorem(punkt) == null and poj != null and przeszukaj(poj):
+			get_viewport().set_input_as_handled()
+			return
 	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and not okno_otwarte:
 		mysz_aktywna = true
-		_klik_cel = wrog_pod_kursorem()
+		_klik_cel = wrog_pod_kursorem(e.position)
 		var m := Iso.swiat(get_global_mouse_position())
 		_klik_kier = (m - gracz.w).normalized() if m.distance_to(gracz.w) > 0.3 else Vector2.ZERO
 		_klik_czas = 0.6
@@ -1425,6 +1478,7 @@ func _aktualizuj(dt: float) -> void:
 	if p.stamina_przerwa > 0.0:
 		p.stamina_przerwa = maxf(0.0, p.stamina_przerwa - dt)
 	var odnowa := 24.0 * (1.0 + (Profil.poziom("endurance") - 1) * 0.08) * (1.65 if p.dopalacz_staminy > 0.0 else 1.0)
+	odnowa *= 1.0 + Dane.bonus_ulepszen(p.rynsztunek, "odnowa")
 	var mnoznik := 0.35 if p.blok else (0.2 if p.atak_czas > 0.0 else 1.0)
 	var ciezar := maxf(0.55, 1.0 - sakwa_obciazenie() * 0.035)
 	if p.stamina_przerwa <= 0.0:
@@ -1441,6 +1495,7 @@ func _aktualizuj(dt: float) -> void:
 		else:
 			var ruch := Iso.ekran_na_swiat_kierunek(Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol"))
 			var v := 1.9 if (p.blok or p.ladowanie >= PROG_MOCNEGO) else (V_W_CIOSIE if p.atak_czas > 0.0 else (V_PO_CIOSIE if p.atak_cd > 0.0 else 3.4))
+			v *= 1.0 + Dane.bonus_ulepszen(p.rynsztunek, "ruch")
 			# płynny ruch: rozpędzanie, hamowanie i łuk przy zmianie kierunku (pełna prędkość w ~0,15 s)
 			p.predkosc = p.predkosc.move_toward(ruch * v, (26.0 if ruch != Vector2.ZERO else 30.0) * dt)
 			if p.predkosc.length() > 0.15:
@@ -1676,7 +1731,7 @@ func _kopnij(kat_swiata: float, sila: float) -> void:
 
 
 # ---------------------------------------------------------------- KONIEC RAJDU
-func zakoncz(przezyl: bool, powod: String) -> void:
+func zakoncz(przezyl: bool, powod: String, porzucony := false) -> void:
 	if zakonczony:
 		return
 	zakonczony = true
@@ -1688,8 +1743,9 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 		blysk_trafienia = 1.0
 	var prof := Profil.d
 	prof["stats"]["raids"] += 1
-	prof["stats"]["kills"] += zabici
-	prof["stats"]["parries"] += parowania
+	if not porzucony:
+		prof["stats"]["kills"] += zabici
+		prof["stats"]["parries"] += parowania
 	var wartosc := 0
 	var l: Dictionary = p.rynsztunek
 	var lup_ids: Array = []  # tylko do ekranu wyniku (ikony łupu)
@@ -1709,16 +1765,16 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 		l["backpack"] = zostaje
 		prof["loadout"] = l
 	else:
-		prof["loadout"] = {"weapon": null, "shield": null, "bow": null, "armor": null, "backpack": [], "reliquary": l["reliquary"]}
+		prof["loadout"] = {"weapon": null, "shield": null, "bow": null, "enhancements": [], "backpack": [], "reliquary": l["reliquary"]}
 	# Fundament: po śmierci postęp zostaje, ale mniejszy (połowa doświadczenia)
-	var mnoznik_xp := 1.0 if przezyl else 0.5
+	var mnoznik_xp := 0.0 if porzucony else (1.0 if przezyl else 0.5)
 	var awanse: Array = []
 	var polacz := func(u, lv): awanse.append([u, lv])
 	Profil.awans.connect(polacz)
 	for u in xp_rajdu:
 		Profil.dodaj_xp(u, xp_rajdu[u] * mnoznik_xp)
 	Profil.awans.disconnect(polacz)
-	if Profil.budynek("alchemist") > 0 and prof["stash"].size() < Profil.max_skrytka():
+	if not porzucony and Profil.budynek("alchemist") > 0 and prof["stash"].size() < Profil.max_skrytka():
 		prof["stash"].append(Profil.nowy_przedmiot("ember_flask"))
 	var kontrakty: Array = Profil.rozlicz_kontrakty(kraina["id"], zabici, parowania, przezyl)
 	Profil.zapisz()

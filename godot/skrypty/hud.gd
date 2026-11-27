@@ -3,6 +3,7 @@ extends CanvasLayer
 
 const Ui = preload("res://skrypty/ui.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
+const PodpowiedzObiektu = preload("res://skrypty/podpowiedz_obiektu.gd")
 
 var rajd
 var info: Label
@@ -22,6 +23,9 @@ var baner: PanelContainer
 var baner_txt: Label
 var baner_pasek: ProgressBar
 var podpowiedz: Label
+var podpowiedz_obiektu: PodpowiedzObiektu
+var _cel_podpowiedzi = null
+var _podpowiedz_pochodni := false
 var toasty: VBoxContainer
 var winieta_trafienie: ColorRect
 var winieta_parowanie: ColorRect
@@ -146,6 +150,15 @@ void fragment() {
 	podpowiedz.add_theme_constant_override("outline_size", 6)
 	podpowiedz.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	srodek.add_child(podpowiedz)
+	podpowiedz.visible = false
+	podpowiedz_obiektu = PodpowiedzObiektu.new()
+	add_child(podpowiedz_obiektu)
+	podpowiedz_obiektu.pressed.connect(func():
+		if _cel_podpowiedzi != null:
+			rajd.przeszukaj(_cel_podpowiedzi)
+		elif _podpowiedz_pochodni and not rajd.okno_otwarte:
+			rajd.przerwij_klik_ataku()
+			rajd.pochodnia())
 	toasty = VBoxContainer.new()
 	toasty.alignment = BoxContainer.ALIGNMENT_CENTER
 	srodek.add_child(toasty)
@@ -276,13 +289,18 @@ func _process(_dt: float) -> void:
 	for e in r.mapa.ekstrakcje:
 		linie.append("%s: %d m" % [e["nazwa"], roundi(p.w.distance_to(e["w"]))])
 	kierunki.text = "\n".join(linie)
-	var poj = r.najblizszy_pojemnik() if not r.okno_otwarte else null
+	podpowiedz.text = ""
+	_cel_podpowiedzi = null
+	_podpowiedz_pochodni = false
+	var poj = r.cel_interakcji() if not r.okno_otwarte and not r.zakonczony else null
 	if poj != null:
-		podpowiedz.text = "E / Y: przeszukaj " + poj["nazwa"]
-	elif not r.okno_otwarte and r.pochodnia_na_ziemi != null and not p.pochodnia_w_rece and p.w.distance_to(r.pochodnia_na_ziemi) < 1.6:
-		podpowiedz.text = "F / krzyżak dół: podnieś pochodnię"
+		_cel_podpowiedzi = poj
+		podpowiedz_obiektu.pokaz(r.punkt_obiektu(poj, 0.75 if not r.zwloki.has(poj) else 0.45), str(poj["nazwa"]), "Przeszukaj")
+	elif not r.okno_otwarte and not r.zakonczony and r.pochodnia_na_ziemi != null and not p.pochodnia_w_rece and p.w.distance_to(r.pochodnia_na_ziemi) < 1.6:
+		_podpowiedz_pochodni = true
+		podpowiedz_obiektu.pokaz(r.punkt_obiektu({"w": r.pochodnia_na_ziemi}, 0.4), "Pochodnia", "Podnieś", "F", "krzyżak dół")
 	else:
-		podpowiedz.text = ""
+		podpowiedz_obiektu.hide()
 	(winieta_trafienie.material as ShaderMaterial).set_shader_parameter("sila", r.blysk_trafienia)
 	(winieta_parowanie.material as ShaderMaterial).set_shader_parameter("sila", r.blysk_parowania)
 	minimapa.queue_redraw()
@@ -393,7 +411,7 @@ func _rysuj_pasek_akcji() -> void:
 		["ikona:" + (str(z["bow"]["id"]) if z["bow"] else ""), r.liczba_strzal(), "Q", "b"],
 		["ikona:" + (str(z["weapon"]["id"]) if z["weapon"] else ""), -1, "LPM", "x"],
 		["ikona:" + (str(z["shield"]["id"]) if z["shield"] else ""), -1, "PPM", "lb"],
-		["ikona:" + (str(z["armor"]["id"]) if z["armor"] else ""), -1, "", ""],
+		["ikona:ulepszenie_ochrona_common", z.get("enhancements", []).size(), "", ""],
 		["hud:sakwa", z["backpack"].size(), "Tab", "widok"],
 		["hud:relikwiarz", z["reliquary"].size(), "", ""],
 	]
@@ -441,13 +459,14 @@ func _rysuj_pasek_akcji() -> void:
 	pasek.draw_texture_rect(_ikona_hud("postawa_" + stan), Rect2(m - Vector2(mb, mb) * 0.5, Vector2(mb, mb)), false, Color(1, 1, 1, 0.95))
 	pasek.draw_string_outline(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, roundi(13 * SKALA_TEKSTU), 3, Color(0, 0, 0, 0.95))
 	pasek.draw_string(f, Vector2(0, 56 * k), napis, HORIZONTAL_ALIGNMENT_CENTER, 724 * k, roundi(13 * SKALA_TEKSTU), kol)
-	# dolny pasek: wytrzymałość pancerza
-	if z["armor"]:
-		var d := Dane.p(z["armor"]["id"])
-		var u := clampf(float(z["armor"]["durability"]) / float(d["maxDurability"]), 0.0, 1.0)
-		var x0 := 60.0 * k
-		var szer := (662.0 - 60.0) * k
-		pasek.draw_rect(Rect2(x0, 171.0 * k, szer * u, 4.0 * k), Color(0.45, 0.7, 0.9, 0.85))
+	# Trzy miejsca na dodatki stałej zbroi, kolor oznacza jakość.
+	for i in 3:
+		var kolor := Color("49433a")
+		if i < z.get("enhancements", []).size():
+			var def: Dictionary = Dane.p(z["enhancements"][i]["id"])
+			kolor = Dane.KOLORY_RZADKOSCI.get(def.get("rarity"), Color.GRAY)
+		pasek.draw_rect(Rect2((294 + i * 48) * k, 171 * k, 38 * k, 5 * k), kolor)
+
 
 
 ## Stan na medalionie paska akcji: [ikona, napis, kolor].

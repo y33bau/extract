@@ -29,12 +29,10 @@ func odswiez(rynsztunek: Dictionary, zestaw: String, luk_w_rece := false, strzal
 	var bron := id_slotu(rynsztunek, "weapon")
 	var tarcza := id_slotu(rynsztunek, "shield")
 	var luk := id_slotu(rynsztunek, "bow")
-	var pancerz := id_slotu(rynsztunek, "armor")
-	var ma_pancerz: bool = pancerz in PANCERZE
-	_pokaz("cialo", not ma_pancerz)
-	_pokaz("cialo_pod_pancerzem", ma_pancerz)
+	_pokaz("cialo", true)
+	_pokaz("cialo_pod_pancerzem", false)
 	for id in PANCERZE:
-		_pokaz("pancerz_" + id, id == pancerz)
+		_pokaz("pancerz_" + id, false)
 	for id in BRONIE:
 		_pokaz("sprzet_" + id, id == bron and not luk_w_rece)
 		_pokaz("odlozona_" + id, id == bron and luk_w_rece)

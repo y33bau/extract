@@ -60,7 +60,7 @@ func _test() -> void:
 	for id in ["leather_jerkin", "chainmail_hauberk", "ash_plate"]:
 		p.rynsztunek["armor"] = {"id": id, "durability": 100}
 		widok._aktualizuj_bohatera(0.01)
-		ok("rajd wybiera pancerz " + id, (wyglad.wezly["pancerz_" + id] as Node3D).visible)
+		ok("rajd zachowuje oryginalny strój zamiast " + id, not (wyglad.wezly["pancerz_" + id] as Node3D).visible and (wyglad.wezly["cialo"] as Node3D).visible)
 	for id in ["hunter_bow", "yew_longbow", "shadow_bow"]:
 		p.rynsztunek["bow"] = {"id": id}
 		p.luk_cd = 0.58

@@ -17,6 +17,19 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola gamedev — dodatki do stroju, interakcje, pad i porzucenie rajdu
+
+- Gałąź: `ulepszenia-interakcje-i-pad`, od `3e4dae7`. Autor odrzucił wymienne zbroje i zlecił trzy miejsca na dodatki z łupu; w trakcie pracy dodał podpowiedzi i kliknięcia nad obiektami, naprawę pada oraz powrót do Przystani z utratą rajdu.
+- Stały oryginalny strój Hadrana, bazowe 24% ochrony. Zbroje i naprawy wycofane ze sklepu i łupu. Cztery rodzaje dodatków × cztery jakości, trzy różne dodatki przed wyprawą. Nowe wartości oznaczone do strojenia. Zapis v3 migruje v2/v1 bez kasowania przedmiotów: zbroje stają się okuciami, UID zachowane.
+- Lokalna etykieta E/Y nad NPC, skrzynią i zwłokami; klik obiektu lub etykiety. Zasięg, widoczność i linia wzroku; bez przypadkowego ataku przy przeszukaniu. Podpowiedź z góry HUD wyłączona.
+- Pad: LT/RT Kup-Sprzedaj, LB/RB sekcje, B powrót, jawne kierunki nawigacji, poprawny fokus po transakcjach. Usunięto globalną blokadę wejścia na 0,4 s; blokowane jest tylko puszczenie zatwierdzenia z poprzedniego ekranu. Dialogi obsługują B, porzucenie zaczyna od anulowania.
+- Pauza: potwierdzane porzucenie wyprawy wraca bezpośrednio do Przystani. Niesiony sprzęt i dodatki przepadają, Relikwiarz pozostaje; zero XP, łupu, złota, kontraktów i flaszki od Alchemika. Zwykła śmierć nadal ma połowę XP.
+- Testy: pełny Windows **168/168**; rzeczywista paczka Windows: dodatki **52/52**, interakcje **18/18**, pad/powrót **34/34**. W bazie były błędy menu/pada i zatrzymanie na `przystan.poziomy`; nowy pełny przebieg dochodzi do końca. Pomiar przewrotu obejmuje cały ruch z zachowanym progiem zamiast sześciu przypadkowych klatek.
+- Regresja losowania: nowe jakości przetwarzane po rozstawieniu mapy. Porównanie OSADA01 z bazą: identyczny układ, komnaty, punkty i RNG wrogów. Nie zmieniano liczebności przeciwników ani progów testu.
+- Regresja wyposażenia: GLB i chwyty **105/105**, wybór wyposażenia w Przystani i rajdzie **20/20**. Obejrzano podpowiedzi nad rozmówcą/skrzynią i stały oryginalny strój w grze. Archiwum Windows sprawdzone przez CRC.
+- Paczka: `Warownia_Dodatki_i_Pad_Test/TEST_DODATKI_I_PAD.bat`, osobny profil pokazowy z dodatkami w Skrytce. Raport i zrzuty: `ULEPSZENIA_ZBROI_2026-11-27`. Opis: `DODATKI_INTERAKCJE_PAD_2026-11-27.md`. Meshy: 0 dodatkowych kredytów, łącznie nadal 465/800.
+- Nie sprawdzono fizycznego kontrolera, odsłuchu, długiej sesji ani uruchomienia Linux (brak WSL). Symulowany pad sprawdzony we wszystkich nowych przepływach. `main` bez zmian; następny krok: ocena autora w grze i strojenie premii.
+
 ## 2026-11-27 — Codex, rola grafik — poprawne chwyty i kolizje tarcz
 
 - Gałąź: `grafika-poprawne-chwyty`, od `fb91b01`. Autor zgłosił odwrócone bronie i tarcze oraz miecz przechodzący przez tarczę.

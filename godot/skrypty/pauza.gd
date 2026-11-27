@@ -8,6 +8,7 @@ extends CanvasLayer
 signal wznowiono
 signal otwarto
 signal zresetowano  # usunięto zapis (Opcje → Dane zapisu)
+signal porzucono_rajd
 
 const Ui = preload("res://skrypty/ui.gd")
 const ZAKLADKI := ["Sterowanie", "Umiejętności", "Opcje"]
@@ -20,6 +21,8 @@ var wyjdz: Button
 var podtytul: Label
 var dialog_wyjscia: ConfirmationDialog
 var dialog_reset: ConfirmationDialog
+var dialog_porzuconego_rajdu: ConfirmationDialog
+var porzuc: Button
 var dane_zapisu: Button
 var tlo: TextureRect
 var _grafika: Button
@@ -123,6 +126,13 @@ func _ready() -> void:
 	wyjdz.add_theme_color_override("font_color", Ui.M_WYL)  # wygaszone, bez poświaty (jak „Porzuć noc”)
 	wyjdz.pressed.connect(func(): dialog_wyjscia.popup_centered())
 	dol.add_child(wyjdz)
+	porzuc = Ui.przycisk_menu("Porzuć rajd i wróć do Przystani")
+	porzuc.custom_minimum_size = Vector2(370, 56)
+	porzuc.add_theme_font_size_override("font_size", 17)
+	porzuc.pressed.connect(func():
+		dialog_porzuconego_rajdu.popup_centered()
+		dialog_porzuconego_rajdu.get_cancel_button().grab_focus.call_deferred())
+	dol.add_child(porzuc)
 	wroc = Ui.przycisk_menu("Wróć do gry", true)
 	wroc.custom_minimum_size = Vector2(300, 64)
 	wroc.pressed.connect(zamknij)
@@ -142,6 +152,18 @@ func _ready() -> void:
 	dialog_reset.cancel_button_text = "Anuluj"
 	dialog_reset.confirmed.connect(func(): Profil.resetuj(); zresetowano.emit(); _odswiez_umiejetnosci())
 	korzen.add_child(dialog_reset)
+	dialog_porzuconego_rajdu = ConfirmationDialog.new()
+	dialog_porzuconego_rajdu.title = "Porzucić wyprawę?"
+	dialog_porzuconego_rajdu.dialog_text = "Wrócisz do Przystani. Stracisz niesiony ekwipunek, założone dodatki i łup z tej wyprawy.\nNie otrzymasz doświadczenia ani postępu kontraktów. Relikwiarz pozostanie bezpieczny."
+	dialog_porzuconego_rajdu.ok_button_text = "Porzuć rajd"
+	dialog_porzuconego_rajdu.cancel_button_text = "Zostań w rajdzie"
+	dialog_porzuconego_rajdu.confirmed.connect(func():
+		dialog_porzuconego_rajdu.hide()
+		porzucono_rajd.emit())
+	dialog_porzuconego_rajdu.canceled.connect(func(): porzuc.grab_focus.call_deferred())
+	korzen.add_child(dialog_porzuconego_rajdu)
+	for dialog: ConfirmationDialog in [dialog_wyjscia, dialog_reset, dialog_porzuconego_rajdu]:
+		Ui.dialog_na_padzie(dialog, true)
 	_odswiez_rzad()
 
 
@@ -353,6 +375,7 @@ func otworz(miejsce: String, rajd_trwa: bool, statystyki := "", kraina := "") ->
 	podtytul.text = miejsce.to_upper() + ("   ·   " + statystyki.to_upper() if statystyki != "" else "")
 	tlo.texture = load("res://zasoby/ui/menu/%s.webp" % TLA.get(kraina, "tlo_menu_1"))
 	wyjdz.visible = not rajd_trwa  # w rajdzie nie ma ucieczki z gry (pauza to nie wyjście z wyprawy)
+	porzuc.visible = rajd_trwa
 	dane_zapisu.visible = not rajd_trwa  # w trakcie wyprawy nie kasujemy zapisu
 	_ustaw_podzakladke(Sterowanie.pad_aktywny)
 	_napisy_ustawien()
@@ -385,8 +408,8 @@ func _fokus_w_zakladce() -> void:
 	wroc.grab_focus.call_deferred()
 
 
-func _unhandled_input(e: InputEvent) -> void:
-	if not visible or dialog_wyjscia.visible or dialog_reset.visible:
+func _input(e: InputEvent) -> void:
+	if not visible or dialog_wyjscia.visible or dialog_reset.visible or dialog_porzuconego_rajdu.visible:
 		return
 	if e.is_action_pressed("pauza") or e.is_action_pressed("ui_cancel"):
 		zamknij()

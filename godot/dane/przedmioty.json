@@ -172,7 +172,9 @@
   "maxDurability": 50,
   "reduction": 0.24,
   "desc": "Lekka zbroja zapewniająca podstawową ochronę (24% redukcji).",
-  "dodgeCost": 0
+  "dodgeCost": 0,
+  "shop": false,
+  "retired": true
  },
  "chainmail_hauberk": {
   "id": "chainmail_hauberk",
@@ -185,7 +187,9 @@
   "maxDurability": 90,
   "reduction": 0.42,
   "desc": "Gęsto pleciona kolczuga (42% redukcji obrażeń).",
-  "dodgeCost": 4
+  "dodgeCost": 4,
+  "shop": false,
+  "retired": true
  },
  "ash_plate": {
   "id": "ash_plate",
@@ -198,7 +202,9 @@
   "maxDurability": 140,
   "reduction": 0.58,
   "desc": "Ciężki pancerz płytowy wykuty w popiele (58% redukcji).",
-  "dodgeCost": 9
+  "dodgeCost": 9,
+  "shop": false,
+  "retired": true
  },
  "ember_flask": {
   "id": "ember_flask",

@@ -46,6 +46,7 @@ func _ready() -> void:
 	_akcja("unik", [_klaw(KEY_SPACE), _klaw(KEY_SHIFT), _pr(JOY_BUTTON_A)])
 	_akcja("luk", [_klaw(KEY_Q), _pr(JOY_BUTTON_B)])
 	_akcja("interakcja", [_klaw(KEY_E), _klaw(KEY_ENTER), _klaw(KEY_KP_ENTER), _pr(JOY_BUTTON_Y)])
+	_akcja("klik_interakcji", [_mysz(MOUSE_BUTTON_LEFT)])
 	_akcja("pochodnia", [_klaw(KEY_F), _pr(JOY_BUTTON_DPAD_DOWN)])
 	_akcja("zrzut_sakwy", [_klaw(KEY_G), _pr(JOY_BUTTON_LEFT_STICK)])
 	_akcja("namierz", [_klaw(KEY_R), _mysz(MOUSE_BUTTON_MIDDLE), _pr(JOY_BUTTON_RIGHT_STICK)])
@@ -57,6 +58,10 @@ func _ready() -> void:
 	# Menu: Godot 4.7 domyślnie NIE przypisuje pada do zatwierdź/anuluj (wykryte testem): A zatwierdza, B wraca
 	_akcja("ui_accept", [_pr(JOY_BUTTON_A)])
 	_akcja("ui_cancel", [_pr(JOY_BUTTON_B)])
+	_akcja("ui_left", [_pr(JOY_BUTTON_DPAD_LEFT), _os(JOY_AXIS_LEFT_X, -1.0)])
+	_akcja("ui_right", [_pr(JOY_BUTTON_DPAD_RIGHT), _os(JOY_AXIS_LEFT_X, 1.0)])
+	_akcja("ui_up", [_pr(JOY_BUTTON_DPAD_UP), _os(JOY_AXIS_LEFT_Y, -1.0)])
+	_akcja("ui_down", [_pr(JOY_BUTTON_DPAD_DOWN), _os(JOY_AXIS_LEFT_Y, 1.0)])
 	# W oknach: Y = do Relikwiarza, X = wyrzuć, LB/RB = zakładki
 	_akcja("okno_relikwiarz", [_pr(JOY_BUTTON_Y)])
 	_akcja("okno_wyrzuc", [_pr(JOY_BUTTON_X)])

@@ -187,13 +187,23 @@ static func tryb_autora() -> bool:
 	return "--autor" in OS.get_cmdline_user_args()
 
 
-## Blokada 0,4 s po otwarciu ekranu menu (A, które otworzyło menu, nie klika pierwszej pozycji; zasada NightBrand).
-static func blokada_po_otwarciu(wezel: Node, czas := 0.4) -> void:
-	var vp := wezel.get_viewport()
-	if vp == null:
-		return
-	vp.gui_disable_input = true
-	wezel.get_tree().create_timer(czas, true, false, true).timeout.connect(func(): if is_instance_valid(vp): vp.gui_disable_input = false)
+## A z poprzedniego ekranu nie zatwierdza nowego. Inne wejście pozostaje aktywne.
+static func blokada_po_otwarciu(wezel: Node, _czas := 0.4) -> void:
+	if Input.is_action_pressed("ui_accept"):
+		wezel.add_child(preload("res://skrypty/blokada_zatwierdzenia.gd").new())
+
+
+## Okna potwierdzenia mają własny viewport: B obsługujemy także wewnątrz niego.
+static func dialog_na_padzie(dialog: ConfirmationDialog, bezpieczny_fokus := false) -> void:
+	dialog.window_input.connect(func(e: InputEvent):
+		if e.is_action_pressed("ui_cancel"):
+			dialog.hide()
+			dialog.canceled.emit()
+			dialog.set_input_as_handled())
+	if bezpieczny_fokus:
+		dialog.about_to_popup.connect(func():
+			await dialog.get_tree().process_frame
+			if dialog.visible:dialog.get_cancel_button().grab_focus())
 
 
 ## Tło menu: czarne półcienie u góry i u dołu (gradient teksturą, bez shaderów).
@@ -568,6 +578,7 @@ static func zakladka_menu(t: String, aktywna: bool) -> Button:
 ## Przycisk szablonu: zwykły („← Wróć”) albo główny („Kup za 480 zł”). Fokus = jaśniejszy żar.
 static func przycisk_menu(t: String, glowny := false) -> Button:
 	var b := Button.new()
+	b.focus_mode = Control.FOCUS_ALL
 	b.text = t
 	var n := _tm("przycisk_glowny", [60, 28, 60, 28], [40, 10, 40, 10]) if glowny else _tm("przycisk_zwykly", [32, 20, 32, 20], [26, 6, 26, 6])
 	var f: StyleBoxTexture = n.duplicate()
