@@ -2763,7 +2763,7 @@ func efekt(nazwa: String, w: Vector2, wys: float, kat: float, skala: float, dlug
 
 ## Krew: bryzg w kierunku ciosu i (czasem) kałuża na podłodze; kałuże zostają (limit).
 func krew(w: Vector2, kat: float, mocno := false, zawsze_kaluza := false) -> void:
-	efekt("krew_bryzg", w + Vector2(cos(kat), sin(kat)) * 0.35, 0.9, kat, 1.2 if mocno else 0.9, 0.35, 0.03, true)
+	efekt("krew_bryzg", w + Vector2(cos(kat), sin(kat)) * 0.35, 0.9, kat, 1.2 if mocno else 0.9, 0.24, 0.0)
 	if lekki or not (zawsze_kaluza or (mocno and randf() < 0.6) or randf() < 0.25):
 		return
 	var d := Decal.new()

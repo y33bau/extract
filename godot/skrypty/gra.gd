@@ -67,6 +67,8 @@ func _ready() -> void:
 			_podglad.call_deferred(a.substr(10))
 		if a.begins_with("--podglad-przystan="):
 			_podglad_przystani.call_deferred(a.substr(19))
+		if a.begins_with("--podglad-oprawy="):
+			_podglad_oprawy.call_deferred(a.trim_prefix("--podglad-oprawy="))
 		if a.begins_with("--podglad-walki="):
 			_podglad_walki.call_deferred(a.substr(16))
 		if a.begins_with("--podglad-ruchu="):
@@ -157,6 +159,65 @@ func _podglad_walki(arg: String) -> void:
 	print("PODGLAD WALKI gotowy")
 	get_tree().quit(0)
 
+
+
+## Próbka oprawy: jeden przeciwnik, ta sama pozycja i kamera dla czterech zdarzeń.
+func _podglad_oprawy(katalog: String) -> void:
+	_zrzuty = katalog
+	DirAccess.make_dir_recursive_absolute(katalog)
+	Profil.resetuj()
+	rozpocznij_rajd("catacombs", "WALKA1")
+	await _czekaj(0.3)
+	var p = rajd.gracz
+	var cel = null
+	for en in rajd.wrogowie:
+		en.uspiony = true
+		if cel == null and not en.boss and en.rodzaj != "archer":
+			cel = en
+	if cel == null:
+		get_tree().quit(1)
+		return
+	p.pochodnia_w_rece = false
+	var poprawne := true
+	var katalog_przedmiotow: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dane/przedmioty.json"))
+	for id in katalog_przedmiotow:
+		var ikona := Dane.ikona(str(id))
+		if ikona == null or ikona.get_size() != Vector2(92, 92):
+			push_error("Brak ikony: " + str(id))
+			poprawne = false
+	print("Sprawdzono ikony: ", katalog_przedmiotow.size())
+	for nazwa in ["ciecie", "parowanie", "blok_iskry", "krew_bryzg"]:
+		await _czekaj(0.9)
+		_ustaw_wroga_przed(cel, 1.2)
+		cel.kat = cel.w.angle_to_point(p.w)
+		cel.ciezki = false
+		cel.ogluszenie = 0.0
+		p.niet = 0.0
+		p.unik_czas = 0.0
+		p.riposta_niet = 0.0
+		p.okno_parowania = 0.2 if nazwa == "parowanie" else 0.0
+		p.blok = nazwa == "blok_iskry"
+		p.stamina = p.stamina_max
+		if nazwa == "ciecie":
+			cel.uspiony = false
+			cel.zamach = 0.001
+			p.niet = 0.1
+			rajd._licz_widok()
+			rajd._wrogowie(0.01)
+			cel.uspiony = true
+		else:
+			rajd.trafienie_gracza(cel, 10.0)
+		var znaleziono := false
+		for efekt in rajd.swiat3d._efekty3d:
+			var sprite: Sprite3D = efekt[0]
+			if sprite.texture != null and sprite.texture.resource_path.get_file() == str(nazwa) + ".png" and sprite.texture.get_size() == Vector2(1024, 256) and sprite.hframes == 4:
+				znaleziono = true
+		poprawne = poprawne and znaleziono
+		print("Kontakt ", nazwa, ": ", znaleziono)
+		rajd.swiat3d._aktualizuj_efekty(0.06)
+		await _zrzut("kontakt_" + str(nazwa))
+	print("WYNIK OPRAWY: ", "OK" if poprawne else "BŁĄD")
+	get_tree().quit(0 if poprawne else 1)
 
 ## Pomiar dla agenta: --pomiar=kraina — klatki na sekundę z całością i bez grup siatek (drzewa, runo, podłoże).
 func _pomiar(kraina: String) -> void:

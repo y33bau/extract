@@ -745,7 +745,6 @@ func _ciecie() -> void:
 			_kopnij(kat_do, 10.0 if ciezki else 6.0)
 			efekty.czastki_dodaj(en.w, 14 if ciezki else 10, Color("b51d29"), 3.2, 0.45)
 			if swiat3d != null:
-				swiat3d.efekt("ciecie_krew", en.w, 1.1, kat_do, 1.1, 0.26, 0.04)
 				swiat3d.krew(en.w, kat_do, ciezki)
 			napis(en.w - Vector2(0.6, 0.6), "-%d" % roundi(obr), Color("f59e0b") if ciezki else Color("f5f0e6"), 12)
 			xp("melee", 12)
@@ -1096,9 +1095,11 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 			wstrzas = minf(12.0, wstrzas + 8.0)
 			przyblizenie = 1.0
 			Dzwiek.parowanie()
-			efekty.czastki_dodaj((p.w + en.w) / 2.0, 22, Color("ffd166"), 4.5, 0.55)
 			if swiat3d != null:
-				swiat3d.efekt("parowanie", (p.w + en.w) / 2.0, 1.25, 0.0, 1.7, 0.42, 0.0)
+				var kier_kontaktu: Vector2 = p.w.direction_to(en.w)
+				swiat3d.efekt("parowanie", p.w + kier_kontaktu * 0.4, 1.22, kier_kontaktu.angle(), 2.0, 0.24)
+			else:
+				efekty.czastki_dodaj((p.w + en.w) / 2.0, 22, Color("ffd166"), 4.5, 0.55)
 			napis(p.w - Vector2(0.75, 0.75), "PAROWANIE!", Color("ffd166"), 13)  # nad bohaterem: nie zasłania rombu riposty nad wrogiem
 			xp("parry", 30)
 			p.niet = NIET_PO_PAROWANIU
@@ -1117,7 +1118,11 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		p.niet = NIET_PO_BLOKU
 		p.niet_miganie = false
 		Dzwiek.blok()
-		efekty.czastki_dodaj(p.w, 7, Color("d4c3a3"), 2.4, 0.25)
+		if swiat3d != null:
+			var kier_bloku: Vector2 = p.w.direction_to(en.w) if en != null else Vector2.from_angle(p.kat)
+			swiat3d.efekt("blok_iskry", p.w + kier_bloku * 0.4, 1.14, kier_bloku.angle(), 1.6, 0.21)
+		else:
+			efekty.czastki_dodaj(p.w, 7, Color("d4c3a3"), 2.4, 0.25)
 		napis(p.w - Vector2(0.65, 0.65), "BLOK -%d" % roundi(obr), Color("7dd3fc"), 11)
 		if p.stamina <= 0.0:
 			napis(p.w - Vector2(0.95, 0.95), "PRZEŁAMANIE BLOKU!", Color("f87171"), 11)
@@ -1136,7 +1141,11 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		if en != null:
 			_kopnij(atan2(p.w.y - en.w.y, p.w.x - en.w.x), 9.0)
 		hitstop = maxf(hitstop, 0.06)
-		efekty.czastki_dodaj(p.w, 10, Color("a31820"), 2.6, 0.45)
+		if swiat3d != null:
+			var kat_trafienia: float = en.w.angle_to_point(p.w) if en != null else p.kat + PI
+			swiat3d.efekt("krew_bryzg", p.w, 1.12, kat_trafienia, 1.65, 0.23)
+		else:
+			efekty.czastki_dodaj(p.w, 10, Color("a31820"), 2.6, 0.45)
 		napis(p.w - Vector2(0.6, 0.6), "-%d" % roundi(obr), Color("ff4d4d"), 12)
 		if en != null and en.boss and mapa.rng_wrogowie.randf() < 0.35 and not p.plonie:
 			p.plonie = true
@@ -1553,6 +1562,8 @@ func _wrogowie(dt: float) -> void:
 					przesun(en, skok_wroga)
 					if swiat3d != null:
 						swiat3d.impuls(en, skok_wroga)
+						if not en.boss and widoczne(en.w) == 2:
+							swiat3d.efekt("ciecie", en.w + skok_wroga.normalized() * 0.62, 1.12, en.kat, 1.85 if en.ciezki else 1.45, 0.19)
 					if p.w.distance_to(en.w) <= en.zasieg + p.promien + 0.25:
 						trafienie_gracza(en, en.dmg)
 						if zakonczony:

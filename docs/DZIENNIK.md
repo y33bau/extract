@@ -17,6 +17,12 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola: grafik — ikony i efekty kontaktu
+- Gałąź: `oprawa-parowania-i-lupu`. Autor wyraził zgodę na pobieranie i wysyłanie plików projektu w repozytorium y33bau/extract. Nowe modele przeciwników odkłada do etapu Meshy.
+- Zrobione: 25 ikon katalogowych i cztery animacje kontaktu. Smuga ciosu zwykłego przeciwnika, parowanie, blok i trafienie podłączone do walki. Dodano podgląd `--podglad-oprawy=katalog`.
+- Paczka Windows: Warownia_OprawaWalki_Test.zip. Kontrola paczki: 25 ikon i 4/4 zdarzenia, WYNIK OPRAWY: OK. Pełny test Windows Forward+: 143/157 zarówno w Poprawkach 2, jak i w wersji z nową oprawą. Nadal wymagają sprawdzenia m.in. nawigacja padem i testy końca rajdu.
+- Nie sprawdzono fizycznego pada ani dźwięku. Następny krok: ocena czytelności nowych efektów przez autora w rajdzie.
+
 ## 2026-11-26 — Codex, agent główny — publikacja Poprawek 2
 - Na „publikuj” autora przesunięto main fast-forward z 32087d1 do bb4ff3e. Boss odłożony.
 - Priorytet autora: efekty walki zwykłych przeciwników (zwłaszcza ataki i parowanie) i ikony przedmiotów. Przegląd źródeł i materiałów z gry. Dwa arkusze kierunku graficznego: 25 ikon katalogowych oraz cięcie, parowanie, blok i trafienie po cztery klatki. Do oceny przed integracją.
