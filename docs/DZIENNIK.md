@@ -17,6 +17,11 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 01:45 — nowe konto, rola: agent główny — narzędzia z researchu
+- Research narzędzi (wtyczki, CC0, skille) oceniony. Wtyczki do repo: nic teraz (Controller Icons dubluje własne ikony; Phantom Camera, Terrain3D sprzeczne z naszym rzutem i generatorem; LimboAI ewentualnie przy bossach). Modele z galerii CC0 sprzeczne z zasadą autora.
+- **Decyzja autora (01:42): Material Maker przyda się do biotopów otwartych.** Dopisany do źródeł grafiki (po bibliotece NightBrand i shaderze, przed promptami) w `docs/chatgpt/ROLA_GRAFIK_WAROWNIA.md`. Darmowy, osobny program, nic w repo.
+- Do zrobienia: skill recenzenta (propozycja), symulator ekonomii w `narzedzia/` na start rundy ekonomii.
+
 ## 2026-11-27 01:30 — nowe konto, rola: agent główny — koncepcja ekonomii
 - **Decyzja autora (01:26):** zapisać propozycję koncepciarza (ekonomia, przedmioty, łup, mechaniki rajdu) jako `docs/KONCEPCJE_EKONOMIA.md` ze sprostowaniami agenta. Przyjęta jako kierunek, nie gotowy plan.
 - Sprostowania z kodu:

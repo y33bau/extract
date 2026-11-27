@@ -22,8 +22,9 @@ Najpierw start sesji z roli agenta głównego, potem `docs/GRAFIKA.md` (aktualne
    - brakujące pliki: z repo `y33bau/NightBrand-PC` (tylko odczyt), wg `magazyn/nightbrand/pelny_spis_nightbrand.json`.
    - **Tekstura modelu leży w osobnym `.webp` o tej samej nazwie.**
 2. Shader w Godocie (proceduralnie), jeśli pasuje.
-3. Prompt dla autora (ChatGPT: postacie i obiekty z prawdziwie przezroczystym tłem; Gemini: tekstury, tła, ikony).
-4. Model 3D z malunku autora (Meshy image-to-3D, obrazek 1024×1024, przezroczyste tło) — tylko za zgodą.
+3. **Material Maker** (darmowy, MIT, osobny program, nie wchodzi do repo; decyzja autora 27.11, bo biotopy są otwarte): proceduralne tekstury terenu PBR (błoto, mech, korzenie, skała kanionu, ściółka). Eksport albedo, normal i roughness/height do `godot/zasoby/3d/swiat/` w naszym formacie (`<nazwa>_albedo.jpg`, `_normal.png`, `_rh.png`), import `compress/mode=1`. Paleta zgodna z biotopem, sprawdzenie na zrzucie z gry.
+4. Prompt dla autora (ChatGPT: postacie i obiekty z prawdziwie przezroczystym tłem; Gemini: tekstury, tła, ikony).
+5. Model 3D z malunku autora (Meshy image-to-3D, obrazek 1024×1024, przezroczyste tło) — tylko za zgodą.
 
 Nie używaj: `r7_*`, `r8_*`, `r9_*`, `p1_covered_corpses`, `p2_clan_banner`, `p2_fallen_pillar`, `p3_beggar_bodies`, `p3_street_lantern`, `p5_cage`.
 
