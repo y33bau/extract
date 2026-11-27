@@ -8,6 +8,7 @@ signal otworz(zakladka: int)  # 0 Wyprawa, 1 Ekwipunek i Skrytka, 2 Kupiec, 3 Wa
 const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
+const Ui = preload("res://skrypty/ui.gd")
 const WygladRynsztunku = preload("res://skrypty/wyglad_rynsztunku.gd")
 const PodpowiedzObiektu = preload("res://skrypty/podpowiedz_obiektu.gd")
 const SHADER_TERENU := preload("res://zasoby/3d/shadery/teren.gdshader")
@@ -731,6 +732,7 @@ func _atmosfera() -> void:
 
 func _label(rozmiar: int, kolor: Color) -> Label3D:
 	var l := Label3D.new()
+	l.font = Ui.czcionka(400)
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.no_depth_test = true
 	l.fixed_size = true

@@ -35,11 +35,12 @@ func _ready() -> void:
 	tlo.add_child(Ui.winieta())
 	var kol := VBoxContainer.new()
 	kol.add_theme_constant_override("separation", 6)
-	kol.custom_minimum_size = Vector2(1060, 0)
-	kol.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
-	kol.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	kol.grow_vertical = Control.GROW_DIRECTION_BOTH
 	tlo.add_child(kol)
+	kol.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	kol.offset_left = 64
+	kol.offset_right = -64
+	kol.offset_top = 14
+	kol.offset_bottom = -14
 	var t := Ui.naglowek_menu("SAKWA I ŁUPY", 30, Color("f0dcb6"), 3)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kol.add_child(t)
@@ -51,18 +52,18 @@ func _ready() -> void:
 	kol.add_child(sep)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 20)
-	h.custom_minimum_size = Vector2(0, 430)
+	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	kol.add_child(h)
 	var pl := PanelContainer.new()
 	pl.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
 	pl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pl.size_flags_stretch_ratio = 1.2
 	h.add_child(pl)
-	var lewa := VBoxContainer.new()
+	var lewa := _przewijana_zawartosc(pl)
 	lewa.add_theme_constant_override("separation", 6)
-	pl.add_child(lewa)
 	lewa.add_child(Ui.belka_sekcji("Rynsztunek"))
 	rynsztunek_txt = Ui.tekst_menu("", 14, Ui.M_TEKST)
+	rynsztunek_txt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lewa.add_child(rynsztunek_txt)
 	lewa.add_child(Ui.belka_sekcji("Relikwiarz  (przeżywa śmierć)"))
 	siatka_rel = GridContainer.new()
@@ -76,12 +77,12 @@ func _ready() -> void:
 	pp.add_theme_stylebox_override("panel", Ui.styl_panelu_menu())
 	pp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(pp)
-	var prawa := VBoxContainer.new()
+	var prawa := _przewijana_zawartosc(pp)
 	prawa.add_theme_constant_override("separation", 8)
-	pp.add_child(prawa)
 	var bel := PanelContainer.new()
 	bel.add_theme_stylebox_override("panel", Ui._flat(Ui.M_BELKA, Ui.M_BELKA_RAMA, 1, [14, 5, 14, 5]))
 	tytul = Ui.naglowek_menu("", 17, Ui.M_JASNY)
+	tytul.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bel.add_child(tytul)
 	prawa.add_child(bel)
 	szukanie = Ui.pasek(Ui.ZAR, 6)
@@ -120,6 +121,19 @@ func _ready() -> void:
 var _stopka: HBoxContainer
 var _stopka_zamknij: Button
 var _pad_byl := false
+
+
+## Stały obrys okna; większy Relikwiarz i długi opis nie wypychają stopki poza ekran.
+func _przewijana_zawartosc(panel: PanelContainer) -> VBoxContainer:
+	var przewijanie := ScrollContainer.new()
+	przewijanie.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	przewijanie.follow_focus = true
+	panel.add_child(przewijanie)
+	var kol := VBoxContainer.new()
+	kol.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	kol.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	przewijanie.add_child(kol)
+	return kol
 
 
 func _odswiez_stopke() -> void:
@@ -223,7 +237,7 @@ func _slot(inst, klucz: String, akcja: Callable) -> Button:
 	b.custom_minimum_size = Vector2(128, 54)
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.add_theme_font_size_override("font_size", 12)  # długie nazwy („Tonik Wytrzymałości”) bez ucięcia
-	b.add_theme_font_override("font", Ui.czcionka_tekstu())  # szeryf z małymi literami: węższy niż kapitaliki
+	b.add_theme_font_override("font", Ui.czcionka_tekstu())  # rodzina Cinzel zgodna z całym UI
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.set_meta("klucz", klucz)
 	if inst == null:

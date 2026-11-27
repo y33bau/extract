@@ -38,17 +38,9 @@ static func czcionka(waga := 700) -> Font:
 	return _czcionki[waga]
 
 
-## Czcionka do czytania (nazwy w listach, opisy, wartości, stopka): szeryfowa z małymi literami.
-## Georgia jest w każdym Windowsie; w środowisku agenta (Linux) zamiennik Liberation/DejaVu Serif.
-## Cinzel zostaje w tytułach, zakładkach, przyciskach, belkach sekcji i nazwie w szczegółach.
-static var _czytanie: Font
+## Decyzja autora 27.11: Cinzel w całej grze, także w opisach i wartościach.
 static func czcionka_tekstu() -> Font:
-	if _czytanie == null:
-		var sf := SystemFont.new()
-		sf.font_names = PackedStringArray(["Georgia", "Times New Roman", "Liberation Serif", "DejaVu Serif"])
-		sf.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
-		_czytanie = sf
-	return _czytanie
+	return czcionka(400)
 
 
 ## Ozdobny pasek (HP wrogów i bossa): ciemne tło, brązowa rama, wypełnienie z jaśniejszą górą,
@@ -92,7 +84,7 @@ static func motyw() -> Theme:
 	if _motyw != null:
 		return _motyw
 	var t := Theme.new()
-	# tekst czytany szeryfem z małymi literami; Cinzel jawnie: przyciski, zakładki, nagłówki (menu NightBrand)
+	# Jedna rodzina Cinzel: 400 do treści, 600–700 do przycisków i nagłówków.
 	t.default_font = czcionka_tekstu()
 	t.default_font_size = 16
 	t.set_font("font", "Button", czcionka(600))
@@ -195,6 +187,7 @@ static func blokada_po_otwarciu(wezel: Node, _czas := 0.4) -> void:
 
 ## Okna potwierdzenia mają własny viewport: B obsługujemy także wewnątrz niego.
 static func dialog_na_padzie(dialog: ConfirmationDialog, bezpieczny_fokus := false) -> void:
+	dialog.theme = motyw()
 	dialog.window_input.connect(func(e: InputEvent):
 		if e.is_action_pressed("ui_cancel"):
 			dialog.hide()

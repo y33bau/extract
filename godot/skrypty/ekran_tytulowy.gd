@@ -108,6 +108,7 @@ func _ready() -> void:
 	pp.add_child(pasek)
 	kol.add_child(pp)
 	dialog_wyjscia = ConfirmationDialog.new()
+	dialog_wyjscia.theme = Ui.motyw()
 	dialog_wyjscia.title = "Wyjść z gry?"
 	dialog_wyjscia.dialog_text = "Postęp Warowni jest zapisany."
 	dialog_wyjscia.ok_button_text = "Wyjdź"

@@ -17,6 +17,18 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola grafik — Cinzel i pełny audyt menu
+
+- Gałąź `grafika-cinzel-i-audyt-ui`, od `b01626e`. Autor zlecił sam półprzezroczysty tekst interakcji bez ramki, zachowanie Cinzel wszędzie oraz audyt menu z propozycjami zmian.
+- Podpowiedzi bez tła i ramki, krycie 78% / 96% po najechaniu, Cinzel 600. Klikanie i E/Y zachowane. Cinzel zastępuje Georgię i Open Sans w treści, potwierdzeniach, etykietach świata i zastępczym foncie projektu.
+- Dopasowanie do szerszego fontu: stały obrys okna łupu, przewijane panele podążające za fokusem, zawijanie opisu. Nazwa rodzaju dodatku i jakość w osobnych miejscach wiersza; pełna nazwa w szczegółach.
+- Audyt 33 stanów przed i po, łącznie 99 zrzutów w 1280×720 i 1920×1080. W obu zestawach po zmianie wszystkie 930 próbek używają Cinzel; brak zmierzonych przepełnień niełamanych etykiet i widocznych etykiet poza ekranem. 1920 skaluje logiczny układ 1280×720. Narzędzie `narzedzia/gra_3d/audyt_ui.gd` wymaga osobnego profilu.
+- Raport `AUDYT_MENU_UI_2026-11-27.md`: proponowana kolejność Ekwipunek/Skrytka → Kupiec i szczegóły → łupy → pauza i pozostałe zakładki. Główne problemy: gęstość list, kontrast tekstu na ilustracji, małe etykiety i akcje poniżej przewijania. To propozycje; pełna przebudowa nie została wdrożona.
+- Testy: baza 168/168; po zmianie fontu i okna łupu 168/168, interakcje 18/18, pad/powrót 34/34. Ostateczne krótkie etykiety dodatków sprawdzone w obu zestawach audytu; gotowa paczka Windows dodatkowo interakcje 18/18 i pad/powrót 34/34.
+- Paczka `Warownia_Cinzel_UI_Test/TEST_CINZEL_UI.bat` i ZIP, oddzielny profil pokazowy. Galeria offline, raport, pomiary i zrzuty: `AUDYT_UI_2026-11-27/AUDYT_UI.html`, archiwum `Audyt_Menu_UI_2026-11-27.zip` w folderze autora. Archiwa sprawdzone CRC.
+- Nie sprawdzono fizycznego pada, odsłuchu, Linux (brak środowiska do uruchomienia) ani ultrapanoramicznych proporcji. Brak zmian zasad gry, zapisu i balansu. Meshy: 0 dodatkowych kredytów, łącznie nadal 465/800. `main` bez zmian.
+- Następny krok: ocena propozycji przez autora; rekomendowana pierwsza przebudowa Ekwipunku i Kupca.
+
 ## 2026-11-27 — Codex, rola gamedev — dodatki do stroju, interakcje, pad i porzucenie rajdu
 
 - Gałąź: `ulepszenia-interakcje-i-pad`, od `3e4dae7`. Autor odrzucił wymienne zbroje i zlecił trzy miejsca na dodatki z łupu; w trakcie pracy dodał podpowiedzi i kliknięcia nad obiektami, naprawę pada oraz powrót do Przystani z utratą rajdu.

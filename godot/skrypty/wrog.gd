@@ -195,7 +195,7 @@ func _rajd_pad() -> bool:
 static var _font: Font
 static func font() -> Font:
 	if _font == null:
-		_font = ThemeDB.fallback_font
+		_font = Ui.czcionka(600)
 	return _font
 
 

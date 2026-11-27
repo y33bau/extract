@@ -3,6 +3,8 @@ Stan na 2026-11-25, rola: grafik
 # GRAFIKA — styl, formaty i proces
 
 ## 1. Kierunek
+**Typografia — decyzja autora 27.11.2026:** rodzina **Cinzel** w całej grze: menu, opisy, liczby, HUD, dialogi i etykiety świata. Plik `godot/zasoby/czcionki/cinzel.ttf` z istniejącą licencją; korzystać z `Ui.czcionka()` / `Ui.czcionka_tekstu()`. Waga 400 do treści, 600–700 do oznaczeń i nagłówków. Nie przywracać Georgii ani systemowych zamienników. Podpowiedzi interakcji: sam półprzezroczysty tekst, bez panelu i ramki; delikatny obrys liter dla kontrastu. Audyt i propozycje układu: `AUDYT_MENU_UI_2026-11-27.md`.
+
 **Mroczne dark fantasy w izometrii 2.5D**, malowany pixel-art w stylu postaci NightBrand. Ciemność jest domyślna, światło buduje klimat i czytelność walki. Gracz ma w każdej chwili wyraźnie widzieć: siebie, wroga, **zapowiedź ataku** (złoty / czerwony błysk), łup i drogę do wyjścia.
 
 **Problem nr 1 do rozwiązania (pilot Spalonej Osady):** postacie są malowane i szczegółowe, a kafle otoczenia to gruby proceduralny piksel z prototypu JS. Dwa style obok siebie. Cel: kafle i rekwizyty malowane w tym samym stylu co postacie + **jedna gęstość pikseli** dla całej sceny.

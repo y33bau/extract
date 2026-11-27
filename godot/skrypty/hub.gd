@@ -427,7 +427,12 @@ func _wiersz_przedmiotu(inst: Dictionary, klucz: String, podpowiedz: String, akc
 		podpowiedz = "A: załóż na zbroję przed rajdem  ·  Y: do Relikwiarza"
 	var dop := " ×%d" % int(inst["qty"]) if d.get("type") == "arrow" else ""
 	var rz: Color = Dane.KOLORY_RZADKOSCI.get(d.get("rarity"), Color.GRAY)
-	var w := Ui.wiersz_listy(Dane.ikona(inst["id"]), str(d["name"]) + dop, _krotkie_staty(inst), str(Dane.NAZWY_TYPOW.get(d.get("type"), "")), false, rz.lightened(0.3))
+	var nazwa: String = str(d["name"])
+	var etykieta: String = str(Dane.NAZWY_TYPOW.get(d.get("type"), ""))
+	if d.get("type") == "enhancement":
+		nazwa = str(Dane.ulepszenia_zbroi["kinds"][d["kind"]]["name"])
+		etykieta = str(Dane.ulepszenia_zbroi["rarityNames"][d["rarity"]])
+	var w := Ui.wiersz_listy(Dane.ikona(inst["id"]), nazwa + dop, _krotkie_staty(inst), etykieta, false, rz.lightened(0.3))
 	w.set_meta("klucz", klucz)
 	w.pressed.connect(func():
 		_fokus_klucz = klucz
