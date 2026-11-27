@@ -17,6 +17,18 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola grafik — pełny rynsztunek Hadrana
+
+- Gałąź: `grafika-rynsztunek-hadrana`, od `ekonomia-bron-i-pancerz` (`828cacb`). Autor zlecił wszystkie brakujące elementy, po czym podniósł limit Meshy do 800 kredytów i poprosił o pracę do osiągnięcia celu.
+- Zrobione: modele pięciu broni białych, trzech tarcz, trzech łuków i trzech pancerzy według obecnych ikon; kołczan, strzała, trzy pochwy, mocowania w dłoniach i na plecach. Pancerze na oryginalnym szkielecie Hadrana. Glewia ma trzy własne klipy oraz poprawione chwyty w ruchu i obronie. Łuki: poza celowania, ruch wypuszczenia, morf cięciwy i strzała w dłoni.
+- Wybór wyposażenia widoczny w Przystani i rajdzie. Tarcza przy 2H na plecach, broń biała odkładana przy łuku. Reguły i liczby ekonomii oraz walki pozostają bez zmian. Opis i odtworzenie: `docs/RYNSZTUNEK_HADRANA_2026-11-27.md`.
+- Meshy: saldo 1081 → 616, koszt 465/800; 14 modeli standardowych (w tym odrzucona pierwsza kolczuga), poprawiona kolczuga 15 kredytów i trzy ruchy po 10. Bez zadań oczekujących. Źródła, referencje, FBX i blendy w `WAROWNIA_POPIOLOW/ASSETY_HADRAN_2026-11-27`.
+- Testy: modele i stany 38/38; rzeczywista Przystań i rajd 20/20; ekonomia 30/30 ze źródeł i w paczce Windows. Podglądy obejrzane w Godocie i w Czarnoborze. Kompresja nowych GLB: Basis Universal, ustawienia importu zachowane.
+- Pełny test przed i po: te same 10 niezaliczonych kontroli, bez nowych. Oba zatrzymują się na wcześniejszym błędzie `przystan.poziomy` po powrocie z rajdu. Nie zgłaszamy zaliczenia pełnego testu.
+- Paczka: `Warownia_Rynsztunek_Test/TEST_RYNSZTUNEK.bat`, osobny profil pokazowy, pozostały rynsztunek w Skrytce. Arkusz: `ASSETY_HADRAN_2026-11-27/PODGLAD_CALOSCI.jpg`.
+- Nie sprawdzono fizycznego pada, odsłuchu, długiej sesji gracza ani eksportu Linux. Sprawdzono Windows Forward+ na RTX 4070 SUPER.
+- Następny krok: ocena autora, zwłaszcza sylwetek i chwytów podczas walki. `main` nie był zmieniany; gałąź do przeglądu.
+
 ## 2026-11-27 — Codex, rola gamedev — pierwsza runda ekonomii
 
 - Gałąź: `ekonomia-bron-i-pancerz`, od `koncepcja-ekonomii`.

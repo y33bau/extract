@@ -28,6 +28,8 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 | `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -8 --all` i dziennikiem)
+- **27.11: rynsztunek Hadrana do oceny:** `grafika-rynsztunek-hadrana` od `ekonomia-bron-i-pancerz`: 5 broni, 3 tarcze, 3 łuki, 3 pancerze na obecnym szkielecie, osobne ruchy glewii, kołczan, strzała, pochwy i odkładanie sprzętu. Meshy 465/800. Kontrole 38/38 + 20/20, ekonomia 30/30; pełny test ma te same wcześniejsze błędy co baza. Szczegóły: `RYNSZTUNEK_HADRANA_2026-11-27.md`. `main` bez zmian.
+
 - **27.11 — ekonomia do oceny autora:** gałąź `ekonomia-bron-i-pancerz`. Chwyt i postura, parowanie 2H z połową okna, zużycie i naprawa pancerza, stawki skupu, Dar Margi. Zapis v2 importuje v1. Paczka `Warownia_Ekonomia_Test.zip`. Test ekonomii 30/30, pełny 147/161, te same 14 błędów co baza. Wartości do strojenia w `KONCEPCJE_EKONOMIA.md`.
 - **26.11 (23:30): przekazanie dla ChatGPT / Codex (do niedzieli prowadzi projekt):** `docs/PRZEKAZANIE_CHATGPT_2026-11-26.md` + role w `docs/chatgpt/`. Poprawki 2 opublikowane na `main` (`bb4ff3e`). Autor odkłada bossa. Priorytet: efekty walki zwykłych przeciwników i ikony przedmiotów.
 - **Silnik: Godot 4.7.2, renderer Forward+, prawdziwe 3D z kamerą izometryczną** (decyzje autora 25.11.2026). Gra w `godot/`; wygląd rajdu: `swiat3d.gd`; potok assetów: `narzedzia/gra_3d/`.

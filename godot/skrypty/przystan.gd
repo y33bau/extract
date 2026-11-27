@@ -8,6 +8,7 @@ signal otworz(zakladka: int)  # 0 Wyprawa, 1 Ekwipunek i Skrytka, 2 Kupiec, 3 Wa
 const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Bohater = preload("res://skrypty/bohater.gd")
+const WygladRynsztunku = preload("res://skrypty/wyglad_rynsztunku.gd")
 const SHADER_TERENU := preload("res://zasoby/3d/shadery/teren.gdshader")
 const SHADER_MURU := preload("res://zasoby/3d/shadery/mur.gdshader")
 const SHADER_MGLY := preload("res://zasoby/3d/shadery/mgla.gdshader")
@@ -46,6 +47,7 @@ const KWESTIE := [
 var kamera: Camera3D
 var bohater: Node3D
 var _ap: AnimationPlayer
+var _wyglad_rynsztunku := WygladRynsztunku.new()
 var _styl := "miecz"
 var poz := Vector2(18.0, 22.0)
 var kat := 2.4
@@ -609,7 +611,7 @@ func _npc_wszyscy() -> void:
 
 
 func _bohater() -> void:
-	bohater = (load("res://zasoby/3d/postacie/hadraen.glb") as PackedScene).instantiate()
+	bohater = (load(WygladRynsztunku.SCENA) as PackedScene).instantiate()
 	add_child(bohater)
 	_ap = bohater.find_child("AnimationPlayer", true, false)
 	for a in _ap.get_animation_list():
@@ -626,6 +628,8 @@ func _bohater() -> void:
 				"bron_miecz": b.visible = zestaw == "miecz" or zestaw == "miecz_tarcza"
 				"bron_tarcza": b.visible = zestaw == "miecz_tarcza"
 				"bron_pochodnia": b.visible = false
+	_wyglad_rynsztunku.przygotuj(bohater)
+	_wyglad_rynsztunku.odswiez(Profil.d["loadout"], zestaw)
 	WygladPostaci.ozyw(bohater, 0.35, 0.4)
 	WygladPostaci.swiatlo_postaci(bohater, 0.9)
 	var poswiata := _swiatlo(Color(0.62, 0.58, 0.8), 1.6, 4.5, false)
@@ -758,6 +762,9 @@ func _process(dt: float) -> void:
 
 
 func _ruch(dt: float) -> void:
+	var zestaw: String = Bohater.zestaw_dla(Profil.d["loadout"])
+	_styl = "glewia" if zestaw == "glewia" else ZESTAW_ANIM.get(zestaw, "dwureczny")
+	_wyglad_rynsztunku.odswiez(Profil.d["loadout"], zestaw)
 	var wej := Input.get_vector("ruch_lewo", "ruch_prawo", "ruch_gora", "ruch_dol")
 	var w := Iso.ekran_na_swiat_kierunek(wej)
 	var anim := "postoj"

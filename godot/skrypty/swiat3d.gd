@@ -4,6 +4,7 @@ extends Node3D
 ## (64x32 px na pole), więc paski HP, napisy i efekty 2D rysowane nad sceną trafiają w postacie.
 
 const WygladPostaci = preload("res://skrypty/wyglad_postaci.gd")
+const WygladRynsztunku = preload("res://skrypty/wyglad_rynsztunku.gd")
 const Iso = preload("res://skrypty/iso.gd")
 const Mapgen = preload("res://skrypty/mapgen.gd")
 const K = Mapgen.K
@@ -16,13 +17,14 @@ const PX_NA_M := 45.254834  # 32 * sqrt(2): pole świata -> piksele ekranu (zgod
 const WYS_MURU := 1.7
 const WYS_COKOLU := 0.22  # wysokość muru obniżonego w przekroju przed bohaterem
 
-const GLB_BOHATERA := "res://zasoby/3d/postacie/hadraen.glb"
-const ZESTAW_ANIM := {"dwureczny": "dwureczny", "glewia": "dwureczny", "topor": "topor",
+const GLB_BOHATERA := WygladRynsztunku.SCENA
+const ZESTAW_ANIM := {"dwureczny": "dwureczny", "glewia": "glewia", "topor": "topor",
 	"miecz": "miecz", "miecz_tarcza": "miecz", "piesci": "piesci"}
 const PETLE := ["postoj", "chod", "blok", "ogluszenie", "bieg", "tyl", "lewo", "prawo"]
 ## Ciosy Hadræna: [moment uderzenia w klipie, koniec ruchu po uderzeniu] w sekundach klipu (zmierzone na dłoni).
 ## Klip jest odtwarzany jednym, stałym tempem tak, by uderzenie wypadło ~0,1 s po wciśnięciu ataku (okno trafienia w rajd.gd bez zmian).
 const ATAK_PLAN := {
+	"glewia": [[0.75, 1.70], [0.85, 1.75], [0.85, 1.85]],
 	"dwureczny": [[0.33, 0.70], [0.49, 0.95], [0.26, 0.85]],
 	"miecz": [[0.56, 1.00], [0.53, 1.20], [1.17, 1.38]],
 	"piesci": [[0.30, 0.75], [0.30, 0.75], [0.59, 1.30]],
@@ -30,9 +32,9 @@ const ATAK_PLAN := {
 }
 const ATAK_PRZED := [0.10, 0.10, 0.17]
 ## Prędkość (m/s), jaką pokonuje klip przy tempie 1,0: do dopasowania kroków do ruchu (bez ślizgania).
-const REF_BIEG := {"dwureczny": 4.0, "miecz": 3.9, "topor": 3.6, "piesci": 3.6}
-const REF_BOK := {"dwureczny": 2.3, "miecz": 1.1, "topor": 1.1, "piesci": 1.1}
-const REF_TYL := {"dwureczny": 2.5, "miecz": 4.1, "topor": 3.2, "piesci": 3.2}
+const REF_BIEG := {"dwureczny": 4.0, "glewia": 4.0, "miecz": 3.9, "topor": 3.6, "piesci": 3.6}
+const REF_BOK := {"dwureczny": 2.3, "glewia": 2.3, "miecz": 1.1, "topor": 1.1, "piesci": 1.1}
+const REF_TYL := {"dwureczny": 2.5, "glewia": 2.5, "miecz": 4.1, "topor": 3.2, "piesci": 3.2}
 const REF_CHOD := 1.2
 const BLEND_PETLA := 0.2
 const SKALA_WROGA := {"scout": 1.0, "warden": 1.04, "archer": 1.0, "knight": 1.06, "brute": 1.18, "boss": 1.38}
@@ -46,6 +48,7 @@ var _stan_widoku := PackedByteArray()
 var _mur_przezr := {}    # idx -> bool
 var bohater: Node3D
 var _ap_bohatera: AnimationPlayer
+var _wyglad_rynsztunku := WygladRynsztunku.new()
 var _kat_wiz := 0.0
 var _kat_start := false
 var _klucz_anim := ""
@@ -1905,6 +1908,7 @@ func _wyostrzenie() -> void:
 func _bohater() -> void:
 	bohater = _scena(GLB_BOHATERA).instantiate()
 	add_child(bohater)
+	_wyglad_rynsztunku.przygotuj(bohater)
 	WygladPostaci.ozyw(bohater, 0.35, 0.4)
 	WygladPostaci.swiatlo_postaci(bohater, 1.35)  # ciemna zbroja: mocniejsze światło postaci, żeby nie ginął w mroku
 	_ap_bohatera = bohater.find_child("AnimationPlayer", true, false)
@@ -2001,6 +2005,8 @@ func _kat_celu(p) -> float:
 
 ## Co ma grać Hadræn: [nazwa bez zestawu, klucz stanu, pętla?, tempo, start (s klipu), blend].
 func _plan_animacji(p, styl: String) -> Array:
+	if styl == "luk":
+		return ["strzal", "luk_strzal", false, 1.0, 0.0, 0.04] if p.luk_cd > 0.0 else ["celowanie", "luk_celowanie", true, 1.0, 0.0, 0.1]
 	if p.martwy:
 		return ["smierc", "smierc", false, 1.0, 0.0, 0.25]
 	if p.unik_czas > 0.0:
@@ -2047,6 +2053,9 @@ func _aktualizuj_bohatera(dt: float) -> void:
 	var p = rajd.gracz
 	var zestaw: String = p.zestaw
 	var styl: String = ZESTAW_ANIM.get(zestaw, "dwureczny")
+	var luk_w_rece: bool = WygladRynsztunku.celuje_z_luku(p)
+	if luk_w_rece:
+		styl = "luk"
 	if not _kat_start:
 		_kat_start = true
 		_kat_wiz = p.kat
@@ -2077,6 +2086,9 @@ func _aktualizuj_bohatera(dt: float) -> void:
 		_korekta_chodu.influence = move_toward(_korekta_chodu.influence, 1.0 if w_ruchu else 0.0, dt * 4.0)
 	for n in _bronie.keys():
 		var b: Node3D = _bronie[n]
+		if n != "bron_pochodnia":
+			b.visible = false
+			continue
 		match n:
 			"bron_dwureczny": b.visible = zestaw == "dwureczny"
 			"bron_glewia": b.visible = zestaw == "glewia"
@@ -2084,11 +2096,15 @@ func _aktualizuj_bohatera(dt: float) -> void:
 			"bron_miecz": b.visible = zestaw == "miecz" or zestaw == "miecz_tarcza"
 			"bron_tarcza": b.visible = zestaw == "miecz_tarcza"
 			"bron_pochodnia": b.visible = p.pochodnia_w_rece and not p.martwy
-	_swiatlo_pochodni.visible = p.pochodnia_w_rece and not p.martwy
+	var napiecie: float = clampf((p.luk_cd - 0.43) / 0.15, 0.0, 1.0) if p.luk_cd > 0.0 else 1.0
+	_wyglad_rynsztunku.odswiez(p.rynsztunek, zestaw, luk_w_rece, p.luk_cd > 0.45 or p.luk_cd <= 0.0, napiecie)
+	if luk_w_rece and _bronie.has("bron_pochodnia"):
+		(_bronie["bron_pochodnia"] as Node3D).visible = false
+	_swiatlo_pochodni.visible = p.pochodnia_w_rece and not p.martwy and not luk_w_rece
 	_plomien_bohatera.emitting = _swiatlo_pochodni.visible
 	# nietykalność po otrzymanym ciosie: postać miga (jak w NightBrand), po bloku i parowaniu bez migania
 	bohater.visible = not (p.niet_miganie and p.niet > 0.0 and fmod(Time.get_ticks_msec() / 1000.0, 0.12) < 0.05)
-	_poswiata.visible = not p.pochodnia_w_rece and not p.martwy
+	_poswiata.visible = not _swiatlo_pochodni.visible and not p.martwy
 
 
 func _wrog3d(en) -> Dictionary:

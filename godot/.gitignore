@@ -1,2 +1,4 @@
 .godot/
 *.import
+!zasoby/3d/rynsztunek/*.glb.import
+/zasoby/3d/rynsztunek/*.png
