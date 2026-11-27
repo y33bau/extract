@@ -28,6 +28,7 @@ Jedno zdanie gry: *„Wchodzę w mrok, walczę o każdy krok, biorę więcej, ni
 | `CLAUDE.md` | skrót zasad (ładuje się automatycznie w Claude Code) | automatycznie |
 
 ## 3. Stan na dziś (sprawdź komendą `git log --oneline -8 --all` i dziennikiem)
+- **27.11: poprawione chwyty do oceny:** `grafika-poprawne-chwyty`, od `fb91b01`. Poprawne strony tarcz i ostrzy, uchwyty, cieńsze drzewce glewii, kontakt obu dłoni i omijanie tarczy w animacjach. Kontrola GLB 105/105, Przystań i rajd 20/20. Paczka `Warownia_Chwyty_Test/TEST_POPRAWNE_CHWYTY.bat`. Meshy bez dodatkowych kosztów. Szczegóły: `RYNSZTUNEK_HADRANA_2026-11-27.md`. `main` bez zmian.
 - **27.11: rynsztunek Hadrana do oceny:** `grafika-rynsztunek-hadrana` od `ekonomia-bron-i-pancerz`: 5 broni, 3 tarcze, 3 łuki, 3 pancerze na obecnym szkielecie, osobne ruchy glewii, kołczan, strzała, pochwy i odkładanie sprzętu. Meshy 465/800. Kontrole 38/38 + 20/20, ekonomia 30/30; pełny test ma te same wcześniejsze błędy co baza. Szczegóły: `RYNSZTUNEK_HADRANA_2026-11-27.md`. `main` bez zmian.
 
 - **27.11 — ekonomia do oceny autora:** gałąź `ekonomia-bron-i-pancerz`. Chwyt i postura, parowanie 2H z połową okna, zużycie i naprawa pancerza, stawki skupu, Dar Margi. Zapis v2 importuje v1. Paczka `Warownia_Ekonomia_Test.zip`. Test ekonomii 30/30, pełny 147/161, te same 14 błędów co baza. Wartości do strojenia w `KONCEPCJE_EKONOMIA.md`.

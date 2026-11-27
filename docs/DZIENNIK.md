@@ -17,6 +17,15 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola grafik — poprawne chwyty i kolizje tarcz
+
+- Gałąź: `grafika-poprawne-chwyty`, od `fb91b01`. Autor zgłosił odwrócone bronie i tarcze oraz miecz przechodzący przez tarczę.
+- Poprawiono anatomiczne mocowania, strony tarcz, tylne uchwyty, sprzęt na plecach i grubość drzewca glewii. Usunięto bryłę dodatkowej pięści z puklerza. Skorygowano ruch tarczy względem ostrza oraz kontakt obu dłoni w 2H, w tym ciągłość łokci i stabilną bazę ciała dla topora i glewii. Długości animacji zachowane; import 60 Hz bez usuwania kluczy chwytu.
+- Testy: rzeczywisty GLB 105/105 (orientacja, 13 klipów miecza, 3 tarcze, 8 przejść i 65 próbek na klip 2H); Przystań i rajd 20/20. Podglądy obejrzane z przodu i od tyłu. Źródła i raporty w `POPRAWNE_CHWYTY_2026-11-27`.
+- Meshy: 0 dodatkowych kredytów, nadal 465/800. Paczka `Warownia_Chwyty_Test/TEST_POPRAWNE_CHWYTY.bat`, osobny profil pokazowy.
+- Nie powtarzano pełnego testu gry; wcześniejsze niezaliczone kontrole nie zostały naprawione w tym zadaniu. Nie sprawdzono fizycznego pada ani długiej sesji. Próbkowane kontrole kolizji nie obejmują każdej możliwej mieszanki ruchów gracza.
+- Następny krok: ocena autora w walce. `main` bez zmian.
+
 ## 2026-11-27 — Codex, rola grafik — pełny rynsztunek Hadrana
 
 - Gałąź: `grafika-rynsztunek-hadrana`, od `ekonomia-bron-i-pancerz` (`828cacb`). Autor zlecił wszystkie brakujące elementy, po czym podniósł limit Meshy do 800 kredytów i poprosił o pracę do osiągnięcia celu.
