@@ -17,6 +17,13 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola agent główny — koncepcja ekonomii
+- Gałąź: koncepcja-ekonomii, od oprawa-parowania-i-lupu.
+- Sprawdzono opinię Claude’a w źródłach. Zapisano docs/KONCEPCJE_EKONOMIA.md. Doprecyzowano istniejący Dar Margi i utratę ochrony przy zerowej wytrzymałości. Rozdzielono zależności hałasu, pojemników i Zmroku.
+- Balans pozostaje propozycją do decyzji autora. Bossowie, modele przeciwników z Meshy i znane błędy pada pozostają odłożone zgodnie z wcześniejszymi decyzjami.
+- Kontrola: porównanie dokumentu z dane.gd, rajd.gd, hub.gd i KONCEPCJE.md. Zmiana dokumentacyjna, testu gry w tej rundzie nie uruchamiano.
+- Następny krok: tabela chwytu i postureDmg istniejących broni do akceptacji autora.
+
 ## 2026-11-27 — Codex, rola: grafik — ikony i efekty kontaktu
 - Decyzja autora: znane błędy pada odkładamy na później.
 - Gałąź: `oprawa-parowania-i-lupu`. Autor wyraził zgodę na pobieranie i wysyłanie plików projektu w repozytorium y33bau/extract. Nowe modele przeciwników odkłada do etapu Meshy.
