@@ -646,6 +646,8 @@ func atak_wrecz(mocny := false) -> void:
 	var p := gracz
 	if okno_otwarte or p.atak_cd > 0.0 or p.unik_czas > 0.0 or p.martwy:
 		return
+	if Dane.dwureczna(p.rynsztunek) and p.pochodnia_w_rece:
+		pochodnia()
 	var bron: Dictionary = Dane.p(p.rynsztunek["weapon"]["id"]) if p.rynsztunek["weapon"] else {"dmg": 10, "range": 1.3, "arc": 1.2, "stamina": 10, "cooldown": 0.35}
 	if p.stamina < float(bron["stamina"]) * 0.6:
 		napis(p.w - Vector2(0.6, 0.6), "BRAK STAMINY!", Color("a8a29e"), 10)
@@ -708,7 +710,7 @@ func _ciecie() -> void:
 		swiat3d.impuls(p, p.w - przed_doskokiem)
 	if swiat3d != null:
 		swiat3d.efekt("ciecie_zar" if ciezki else "ciecie", p.w + Vector2(cos(p.atak_kat), sin(p.atak_kat)) * 0.75, 1.05, p.atak_kat, 1.5 if ciezki else 1.25, 0.24, 0.0)
-	var kuznia := 1.0 + Profil.budynek("forge") * 0.12
+	var kuznia := 1.0 + Profil.budynek("forge") * float(Dane.ekonomia.get("forgeBonus", 0.08))
 	var bieglosc := 1.0 + (Profil.poziom("melee") - 1) * 0.06
 	var trafil := false
 	for i in range(wrogowie.size() - 1, -1, -1):
@@ -748,7 +750,7 @@ func _ciecie() -> void:
 				swiat3d.krew(en.w, kat_do, ciezki)
 			napis(en.w - Vector2(0.6, 0.6), "-%d" % roundi(obr), Color("f59e0b") if ciezki else Color("f5f0e6"), 12)
 			xp("melee", 12)
-			postura(en, float(bron["dmg"]) * kuznia * (1.9 if ciezki else 0.85))
+			postura(en, Dane.postura_broni(bron) * kuznia * (1.9 if ciezki else 0.85))
 		en.hp -= obr
 		en.trafiony = 0.15
 		en.licznik_trafien += 1
@@ -947,7 +949,7 @@ func unik(kierunek_ruchu: Vector2) -> void:
 		return
 	if p.faza_ciosu == "zamach" or p.faza_ciosu == "ciecie":
 		return  # cios zobowiązuje: unik przerywa tylko powrót (bufor uniku odpali go zaraz po cięciu)
-	var koszt := maxf(12.0, 22.0 - (Profil.poziom("endurance") - 1) * 1.2)
+	var koszt: float = Dane.koszt_uniku(p.rynsztunek, Profil.poziom("endurance"))
 	if p.stamina < koszt:
 		return
 	p.stamina -= koszt
@@ -971,6 +973,8 @@ func parowanie_start() -> void:
 	var p := gracz
 	if okno_otwarte or p.unik_czas > 0.0 or p.martwy:
 		return
+	if Dane.dwureczna(p.rynsztunek) and p.pochodnia_w_rece:
+		pochodnia()
 	p.blok = true
 	if p.pochodnia_w_rece:
 		napis(p.w - Vector2(0.9, 0.9), "POCHODNIA W RĘCE — [F]", Color("f59e0b"), 10)
@@ -985,8 +989,10 @@ func parowanie_start() -> void:
 ## Długość okna parowania gracza (s): ta sama liczba steruje regułą i zapowiedzią ciosu na ekranie.
 func dlugosc_okna_parowania() -> float:
 	var p := gracz
-	var tarcza: float = float(Dane.p(p.rynsztunek["shield"]["id"])["parryBonus"]) if p.rynsztunek["shield"] else 0.0
-	return 0.28 + tarcza + Profil.budynek("altar") * 0.04 + (Profil.poziom("parry") - 1) * 0.015
+	var aktywna: Dictionary = Dane.aktywna_tarcza(p.rynsztunek)
+	var tarcza: float = float(Dane.p(aktywna["id"])["parryBonus"]) if not aktywna.is_empty() else 0.0
+	var okno: float = 0.28 + tarcza + Profil.budynek("altar") * float(Dane.ekonomia.get("altarParryBonus", 0.02)) + (Profil.poziom("parry") - 1) * 0.015
+	return okno * 0.5 if Dane.dwureczna(p.rynsztunek) else okno
 
 
 func pochodnia() -> void:
@@ -1111,7 +1117,8 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 		if p.parowanie_cd > 0.0 and p.okno_parowania <= 0.0:
 			napis(p.w - Vector2(0.8, 1.2), "ZA WCZEŚNIE", Color("fcd34d"), 11)
 	if p.blok and p.stamina > 6.0:
-		var redukcja: float = 0.3 if p.pochodnia_w_rece else (float(Dane.p(p.rynsztunek["shield"]["id"])["blockRed"]) if p.rynsztunek["shield"] else 0.45)
+		var aktywna: Dictionary = Dane.aktywna_tarcza(p.rynsztunek)
+		var redukcja: float = 0.3 if p.pochodnia_w_rece else (float(Dane.p(aktywna["id"])["blockRed"]) if not aktywna.is_empty() else 0.45)
 		p.stamina = maxf(0.0, p.stamina - surowe * 0.65 * (1.8 if (en != null and en.ciezki) else 1.0))
 		obr *= 1.0 - redukcja
 		p.stamina_przerwa = PRZERWA_STAMINY
@@ -1129,7 +1136,7 @@ func trafienie_gracza(en, surowe: float, dystansowe := false) -> void:
 	else:
 		var zbroja = p.rynsztunek["armor"]
 		if zbroja and float(zbroja["durability"]) > 0.0:
-			var red := float(Dane.p(zbroja["id"])["reduction"])
+			var red: float = Dane.ochrona_pancerza(zbroja)
 			var poch := obr * red
 			zbroja["durability"] = maxf(0.0, float(zbroja["durability"]) - poch * 0.75)
 			obr = maxf(2.0, obr - poch)
@@ -1694,7 +1701,7 @@ func zakoncz(przezyl: bool, powod: String) -> void:
 		var zostaje: Array = []
 		for it in l["backpack"]:
 			var t := Dane.typ(it["id"])
-			wartosc += Dane.cena_skupu(it["id"])
+			wartosc += Dane.cena_skupu(it)
 			if (t == "valuable" or t == "material") and prof["stash"].size() < Profil.max_skrytka():
 				prof["stash"].append(it)
 			else:

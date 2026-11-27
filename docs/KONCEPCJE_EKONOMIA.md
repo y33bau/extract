@@ -2,7 +2,7 @@ Stan na 2026-11-27, rola agent główny
 
 # Koncepcja ekonomii i wyposażenia
 
-Status dokumentu — propozycja do decyzji autora. Uwagi Claude’a sprawdzono w kodzie gałęzi oprawa-parowania-i-lupu. Ten dokument porządkuje zakres kolejnych rund. Publikacja dokumentu nie zatwierdza nowych wartości balansu.
+Status dokumentu — kierunek oraz zapis rundy wdrożonej na polecenie autora. Uwagi Claude’a sprawdzono w kodzie gałęzi oprawa-parowania-i-lupu. Ten dokument porządkuje zakres kolejnych rund. Wartości bieżącej wersji testowej opisuje końcowa sekcja dokumentu.
 
 ## Stan potwierdzony w kodzie
 
@@ -37,15 +37,9 @@ Każda runda wymaga określenia zakresu przez autora i oddzielnej gałęzi.
 - Dwie szable, buzdygan i noże do rzucania wymagają oceny modeli, animacji i obsługi walki.
 - Klucze, oleje, kadzidła, okazje, Żar Piętna i zmiana Relikwiarza pozostają pomysłami do oddzielnej decyzji.
 
-## Wartości oczekujące na decyzję
+## Decyzja o wdrożeniu
 
-| Propozycja z opinii | Stan |
-|---|---|
-| Kuźnia +12% → +8% na poziom | Do zatwierdzenia przez autora |
-| Ołtarz +0,04 s → +0,02 s na poziom | Do zatwierdzenia przez autora |
-| postureDmg dla każdej broni | Tabela do przygotowania i zatwierdzenia |
-| Koszt uniku, utrata ochrony i naprawa | Wartości do przygotowania i zatwierdzenia |
-| Osobne stawki skupu | Wartości do przygotowania i zatwierdzenia |
+Autor zlecił wdrożenie poprawionej rundy. Poniżej zapisano wartości wersji testowej, które wymagają dalszego strojenia podczas gry.
 
 ## Kryteria sprawdzenia przy wdrożeniu
 
@@ -56,6 +50,35 @@ Każda runda wymaga określenia zakresu przez autora i oddzielnej gałęzi.
 - Każda zmiana mechaniki otrzymuje test zgodnie z zasadami projektu. Wyniki testów i ograniczenia trafiają do dziennika.
 - Znane błędy pada pozostają odłożone zgodnie z decyzją autora.
 
-## Zalecany następny krok
 
-Najpierw przygotować tabelę chwytu i obrażeń postury dla pięciu istniejących broni białych. Autor zatwierdza liczby przed wdrożeniem.
+## Wdrożona runda do oceny autora — 2026-11-27
+
+Autor zlecił wdrożenie poprawionej rundy i doprecyzował, że parowanie bronią 2H pozostaje dostępne z oknem krótszym o połowę. Wariant do testu jest na gałęzi `ekonomia-bron-i-pancerz`.
+
+| Broń | Chwyt | Podstawowe obrażenia postury |
+|---|---|---|
+| Zardzewiały Miecz | 1H | 22 |
+| Stalowy Kordelas | 1H | 25 |
+| Glewia Strażnika | 2H | 46 |
+| Czarny Miecz Popiołów | 2H | 66 |
+| Topór Popielnego Kata | 2H | 98 |
+
+Współczynniki zwykłego i ciężkiego ciosu wynoszą nadal 0,85 i 1,9. Obrażenia postury otrzymują premię Kuźni. Tarcza pozostaje w slocie przy 2H, jej blok i premia parowania są nieaktywne. Pochodnia jest odkładana przed pierwszym ciosem lub próbą parowania 2H. Okno parowania 2H wynosi połowę bazowego okna z premiami Ołtarza i biegłości, bez premii tarczy.
+
+| Pancerz | Dodatkowy koszt uniku |
+|---|---|
+| Skórzany | 0 |
+| Kolczuga | 4 |
+| Płyta | 9 |
+
+Ochrona jest proporcjonalna do pozostałej wytrzymałości. Naprawa kosztuje 35% ceny zakupu pomnożone przez brakującą część wytrzymałości, z zaokrągleniem w górę. Marga naprawia pancerze założone, w skrytce, sakwie i Relikwiarzu.
+
+Stawki skupu w `godot/dane/ekonomia.json` wynoszą 45% dla broni, tarcz i łuków, 40% dla pancerzy, 35% dla strzał i mikstur, 65% dla surowców oraz 80% dla kosztowności. Cena strzał uwzględnia ilość. Skup pancerza spada od 100% tej stawki przy pełnym stanie do 25% przy stanie zerowym.
+
+Dar Margi sprawdza również broń w Relikwiarzu. Zachowuje już założoną tarczę. Nowe dary mają wartość skupu 0 zł. Brak miejsca może uniemożliwić dodanie flaszki, lecz miecz trafia bezpośrednio do dłoni. Naprawa i sprzedaż ponownie sprawdzają aktualny przedmiot po jego identyfikatorze.
+
+Kuźnia daje +8% na poziom, Ołtarz +0,02 s na poziom. Wszystkie dobrane w tej rundzie wartości są do strojenia po ocenie autora.
+
+Zapis v2 automatycznie przejmuje profil v1 przy pierwszym uruchomieniu. Wczytanie starego pancerza bez pola wytrzymałości uzupełnia pełną wartość z definicji przedmiotu.
+
+Zakres kolejnej rundy ustali autor po zagraniu.

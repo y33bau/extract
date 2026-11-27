@@ -408,7 +408,7 @@ func _rysuj_pasek_akcji() -> void:
 		elif nazwa.begins_with("hud:"):
 			tex = _ikona_hud(nazwa.substr(4))
 		var ile: int = w[1]
-		var pusty := tex == null or (ile == 0 and i < 3)
+		var pusty := tex == null or (ile == 0 and i < 3) or (i == 6 and Dane.dwureczna(z))
 		# podświetlenia stanu: pochodnia w ręce, tarcza przy bloku/parowaniu
 		if (i == 3 and p.pochodnia_w_rece) or (i == 6 and p.blok):
 			pasek.draw_rect(Rect2(srodek - roz * 0.5, roz), Color(1.0, 0.6, 0.2, 0.22))
@@ -570,4 +570,3 @@ func _rysuj_minimape() -> void:
 			minimapa.draw_rect(Rect2(pw.x - 1.5, pw.y - 1.5, 4 if en.boss else 3, 4 if en.boss else 3), Color("f97316") if en.boss else Color("ef4444"))
 	var pg: Vector2 = (r.gracz.w - o) * s
 	minimapa.draw_rect(Rect2(pg.x - 2, pg.y - 2, 4, 4), Color("e6ba63"))
-

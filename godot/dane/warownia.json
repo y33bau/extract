@@ -4,7 +4,7 @@
   "name": "Kuźnia",
   "icon": "⚒️",
   "maxLv": 3,
-  "desc": "Zwiększa obrażenia broni białej (+12% na poziom) i odblokowuje wyższe klasy oręża u Kupca.",
+  "desc": "Zwiększa obrażenia broni białej (+8% na poziom) i odblokowuje wyższe klasy oręża u Kupca.",
   "costs": [
    {
     "gold": 450,
@@ -58,7 +58,7 @@
   "name": "Ołtarz Żaru",
   "icon": "🔥",
   "maxLv": 3,
-  "desc": "Zwiększa maks. Żywotność (+18), Wytrzymałość (+15) oraz wydłuża okno Parowania (+0.04s na poziom).",
+  "desc": "Zwiększa maks. Żywotność (+18), Wytrzymałość (+15) oraz wydłuża okno Parowania (+0.02s na poziom).",
   "costs": [
    {
     "gold": 500,

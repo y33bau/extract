@@ -4,7 +4,8 @@ extends Node
 signal awans(umiejetnosc: String, poziom: int)
 signal zmiana
 
-const SCIEZKA := "user://warownia_zapis_v1.json"
+const SCIEZKA := "user://warownia_zapis_v2.json"
+const STARY_ZAPIS := "user://warownia_zapis_v1.json"
 const SAKWA_MAX := 12
 
 var d: Dictionary = {}
@@ -33,6 +34,7 @@ func domyslny() -> Dictionary:
 	for k in ["melee", "parry", "endurance", "archery", "scavenger"]:
 		sk[k] = {"lv": 1, "xp": 0.0}
 	return {
+		"version": 2,
 		"gold": 650,
 		"stats": {"raids": 0, "survived": 0, "kills": 0, "parries": 0},
 		"stronghold": {"forge": 0, "alchemist": 0, "altar": 0, "vault": 0},
@@ -53,19 +55,25 @@ func domyslny() -> Dictionary:
 
 
 func wczytaj() -> void:
-	if FileAccess.file_exists(sciezka):
-		var f := FileAccess.open(sciezka, FileAccess.READ)
+	var plik: String = sciezka
+	if sciezka == SCIEZKA and not FileAccess.file_exists(sciezka) and FileAccess.file_exists(STARY_ZAPIS):
+		plik = STARY_ZAPIS
+	if FileAccess.file_exists(plik):
+		var f := FileAccess.open(plik, FileAccess.READ)
 		var w: Variant = JSON.parse_string(f.get_as_text())
 		if w is Dictionary and w.has("loadout") and w.has("stronghold") and w.has("skills"):
 			d = w
 			if not d.has("kontrakty"):  # migracja zapisu sprzed kontraktów (25.11.2026)
 				d["kontrakty"] = nowe_kontrakty(3)
 			_napraw_liczby()
+			if plik != sciezka:
+				zapisz()
 			return
 	d = domyslny()
 
 
 func _napraw_liczby() -> void:
+	d["version"] = 2
 	# JSON zamienia liczby całkowite na zmiennoprzecinkowe: przywracamy
 	d["gold"] = int(d["gold"])
 	for k in d["stats"]:
@@ -82,6 +90,12 @@ func _napraw_liczby() -> void:
 			if it.has("qty"):
 				it["qty"] = int(it["qty"])
 
+	for lista in [d["stash"], d["loadout"]["backpack"], d["loadout"]["reliquary"], [d["loadout"].get("armor")]]:
+		for it in lista:
+			if it is Dictionary and Dane.typ(str(it.get("id", ""))) == "armor":
+				var maks: float = float(Dane.p(it["id"])["maxDurability"])
+				it["durability"] = clampf(float(it.get("durability", maks)), 0.0, maks)
+
 
 func zapisz() -> void:
 	var f := FileAccess.open(sciezka, FileAccess.WRITE)
@@ -93,6 +107,84 @@ func zapisz() -> void:
 func resetuj() -> void:
 	d = domyslny()
 	zapisz()
+
+
+## Operacje sklepu zawsze sprawdzają aktualną instancję po uid.
+func przedmiot_uid(uid: String) -> Dictionary:
+	for lista in [d["stash"], d["loadout"]["backpack"], d["loadout"]["reliquary"]]:
+		for it in lista:
+			if str(it.get("uid", "")) == uid and uid != "":
+				return it
+	for slot in ["weapon", "shield", "bow", "armor"]:
+		var it = d["loadout"].get(slot)
+		if it is Dictionary and str(it.get("uid", "")) == uid and uid != "":
+			return it
+	return {}
+
+
+func napraw(uid: String) -> bool:
+	var inst: Dictionary = przedmiot_uid(uid)
+	if inst.is_empty() or Dane.typ(str(inst.get("id", ""))) != "armor":
+		return false
+	var cena: int = Dane.cena_naprawy(inst)
+	if cena <= 0 or int(d["gold"]) < cena:
+		return false
+	d["gold"] = int(d["gold"]) - cena
+	inst["durability"] = float(Dane.p(inst["id"])["maxDurability"])
+	zapisz()
+	return true
+
+
+func sprzedaj(uid: String) -> int:
+	for lista in [d["stash"], d["loadout"]["backpack"]]:
+		for i in lista.size():
+			var it: Dictionary = lista[i]
+			if str(it.get("uid", "")) != uid or uid == "":
+				continue
+			var cena: int = Dane.cena_skupu(it)
+			if cena <= 0:
+				return 0
+			lista.remove_at(i)
+			d["gold"] = int(d["gold"]) + cena
+			zapisz()
+			return cena
+	return 0
+
+
+func dar_dostepny() -> bool:
+	if d["loadout"].get("weapon") != null:
+		return false
+	for lista in [d["stash"], d["loadout"]["backpack"], d["loadout"]["reliquary"]]:
+		for it in lista:
+			if Dane.typ(str(it.get("id", ""))) == "weapon":
+				return false
+	return int(d["gold"]) < int(Dane.p("rusty_sword")["price"])
+
+
+func przyjmij_dar() -> bool:
+	if not dar_dostepny():
+		return false
+	var bron: Dictionary = nowy_przedmiot("rusty_sword")
+	bron["dar_margi"] = true
+	d["loadout"]["weapon"] = bron
+	if d["loadout"].get("shield") == null:
+		var tarcza: Dictionary = nowy_przedmiot("wood_buckler")
+		tarcza["dar_margi"] = true
+		d["loadout"]["shield"] = tarcza
+	var ma_flaszke := false
+	for lista in [d["stash"], d["loadout"]["backpack"], d["loadout"]["reliquary"]]:
+		for it in lista:
+			if it.get("id") == "ember_flask":
+				ma_flaszke = true
+	if not ma_flaszke:
+		var do_sakwy: bool = d["loadout"]["backpack"].size() < SAKWA_MAX
+		var cel: Array = d["loadout"]["backpack"] if do_sakwy else d["stash"]
+		if cel.size() < (SAKWA_MAX if do_sakwy else max_skrytka()):
+			var flaszka: Dictionary = nowy_przedmiot("ember_flask")
+			flaszka["dar_margi"] = true
+			cel.append(flaszka)
+	zapisz()
+	return true
 
 
 func max_skrytka() -> int:

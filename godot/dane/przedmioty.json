@@ -11,7 +11,9 @@
   "arc": 1.35,
   "stamina": 14,
   "cooldown": 0.34,
-  "desc": "Wysłużone ostrze wygnańca. Szybkie i niezawodne."
+  "desc": "Wysłużone ostrze wygnańca. Szybkie i niezawodne.",
+  "hands": 1,
+  "postureDmg": 22
  },
  "steel_falchion": {
   "id": "steel_falchion",
@@ -25,7 +27,9 @@
   "arc": 1.5,
   "stamina": 16,
   "cooldown": 0.32,
-  "desc": "Zakrzywiona stal dobrze wyważona do szybkich kombinacji."
+  "desc": "Zakrzywiona stal dobrze wyważona do szybkich kombinacji.",
+  "hands": 1,
+  "postureDmg": 25
  },
  "warden_glaive": {
   "id": "warden_glaive",
@@ -39,7 +43,9 @@
   "arc": 1.45,
   "stamina": 21,
   "cooldown": 0.44,
-  "desc": "Długa broń drzewcowa o szerokim zasięgu cięcia."
+  "desc": "Długa broń drzewcowa o szerokim zasięgu cięcia.",
+  "hands": 2,
+  "postureDmg": 46
  },
  "ash_greatsword": {
   "id": "ash_greatsword",
@@ -53,7 +59,9 @@
   "arc": 1.75,
   "stamina": 24,
   "cooldown": 0.48,
-  "desc": "Wykuty w żarze miecz o potężnej sile przełamującej."
+  "desc": "Wykuty w żarze miecz o potężnej sile przełamującej.",
+  "hands": 2,
+  "postureDmg": 66
  },
  "executioner_axe": {
   "id": "executioner_axe",
@@ -67,7 +75,9 @@
   "arc": 1.8,
   "stamina": 28,
   "cooldown": 0.54,
-  "desc": "Legendarny topór bojowy zadający druzgocące ciosy."
+  "desc": "Legendarny topór bojowy zadający druzgocące ciosy.",
+  "hands": 2,
+  "postureDmg": 98
  },
  "wood_buckler": {
   "id": "wood_buckler",
@@ -161,7 +171,8 @@
   "tier": 1,
   "maxDurability": 50,
   "reduction": 0.24,
-  "desc": "Lekka zbroja zapewniająca podstawową ochronę (24% redukcji)."
+  "desc": "Lekka zbroja zapewniająca podstawową ochronę (24% redukcji).",
+  "dodgeCost": 0
  },
  "chainmail_hauberk": {
   "id": "chainmail_hauberk",
@@ -173,7 +184,8 @@
   "tier": 2,
   "maxDurability": 90,
   "reduction": 0.42,
-  "desc": "Gęsto pleciona kolczuga (42% redukcji obrażeń)."
+  "desc": "Gęsto pleciona kolczuga (42% redukcji obrażeń).",
+  "dodgeCost": 4
  },
  "ash_plate": {
   "id": "ash_plate",
@@ -185,7 +197,8 @@
   "tier": 3,
   "maxDurability": 140,
   "reduction": 0.58,
-  "desc": "Ciężki pancerz płytowy wykuty w popiele (58% redukcji)."
+  "desc": "Ciężki pancerz płytowy wykuty w popiele (58% redukcji).",
+  "dodgeCost": 9
  },
  "ember_flask": {
   "id": "ember_flask",

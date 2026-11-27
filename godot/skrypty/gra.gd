@@ -56,10 +56,12 @@ func _ready() -> void:
 	pauza.wznowiono.connect(func(): if _w_tytule: tytul.visible = true; tytul.przycisk_opcje.grab_focus())
 	var narzedzia_agenta := false
 	for a in OS.get_cmdline_user_args():
-		if a == "--test" or a.begins_with("--podglad") or a.begins_with("--pomiar"):
+		if a in ["--test", "--test-ekonomii"] or a.begins_with("--podglad") or a.begins_with("--pomiar"):
 			narzedzia_agenta = true
 	if not narzedzia_agenta:
 		pokaz_tytul.call_deferred()
+	if "--test-ekonomii" in OS.get_cmdline_user_args():
+		_test_ekonomii.call_deferred()
 	if "--test" in OS.get_cmdline_user_args():
 		_test.call_deferred()
 	for a in OS.get_cmdline_user_args():
@@ -1176,13 +1178,24 @@ func _test_walki_uczciwej(p, en) -> void:
 			wrecz[j].atak_timer = 99.0
 			wrecz[j].uspiony = true
 			wrecz[j].w = pozycje[j]
-	# wspólna przerwa strzelców
-	var luk = rajd._dodaj_wroga("archer", p.w + Vector2(cos(p.kat), sin(p.kat)) * 5.0, 0.0)
+	# Łucznik musi mieć widok gracza. Stały punkt pięć metrów od postaci mógł wypaść za murem.
+	var miejsce_lucznika: Vector2 = p.w
+	var ma_widok := false
+	for odleglosc in [5.0, 2.5, 1.5]:
+		for kierunek in range(8):
+			var punkt: Vector2 = p.w + Vector2.from_angle(kierunek * PI / 4.0) * odleglosc
+			if not rajd.pelne(punkt.x, punkt.y) and rajd.linia_wzroku(punkt, p.w):
+				miejsce_lucznika = punkt
+				ma_widok = true
+				break
+		if ma_widok:
+			break
+	var luk = rajd._dodaj_wroga("archer", miejsce_lucznika, 0.0)
 	luk.stan = "walka"
 	luk.atak_timer = 0.0
 	rajd.przerwa_lucznikow = 0.8
 	rajd._wrogowie(0.016)
-	_ok("wspólna przerwa strzelców: łucznik czeka, gdy inny właśnie strzelał", luk.zamach <= 0.0 and luk.atak_timer > 0.5)
+	_ok("wspólna przerwa strzelców: łucznik czeka, gdy inny właśnie strzelał", ma_widok and luk.zamach <= 0.0 and luk.atak_timer > 0.5, "widok %s, zamach %.2f, przerwa %.2f" % [ma_widok, luk.zamach, luk.atak_timer])
 	rajd.wrogowie.erase(luk)
 	luk.queue_free()
 	rajd.przerwa_lucznikow = 0.0
@@ -1902,6 +1915,7 @@ func _test() -> void:
 			_zrzuty = a.substr(9)
 			DirAccess.make_dir_recursive_absolute(_zrzuty)
 	Profil.resetuj()
+	_test_ekonomia_danych()
 	print("-- test gry Godot (symulowany pad)")
 	await _czekaj(0.4)
 	await _test_tytulu()
@@ -2209,3 +2223,174 @@ func _test() -> void:
 	var zle := _wyniki.count(false)
 	print("\nWYNIK (godot): ", "OK" if zle == 0 else "BŁĘDY: %d" % zle, "  (%d/%d)" % [_wyniki.size() - zle, _wyniki.size()])
 	get_tree().quit(0 if zle == 0 else 1)
+
+
+## Regresja ekonomii: rzeczywiste transakcje, walka i migracja starego zapisu.
+func _test_ekonomii() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--zrzuty="):
+			_zrzuty = arg.trim_prefix("--zrzuty=")
+			DirAccess.make_dir_recursive_absolute(_zrzuty)
+	Profil.resetuj()
+	_test_ekonomia_danych()
+	await _czekaj(0.4)
+	var plyta: Dictionary = Profil.nowy_przedmiot("ash_plate")
+	var cena_pelna: int = Dane.cena_skupu(plyta)
+	plyta["durability"] = 70.0
+	_ok("ekonomia: zużycie stopniowo obniża ochronę i skup", is_equal_approx(Dane.ochrona_pancerza(plyta), 0.29) and Dane.cena_skupu(plyta) < cena_pelna)
+	Profil.d["loadout"]["armor"] = plyta
+	var koszt: int = Dane.cena_naprawy(plyta)
+	Profil.d["gold"] = koszt - 1
+	_ok("ekonomia: brak złota zatrzymuje naprawę", not Profil.napraw(plyta["uid"]) and is_equal_approx(float(plyta["durability"]), 70.0))
+	Profil.d["gold"] = 2000
+	_ok("ekonomia: naprawa odejmuje dokładny koszt", Profil.napraw(plyta["uid"]) and int(Profil.d["gold"]) == 2000 - koszt and Dane.cena_naprawy(plyta) == 0)
+	var zloto: int = int(Profil.d["gold"])
+	_ok("ekonomia: ponowna naprawa jest bezskuteczna", not Profil.napraw(plyta["uid"]) and int(Profil.d["gold"]) == zloto)
+	for skad in ["stash", "backpack", "reliquary"]:
+		var it: Dictionary = Profil.nowy_przedmiot("leather_jerkin")
+		it["durability"] = 5.0
+		var lista: Array = Profil.d["stash"] if skad == "stash" else Profil.d["loadout"][skad]
+		lista.append(it)
+		_ok("ekonomia: naprawa z " + skad, Profil.napraw(it["uid"]) and Dane.stan_pancerza(it) == 1.0)
+	var strzaly: Dictionary = Profil.nowy_przedmiot("iron_arrows", 1)
+	var cena_strzaly: int = Dane.cena_skupu(strzaly)
+	_ok("ekonomia: częściowy kołczan ma proporcjonalną cenę", cena_strzaly > 0 and cena_strzaly < Dane.cena_skupu("iron_arrows"))
+	Profil.d["stash"].append(strzaly)
+	zloto = int(Profil.d["gold"])
+	_ok("ekonomia: sprzedaż jest jednorazowa", Profil.sprzedaj(strzaly["uid"]) == cena_strzaly and Profil.sprzedaj(strzaly["uid"]) == 0 and int(Profil.d["gold"]) == zloto + cena_strzaly)
+	Profil.d["gold"] = 0
+	Profil.d["stash"] = []
+	Profil.d["loadout"]["backpack"] = []
+	Profil.d["loadout"]["reliquary"] = [Profil.nowy_przedmiot("steel_falchion")]
+	Profil.d["loadout"]["weapon"] = null
+	_ok("ekonomia: broń w Relikwiarzu wyklucza dar", not Profil.dar_dostepny())
+	Profil.d["loadout"]["reliquary"] = []
+	var stara_tarcza: Dictionary = Profil.d["loadout"]["shield"]
+	_ok("ekonomia: dar pozwala wrócić do walki", Profil.przyjmij_dar() and not Profil.dar_dostepny())
+	_ok("ekonomia: dar zachowuje obecną tarczę", Profil.d["loadout"]["shield"]["uid"] == stara_tarcza["uid"])
+	var dar: Dictionary = Profil.d["loadout"]["weapon"]
+	Profil.d["loadout"]["weapon"] = null
+	Profil.d["stash"].append(dar)
+	_ok("ekonomia: daru nie można zamienić w złoto", Dane.cena_skupu(dar) == 0 and Profil.sprzedaj(dar["uid"]) == 0 and int(Profil.d["gold"]) == 0)
+	Profil.zapisz()
+	Profil.wczytaj()
+	_ok("ekonomia: znacznik daru przeżywa zapis", bool(Profil.d["stash"][0].get("dar_margi", false)))
+	var stary: Dictionary = Profil.nowy_przedmiot("ash_plate")
+	stary.erase("durability")
+	Profil.d["loadout"]["armor"] = stary
+	Profil.d.erase("version")
+	var stary_plik := FileAccess.open(Profil.sciezka, FileAccess.WRITE)
+	stary_plik.store_string(JSON.stringify(Profil.d))
+	stary_plik.close()
+	Profil.wczytaj()
+	stary = Profil.d["loadout"]["armor"]
+	_ok("ekonomia: stary pancerz otrzymuje poprawny stan", Dane.stan_pancerza(stary) == 1.0 and int(Profil.d.get("version", 0)) == 2)
+	Profil.resetuj()
+	rozpocznij_rajd("catacombs", "EKONOMIA1")
+	await _czekaj(0.4)
+	var p = rajd.gracz
+	for en in rajd.wrogowie:
+		en.uspiony = true
+	var zestaw: Dictionary = p.rynsztunek
+	zestaw["armor"] = Profil.nowy_przedmiot("leather_jerkin")
+	p.stamina = 100.0
+	rajd.unik(Vector2.RIGHT)
+	_ok("ekonomia: skórzany pancerz, unik za 22", is_equal_approx(p.stamina, 78.0))
+	p.unik_cd = 0.0
+	p.unik_czas = 0.0
+	p.stamina = 100.0
+	zestaw["armor"] = Profil.nowy_przedmiot("ash_plate")
+	rajd.unik(Vector2.RIGHT)
+	_ok("ekonomia: płytowy pancerz, unik za 31", is_equal_approx(p.stamina, 69.0))
+	p.unik_czas = 0.0
+	p.niet = 0.0
+	p.riposta_niet = 0.0
+	p.blok = false
+	p.okno_parowania = 0.0
+	p.hp = 100.0
+	zestaw["armor"]["durability"] = 70.0
+	rajd.trafienie_gracza(null, 20.0, true)
+	_ok("ekonomia: ochrona uszkodzonej płyty działa w walce", is_equal_approx(p.hp, 85.8))
+	zestaw["weapon"] = Profil.nowy_przedmiot("rusty_sword")
+	zestaw["shield"] = null
+	Profil.d["stronghold"]["altar"] = 2
+	Profil.d["skills"]["parry"]["lv"] = 3
+	var jednor: float = rajd.dlugosc_okna_parowania()
+	zestaw["weapon"] = Profil.nowy_przedmiot("ash_greatsword")
+	zestaw["shield"] = Profil.nowy_przedmiot("ash_aegis")
+	_ok("ekonomia: dwuręczna ma połowę okna po premiach", is_equal_approx(rajd.dlugosc_okna_parowania(), jednor * 0.5) and Dane.aktywna_tarcza(zestaw).is_empty())
+	_ok("ekonomia: animacja dwuręcznej pomija tarczę", p.zestaw_dla(zestaw) == "dwureczny")
+	p.parowanie_cd = 0.0
+	p.pochodnia_w_rece = true
+	rajd.parowanie_start()
+	_ok("ekonomia: dwuręczna paruje po odłożeniu pochodni", p.okno_parowania > 0.0 and not p.pochodnia_w_rece and rajd.pochodnia_na_ziemi != null)
+	var cel = rajd.wrogowie[0]
+	cel.ciezki = false
+	p.niet = 0.0
+	rajd.trafienie_gracza(cel, 20.0)
+	_ok("ekonomia: dwuręczne parowanie ogłusza przeciwnika", cel.ogluszenie > 0.0 and p.okno_parowania == 0.0)
+	_ok("ekonomia: postureDmg jest osobne od obrażeń", Dane.postura_broni(Dane.p("executioner_axe")) == 98.0 and Dane.postura_broni(Dane.p("steel_falchion")) == 25.0)
+	# Rzeczywisty cios wykorzystuje postureDmg, a nie dmg.
+	cel.ogluszenie = 0.0
+	cel.hp = 9999.0
+	cel.hp_max = 9999.0
+	cel.postura = 1000.0
+	cel.postura_max = 1000.0
+	_ustaw_wroga_przed(cel, 1.2)
+	p.cios_bron = Dane.p("executioner_axe")
+	p.cios_ciezki = false
+	p.atak_kat = p.kat
+	rajd._ciecie()
+	_ok("ekonomia: faktyczny cios zadaje posturę topora", is_equal_approx(cel.postura, 1000.0 - 98.0 * 0.85), "postura %.2f" % cel.postura)
+	zestaw["weapon"] = Profil.nowy_przedmiot("rusty_sword")
+	var okno_z_tarcza: float = rajd.dlugosc_okna_parowania()
+	_ok("ekonomia: powrót do 1H aktywuje zachowaną tarczę", not Dane.aktywna_tarcza(zestaw).is_empty() and okno_z_tarcza > jednor)
+	rajd.queue_free()
+	hud.queue_free()
+	okno.queue_free()
+	rajd = null
+	hud = null
+	okno = null
+	await _klatka()
+	_przystan()
+	# Przycisk naprawy w normalnym ekranie Margi.
+	Profil.d["gold"] = 2000
+	Profil.d["loadout"]["armor"]["durability"] = 25.0
+	hub.tryb_kupca = "kup"
+	hub.zakladki.current_tab = 2
+	otworz_menu(2)
+	await _klatka()
+	var nap = null
+	for w in hub.kram.lista.get_children():
+		if w is Button and str(w.get_meta("klucz", "")).begins_with("napraw_"):
+			nap = w
+	if nap != null:
+		nap.grab_focus()
+		nap.focus_entered.emit()
+	await _zrzut("ekonomia_naprawa")
+	if nap != null:
+		nap.pressed.emit()
+	_ok("ekonomia: naprawa działa przez przycisk Margi", nap != null and Dane.stan_pancerza(Profil.d["loadout"]["armor"]) == 1.0)
+	await _klatka()
+	print("WYNIK (ekonomia): ", "OK" if not _wyniki.has(false) else "BŁĄD", " (", _wyniki.count(true), "/", _wyniki.size(), ")")
+	get_tree().quit(0 if not _wyniki.has(false) else 1)
+
+
+func _test_ekonomia_danych() -> void:
+	var rodzaje: Dictionary = {"rusty_sword": 1, "steel_falchion": 1, "warden_glaive": 2, "ash_greatsword": 2, "executioner_axe": 2}
+	var poprawne := true
+	for id in rodzaje:
+		var def: Dictionary = Dane.p(id)
+		poprawne = poprawne and int(def.get("hands", 0)) == int(rodzaje[id]) and Dane.postura_broni(def) > 0.0
+	_ok("ekonomia: pięć broni ma chwyt i posturę", poprawne)
+	var bez: Dictionary = {"armor": null}
+	var plyta: Dictionary = {"armor": Profil.nowy_przedmiot("ash_plate")}
+	_ok("ekonomia: ciężka zbroja zwiększa koszt uniku także przy wysokiej biegłości", Dane.koszt_uniku(plyta, 10) > Dane.koszt_uniku(bez, 10))
+	var bez_zysku := true
+	for id in ["leather_jerkin", "chainmail_hauberk", "ash_plate"]:
+		var inst: Dictionary = Profil.nowy_przedmiot(id)
+		var pelny: int = Dane.cena_skupu(inst)
+		inst["durability"] = 0.0
+		bez_zysku = bez_zysku and pelny - Dane.cena_naprawy(inst) <= Dane.cena_skupu(inst)
+	_ok("ekonomia: naprawa i sprzedaż nie tworzą darmowego zysku", bez_zysku)
+	_ok("ekonomia: fallback dla starej definicji broni", Dane.postura_broni({"dmg": 17}) == 17.0)

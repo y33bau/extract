@@ -197,6 +197,8 @@ func _wyprawa() -> void:
 		var it = l[s[0]]
 		var nazwa: String = Dane.p(it["id"])["name"] if it else "brak"
 		var dop := "  ·  %d strzał" % strzaly if s[0] == "bow" and it else ""
+		if s[0] == "shield" and it and Dane.dwureczna(l):
+			dop += "  ·  odłożona przy broni 2H"
 		ekran.lista.add_child(_wiersz_info(Dane.ikona(it["id"]) if it else null, "%s: %s%s" % [s[1], nazwa, dop], Ui.M_TEKST if it else Ui.M_OSTRZ))
 	ekran.lista.add_child(_wiersz_info(Dane.ikona("ember_flask"), "Flaszki Żaru: %d   ·   Sakwa %d/12   ·   Relikwiarz %d/%d" % [flaszki, l["backpack"].size(), l["reliquary"].size(), Profil.max_relikwiarz()], Ui.M_TEKST if flaszki > 0 else Ui.M_OSTRZ))
 	_pokaz_kraine(wybrana)
@@ -306,6 +308,8 @@ func _ekwipunek() -> void:
 	_stopka("Przenieś", [["y", "Shift + klik", "Do Relikwiarza"]])
 	ekran.stopka_listy.text = "Skrytka %d/%d  ·  Sakwa %d/12  ·  Relikwiarz %d/%d" % [d["stash"].size(), Profil.max_skrytka(), l["backpack"].size(), l["reliquary"].size(), Profil.max_relikwiarz()]
 	ekran.lista.add_child(Ui.belka_sekcji("Rynsztunek na wyprawę"))
+	if Dane.dwureczna(l) and l.get("shield") != null:
+		ekran.lista.add_child(Ui.tekst_menu("Broń 2H: tarcza odłożona, okno parowania krótsze o połowę.", 14, Ui.M_OSTRZ))
 	for s in [["weapon", "Broń"], ["shield", "Tarcza"], ["bow", "Łuk"], ["armor", "Pancerz"]]:
 		var slot: String = s[0]
 		if l[slot] == null:
@@ -503,22 +507,35 @@ func _kupiec() -> void:
 	kram.stopka_listy.text = "Kuźnia Warowni: poziom %d  ·  lepszy oręż odblokowuje Kuźnia" % kuznia
 	_kram_ostatni = null
 	if tryb_kupca == "kup":
-		var ma_bron: bool = d["loadout"]["weapon"] != null
-		for it in d["stash"] + d["loadout"]["backpack"]:
-			if Dane.typ(it["id"]) == "weapon":
-				ma_bron = true
-		if not ma_bron and d["gold"] < 200:
+		if Profil.dar_dostepny():
 			kram.lista.add_child(Ui.belka_sekcji("Dar Margi"))
 			var z := Ui.wiersz_listy(Dane.ikona("rusty_sword"), "Zestaw Wygnańca", "Miecz, puklerz i Flaszka Żaru", "0 zł")
 			z.set_meta("klucz", "zestaw")
 			z.pressed.connect(func():
 				_fokus_klucz = "zestaw"
-				d["loadout"]["weapon"] = Profil.nowy_przedmiot("rusty_sword")
-				d["loadout"]["shield"] = Profil.nowy_przedmiot("wood_buckler")
-				if d["loadout"]["backpack"].size() < Profil.SAKWA_MAX:
-					d["loadout"]["backpack"].append(Profil.nowy_przedmiot("ember_flask"))
-				_zmiana())
-			_kram_wiersz(z, func(): _kram_pokaz_tekst("Zestaw Wygnańca", "DAR MARGI", "Dla tych, którzy wracają z niczym: zardzewiały miecz, drewniany puklerz i jedna Flaszka Żaru. Za darmo, raz na biedę.", "Weź zestaw", func(): z.pressed.emit()))
+				if Profil.przyjmij_dar():
+					_zmiana())
+			_kram_wiersz(z, func(): _kram_pokaz_tekst("Zestaw Wygnańca", "DAR MARGI", "Dla tych, którzy wracają z niczym: zardzewiały miecz, drewniany puklerz i jedna Flaszka Żaru. Dary mają wartość skupu 0 zł. Puklerz otrzymasz, jeśli nie masz założonej tarczy. Flaszkę dostaniesz, jeśli nie masz żadnej i masz na nią miejsce.", "Weź zestaw", func(): z.pressed.emit()))
+		kram.lista.add_child(Ui.belka_sekcji("Naprawa pancerza"))
+		var pancerze: Array = d["stash"] + d["loadout"]["backpack"] + d["loadout"]["reliquary"]
+		if d["loadout"].get("armor") != null:
+			pancerze.append(d["loadout"]["armor"])
+		for inst in pancerze:
+			if Dane.typ(str(inst.get("id", ""))) != "armor" or Dane.cena_naprawy(inst) <= 0:
+				continue
+			var naprawiany: Dictionary = inst
+			var uid: String = str(inst.get("uid", ""))
+			var cena_naprawy: int = Dane.cena_naprawy(inst)
+			var nap := Ui.wiersz_listy(Dane.ikona(inst["id"]), "Napraw: " + str(Dane.p(inst["id"])["name"]), "Wytrzymałość %d%%" % roundi(Dane.stan_pancerza(inst) * 100), "%d zł" % cena_naprawy, false, Ui.M_ZLOTO if int(d["gold"]) >= cena_naprawy else Ui.M_OSTRZ)
+			nap.set_meta("klucz", "napraw_" + uid)
+			nap.pressed.connect(func():
+				_fokus_klucz = "napraw_" + uid
+				if Profil.napraw(uid):
+					_zmiana()
+				else:
+					_info("Naprawa niedostępna. Sprawdź stan pancerza i złoto."))
+			_kram_wiersz(nap, func():
+				_kram_pokaz_tekst(str(Dane.p(naprawiany["id"])["name"]), "NAPRAWA", Dane.opis_statystyk(naprawiany), "Napraw za %d zł" % Dane.cena_naprawy(naprawiany), func(): nap.pressed.emit()))
 		for sek in SEKCJE_KRAMU:
 			var typy: Array = ["bow", "arrow"] if sek[0] == "bow" else [sek[0]]
 			var ids: Array = []
@@ -550,7 +567,7 @@ func _kupiec() -> void:
 		for w0 in wpisy:
 			var ls0: Array = d["stash"] if w0[0] == "stash" else d["loadout"]["backpack"]
 			if Dane.typ(ls0[w0[1]]["id"]) == "valuable":
-				suma += Dane.cena_skupu(ls0[w0[1]]["id"])
+				suma += Dane.cena_skupu(ls0[w0[1]])
 		kram.lista.add_child(Ui.belka_sekcji("Kosztowności"))
 		var wk := Ui.wiersz_listy(_ikona_lub(Dane.ikona("runic_ring"), "hud:sakwa"), "Sprzedaj wszystkie kosztowności", "Surowce zostają na rozbudowę Warowni", "+%d zł" % suma, suma == 0)
 		wk.set_meta("klucz", "sprzedaj_kosztownosci")
@@ -560,7 +577,7 @@ func _kupiec() -> void:
 			for lista in [d["stash"], d["loadout"]["backpack"]]:
 				for i in range(lista.size() - 1, -1, -1):
 					if Dane.typ(lista[i]["id"]) == "valuable":
-						zysk += Dane.cena_skupu(lista[i]["id"])
+						zysk += Dane.cena_skupu(lista[i])
 						lista.remove_at(i)
 			d["gold"] += zysk
 			_info("Sprzedano kosztowności za %d zł." % zysk if zysk > 0 else "Brak kosztowności na sprzedaż.")
@@ -573,20 +590,19 @@ func _kupiec() -> void:
 			kram.lista.add_child(Ui.belka_sekcji("%s  %d" % [zrodlo_nazwa[1], lista_z.size()]))
 			for idx in lista_z.size():
 				var it: Dictionary = lista_z[idx]
-				var cena := Dane.cena_skupu(it["id"])
+				var cena := Dane.cena_skupu(it)
 				var zrodlo: String = zrodlo_nazwa[0]
 				var nr: int = idx
+				var sprzedawany_uid: String = str(it.get("uid", ""))
 				var def := Dane.p(it["id"])
 				var dop := " ×%d" % int(it.get("qty", 0)) if def.get("type") == "arrow" else ""
-				var w := Ui.wiersz_listy(Dane.ikona(it["id"]), str(def["name"]) + dop, str(Dane.NAZWY_TYPOW.get(def.get("type"), "")), "+%d zł" % cena)
+				var w := Ui.wiersz_listy(Dane.ikona(it["id"]), str(def["name"]) + dop, str(Dane.NAZWY_TYPOW.get(def.get("type"), "")), "+%d zł" % cena, cena <= 0)
 				w.set_meta("klucz", "sp_%s%d" % [zrodlo, nr])
 				w.pressed.connect(func():
 					_fokus_klucz = "sp_%s%d" % [zrodlo, nr]
-					var ls: Array = d["stash"] if zrodlo == "stash" else d["loadout"]["backpack"]
-					ls.remove_at(nr)
-					d["gold"] += cena
-					Dzwiek.monety()
-					_zmiana())
+					if Profil.sprzedaj(sprzedawany_uid) > 0:
+						Dzwiek.monety()
+						_zmiana())
 				var itk := it
 				_kram_wiersz(w, func(): _pokaz_szczegoly(itk["id"], itk, -cena))
 		if wpisy.is_empty():
@@ -616,13 +632,13 @@ func _krotkie_staty(inst: Dictionary) -> String:
 	var d := Dane.p(inst["id"])
 	match str(d.get("type", "")):
 		"weapon":
-			return "Obrażenia %d  ·  Stamina %d" % [d["dmg"], d["stamina"]]
+			return "%dH  ·  Obrażenia %d  ·  Postura %d" % [int(d.get("hands", 1)), d["dmg"], roundi(Dane.postura_broni(d))]
 		"shield":
 			return "Blok %d%%  ·  Parowanie +%d ms" % [roundi(d["blockRed"] * 100), roundi(d["parryBonus"] * 1000)]
 		"bow":
 			return "Obrażenia %d  ·  Zasięg %d m" % [d["dmg"], roundi(float(d["range"]))]
 		"armor":
-			return "Redukcja %d%%  ·  Klasa %d" % [roundi(d["reduction"] * 100), int(d["tier"])]
+			return "Ochrona %d%%  ·  Unik +%d staminy" % [roundi(Dane.ochrona_pancerza(inst) * 100), int(d.get("dodgeCost", 0))]
 		"arrow":
 			return "%d szt." % int(inst.get("qty", 0))
 	return str(Dane.NAZWY_TYPOW.get(d.get("type"), ""))
@@ -668,14 +684,19 @@ func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
 		"weapon":
 			kram.szczegoly.add_child(Ui.para("Obrażenia", "%d" % int(def["dmg"])))
 			kram.szczegoly.add_child(Ui.para("Stamina za cios", "%d" % int(def["stamina"])))
+			kram.szczegoly.add_child(Ui.para("Chwyt", "%dH" % int(def.get("hands", 1))))
+			kram.szczegoly.add_child(Ui.para("Obrażenia postury", "%d" % roundi(Dane.postura_broni(def))))
+			if int(def.get("hands", 1)) == 2:
+				kram.szczegoly.add_child(Ui.tekst_menu("Tarcza odłożona. Okno parowania bronią krótsze o połowę.", 14, Ui.M_DRUGI))
 		"shield":
 			kram.szczegoly.add_child(Ui.para("Blok", "%d%%" % roundi(def["blockRed"] * 100)))
 			kram.szczegoly.add_child(Ui.para("Parowanie", "+%d ms" % roundi(def["parryBonus"] * 1000)))
 		"bow":
 			kram.szczegoly.add_child(Ui.para("Obrażenia", "%d" % int(def["dmg"])))
 		"armor":
-			kram.szczegoly.add_child(Ui.para("Redukcja", "%d%%  (Kl. %d)" % [roundi(def["reduction"] * 100), int(def["tier"])]))
-			kram.szczegoly.add_child(Ui.para("Wytrzymałość", "%d" % int(def["maxDurability"])))
+			kram.szczegoly.add_child(Ui.para("Redukcja", "%d%%  (Kl. %d)" % [roundi(Dane.ochrona_pancerza(inst) * 100), int(def["tier"])]))
+			kram.szczegoly.add_child(Ui.para("Wytrzymałość", "%d / %d" % [ceili(float(inst.get("durability", def["maxDurability"]))), int(def["maxDurability"])]))
+			kram.szczegoly.add_child(Ui.para("Unik", "+%d staminy" % int(def.get("dodgeCost", 0))))
 		"arrow":
 			kram.szczegoly.add_child(Ui.para("Ilość", "%d szt." % int(inst.get("qty", 0))))
 	# porównanie z założonym tego samego rodzaju: zielone ▲ lepsze, czerwone ▼ gorsze
@@ -692,7 +713,7 @@ func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
 			roznica = roundi((float(def["blockRed"]) - float(zd["blockRed"])) * 100)
 			co = "blok %+d%%" % roznica
 		elif t == "armor":
-			roznica = roundi((float(def["reduction"]) - float(zd["reduction"])) * 100)
+			roznica = roundi((Dane.ochrona_pancerza(inst) - Dane.ochrona_pancerza(zal)) * 100)
 			co = "redukcja %+d%%" % roznica
 		_sz_porown.text = "Założone: %s   %s %s" % [zd["name"], "▲" if roznica > 0 else ("▼" if roznica < 0 else "="), co]
 		_sz_porown.add_theme_color_override("font_color", Ui.M_ZIELONY if roznica > 0 else (Ui.M_OSTRZ if roznica < 0 else Ui.M_DRUGI))
@@ -700,7 +721,9 @@ func _pokaz_szczegoly(id: String, inst: Dictionary, cena: int) -> void:
 		_sz_porown.text = "Nie masz założonego przedmiotu tego rodzaju."
 	kram.szczegoly.add_child(_sz_porown)
 	var kuznia := Profil.budynek("forge")
-	if cena < 0:
+	if bool(inst.get("dar_margi", false)) and tryb_kupca == "sprzedaj":
+		_kram_dol("", Callable(), true, "Dar Margi ma wartość skupu 0 zł.")
+	elif cena < 0:
 		_kram_dol("Sprzedaj za %d zł" % -cena, func(): if _kram_ostatni: _kram_ostatni.pressed.emit(), false)
 	elif int(def.get("forgeReq", 0)) > kuznia:
 		_kram_dol("Kup za %d zł" % cena, Callable(), false, "Wymaga Kuźni na poziomie %d." % int(def["forgeReq"]))

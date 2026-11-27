@@ -103,7 +103,7 @@ static func zestaw_dla(rynsz: Dictionary) -> String:
 	if rynsz.get("weapon"):
 		var id: String = rynsz["weapon"]["id"]
 		z = bron_wyg.get(id, wyg.get("domyslny", "dwureczny"))
-	if rynsz.get("shield"):
+	if not Dane.aktywna_tarcza(rynsz).is_empty():
 		var z_tarcza: Dictionary = wyg.get("z_tarcza", {})
 		z = z_tarcza.get(z, z)
 	return z

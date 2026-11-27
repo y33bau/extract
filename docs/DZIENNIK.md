@@ -17,6 +17,22 @@ Jedno miejsce, w którym każdy agent (z każdego konta) zostawia ślad pracy. *
 
 ---
 
+## 2026-11-27 — Codex, rola gamedev — pierwsza runda ekonomii
+
+- Gałąź: `ekonomia-bron-i-pancerz`, od `koncepcja-ekonomii`.
+- Decyzje autora: wdrożyć poprawioną koncepcję. Broń dwuręczna nadal paruje, okno krótsze o połowę. Nowe modele przeciwników i bossowie pozostają odłożone. Znane błędy pada autor odkłada na później.
+- Zrobione: chwyt 1H/2H i postureDmg pięciu broni; tarcza zachowana w slocie, nieaktywna przy 2H. Okno parowania 2H jest połówką bazy z premiami Ołtarza i biegłości. Premia tarczy przy 2H nie działa. Pochodnia jest odkładana przed pierwszym ciosem lub parowaniem 2H.
+- Pancerz: stopniowa ochrona według stanu wytrzymałości, dodatkowy koszt uniku 0/4/9 dla skóry/kolczugi/płyty. Marga naprawia założone i przechowywane pancerze. Cena naprawy 35% wartości zakupu razy brakująca wytrzymałość.
+- Skup: broń/tarcza/łuk 45%, pancerz 40%, strzały/mikstury 35%, surowce 65%, kosztowności 80%. Uwzględniane są ilość strzał, stan pancerza i znacznik daru. Transakcje używają aktualnego uid i ponownie sprawdzają koszt.
+- Dar Margi: sprawdza broń także w Relikwiarzu, zachowuje istniejącą tarczę, nowy dar ma wartość skupu 0 zł. Próg pomocy odpowiada cenie podstawowego miecza.
+- Liczby do strojenia: postureDmg 22/25/46/66/98; Kuźnia +8% na poziom, Ołtarz +0,02 s na poziom oraz powyższe stawki i koszty.
+- Zapis v2: automatycznie importuje v1, zachowując wyposażenie, złoto i umiejętności. Stary plik pozostaje źródłem migracji. Eksport obejmuje nowy ekonomia.json przez istniejący filtr dane/*.json.
+- Testy w paczce Windows Forward+: ekonomia OK 30/30; pełny 147/161. Równoległa kontrola bazowej paczki 143/157. Te same 14 niezaliczonych kontroli. Bez nowych błędów parsowania. Test łuczników poprawiony przez zapewnienie pola widzenia, zachowany warunek wspólnej przerwy strzału.
+- Kontrola startowej migracji v1→v2: złoto, stan pancerza, całe wyposażenie, skrytka i umiejętności zachowane. Kontrola zawartości paczki: skrypty i dane odpowiadają źródłom. Paczkę złożono z istniejącego runtime Godot 4.7.2 z aktualnymi skryptami i danymi.
+- Paczka dla autora: `Warownia_Ekonomia_Test.zip` i `Warownia_Ekonomia_Test/TEST_EKONOMIA.bat`.
+- Nie sprawdzono fizycznego pada, odsłuchu i długoterminowej ekonomii wielu wypraw. Pełny test nadal zgłasza znane błędy nawigacji i końca rajdu. Renderer zgłasza również zasoby pozostające w użyciu przy kończeniu testu.
+- Następny krok: ocena kosztów i wyczucia broni przez autora w paczce testowej.
+
 ## 2026-11-27 — Codex, rola agent główny — koncepcja ekonomii
 - Gałąź: koncepcja-ekonomii, od oprawa-parowania-i-lupu.
 - Sprawdzono opinię Claude’a w źródłach. Zapisano docs/KONCEPCJE_EKONOMIA.md. Doprecyzowano istniejący Dar Margi i utratę ochrony przy zerowej wytrzymałości. Rozdzielono zależności hałasu, pojemników i Zmroku.

@@ -6,6 +6,8 @@ Wszystko, co agent musi wiedzieć, żeby bezpiecznie zmieniać kod gry. Zasady n
 
 ---
 
+Od rundy ekonomii zapis v2 automatycznie importuje istniejący plik warownia_zapis_v1.json przy pierwszym uruchomieniu. Opcja --zapis zachowuje wskazaną ścieżkę testową.
+
 ## 1. Parametry projektu
 
 | Rzecz | Wartość |
@@ -17,7 +19,7 @@ Wszystko, co agent musi wiedzieć, żeby bezpiecznie zmieniać kod gry. Zasady n
 | Filtr tekstur | najbliższy sąsiad (piksele ostre) |
 | Folder projektu | `godot/` (w edytorze otwórz ten folder) |
 | Scena główna | `godot/gra.tscn` → skrypt `skrypty/gra.gd` |
-| Zapis gracza | `user://warownia_zapis_v1.json` (Windows: `%APPDATA%\Godot\app_userdata\Warownia Popiolow\`) |
+| Zapis gracza | `user://warownia_zapis_v2.json` (Windows: `%APPDATA%\Godot\app_userdata\Warownia Popiolow\`) |
 
 Sceny budujemy **w kodzie** (węzły tworzone w `_ready`), a nie w edytorze. Dzięki temu cała gra jest czytelna jako tekst, agent może ją zmieniać i testować bez edytora, a w repo nie ma trudnych do scalenia plików `.tscn`.
 

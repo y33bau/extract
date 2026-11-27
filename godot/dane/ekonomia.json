@@ -1,0 +1,15 @@
+{
+ "sellRates": {
+  "weapon": 0.45,
+  "shield": 0.45,
+  "bow": 0.45,
+  "arrow": 0.35,
+  "armor": 0.4,
+  "elixir": 0.35,
+  "material": 0.65,
+  "valuable": 0.8
+ },
+ "repairRate": 0.35,
+ "forgeBonus": 0.08,
+ "altarParryBonus": 0.02
+}
